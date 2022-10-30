@@ -7,4 +7,4 @@ class RoundVideo(models.Model):
         bad = 'bad'
     tg_id = models.IntegerField()
     user_tg_id = models.IntegerField()
-    transaction_type = models.CharField('Статус кружочка', max_length=20, choices=VideoStatus.choices)
+    status = models.CharField('Статус кружочка', max_length=20, choices=VideoStatus.choices)
