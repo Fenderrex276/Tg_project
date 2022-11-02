@@ -10,11 +10,12 @@ from branches.confirm_dispute.states import Promo
 from branches.dispute_with_friend.states import Form
 from utils import get_date_to_start_dispute
 
+
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
     await Promo.input_promo.set()
     await state.update_data(action='alcohol')
     await call.message.answer(text=alcohol_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_alcohol_keyboard)
+                              reply_markup=really_confirm_alcohol_keyboard)
     await call.answer()
 
 
@@ -22,7 +23,7 @@ async def choice_smoking(call: types.CallbackQuery, state: FSMContext):
     await Promo.input_promo.set()
     await state.update_data(action='smoking')
     await call.message.answer(text=smoking_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_alcohol_keyboard)
+                              reply_markup=really_confirm_alcohol_keyboard)
     await call.answer()
 
 
@@ -31,7 +32,7 @@ async def choice_drugs(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='drugs')
 
     await call.message.answer(text=drugs_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_alcohol_keyboard)
+                              reply_markup=really_confirm_alcohol_keyboard)
     await call.answer()
 
 
@@ -41,7 +42,7 @@ async def choice_gym(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='gym')
 
     await call.message.answer(text=gymm_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_gym_keyboard)
+                              reply_markup=really_confirm_gym_keyboard)
     await call.answer()
 
 
@@ -50,7 +51,7 @@ async def choice_lose_weight(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='weight')
 
     await call.message.answer(text=weight_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_gym_keyboard)
+                              reply_markup=really_confirm_gym_keyboard)
     await call.answer()
 
 
@@ -59,7 +60,7 @@ async def choice_early_morning(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='morning')
 
     await call.message.answer(text=morning_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_morning_keyboard)
+                              reply_markup=really_confirm_morning_keyboard)
     await call.answer()
 
 
@@ -68,7 +69,7 @@ async def choice_other_language(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='language')
 
     await call.message.answer(text=language_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_language_keyboard)
+                              reply_markup=really_confirm_language_keyboard)
     await call.answer()
 
 
@@ -77,7 +78,7 @@ async def choice_more_money(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='money')
 
     await call.message.answer(text=money_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_more_money_keyboard)
+                              reply_markup=really_confirm_more_money_keyboard)
     await call.answer()
 
 
@@ -86,7 +87,7 @@ async def choice_healthy_food(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='food')
 
     await call.message.answer(text=healthy_food_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_food_keyboard)
+                              reply_markup=really_confirm_food_keyboard)
     await call.answer()
 
 
@@ -95,7 +96,7 @@ async def choice_programming(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='programming')
 
     await call.message.answer(text=programming_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_programming_keyboard)
+                              reply_markup=really_confirm_programming_keyboard)
     await call.answer()
 
 
@@ -104,7 +105,7 @@ async def choice_instruments(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action="instruments")
 
     await call.message.answer(text=instruments_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_instruments_keyboard)
+                              reply_markup=really_confirm_instruments_keyboard)
     await call.answer(text=instruments_msg2)
 
 
@@ -113,7 +114,7 @@ async def choice_painting(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='painting')
 
     await call.message.answer(text=painting_msg, parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=really_confirm_painting_keyboard)
+                              reply_markup=really_confirm_painting_keyboard)
     await call.answer()
 
 
@@ -140,10 +141,8 @@ async def geo_position(call: types.CallbackQuery, state: FSMContext):
 
 
 async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
-
-
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
-    await call.message.answer(text=tmp_msg)
+    await call.message.answer(text=tmp_msg, reply_markup=types.ReplyKeyboardRemove())
     variant = await state.get_data()
     date_to_start = get_date_to_start_dispute(call.message.date, variant['start_disput'])
 
@@ -217,9 +216,9 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
             photo = InputFile("media/disputs_images/hundred.jpg")
         elif variant['additional_action'] == 'three_hundred':
             photo = InputFile("media/disputs_images/three_hundred.jpg")
-            choice_msg = f'{confirm_money_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                         f'{second_msg}'
-            tmp_keyboard = money_deposit_keyboard
+        choice_msg = f'{confirm_money_disput_msg}Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
+                     f'{second_msg}'
+        tmp_keyboard = money_deposit_keyboard
 
     elif variant['action'] == 'food':
         photo = InputFile("media/disputs_images/food.jpg")
@@ -238,15 +237,15 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
             photo = InputFile("media/disputs_images/piano.jpg")
         elif variant['additional_action'] == 'guitar':
             photo = InputFile("media/disputs_images/guitar.jpg")
-            choice_msg = f'{confirm_programming_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                         f'{second_msg}'
-            tmp_keyboard = instruments_deposit_keyboard
+        choice_msg = f'{confirm_programming_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
+                     f'{second_msg}'
+        tmp_keyboard = instruments_deposit_keyboard
 
-        elif variant['action'] == 'painting':
-            photo = InputFile("media/disputs_images/painting.jpg")
-            choice_msg = f'{confirm_programming_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                         f'{second_msg} '
-            tmp_keyboard = painting_deposit_keyboard
+    elif variant['action'] == 'painting':
+        photo = InputFile("media/disputs_images/painting.jpg")
+        choice_msg = f'{confirm_programming_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
+                     f'{second_msg} '
+        tmp_keyboard = painting_deposit_keyboard
 
     await call.message.answer_photo(photo=photo)
     await call.message.answer(text=choice_msg, reply_markup=tmp_keyboard, parse_mode=ParseMode.MARKDOWN_V2)

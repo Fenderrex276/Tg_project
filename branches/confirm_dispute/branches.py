@@ -52,6 +52,7 @@ class ConfirmDispute:
         await message.answer(text=msg, reply_markup=menu_keyboard)
 
         variant = await state.get_data()
+        print(message.date)
         date_to_start = get_date_to_start_dispute(message.date, variant['start_disput'])
         choice_msg = ""
         tmp_keyboard = types.InlineKeyboardMarkup

@@ -2,12 +2,12 @@ from aiogram import types
 
 really_confirm_alcohol_keyboard = types.InlineKeyboardMarkup(row_width=2)
 button1 = types.InlineKeyboardButton(text='👍 Есть / Куплю', callback_data='next_step_two')
-button2 = types.InlineKeyboardButton(text='Назад', callback_data='back_drink_smoke_drugs')
-really_confirm_alcohol_keyboard.add(button1, button2)
+# button2 = types.InlineKeyboardButton(text='Назад', callback_data='back_drink_smoke_drugs')
+really_confirm_alcohol_keyboard.add(button1)
 
 really_confirm_gym_keyboard = types.InlineKeyboardMarkup(row_width=2)
-button3 = types.InlineKeyboardButton(text='Назад', callback_data='sport_lose_weight')
-really_confirm_gym_keyboard.add(button1, button3)
+# button3 = types.InlineKeyboardButton(text='Назад', callback_data='sport_lose_weight')
+really_confirm_gym_keyboard.add(button1)
 
 really_confirm_morning_keyboard = types.InlineKeyboardMarkup(row_width=2)
 first = types.InlineKeyboardButton(text='в 5:00', callback_data='five_am')
@@ -16,7 +16,6 @@ third = types.InlineKeyboardButton(text='в 7:00', callback_data='seven_am')
 fourth = types.InlineKeyboardButton(text='в 8:00', callback_data='eight_am')
 really_confirm_morning_keyboard.add(first, second)
 really_confirm_morning_keyboard.add(third, fourth)
-really_confirm_morning_keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data="early_morning1"))
 
 really_confirm_language_keyboard = types.InlineKeyboardMarkup(row_width=2)
 english = types.InlineKeyboardButton(text='Английский', callback_data='english')
@@ -28,23 +27,22 @@ french = types.InlineKeyboardButton(text='Французский', callback_data
 really_confirm_language_keyboard.add(english, chinese)
 really_confirm_language_keyboard.add(spanish, arabian)
 really_confirm_language_keyboard.add(italian, french)
-really_confirm_language_keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='other_language1'))
 
 really_confirm_more_money_keyboard = types.InlineKeyboardMarkup(row_width=2)
 hundred = types.InlineKeyboardButton(text='100 000 ₽', callback_data='hundred')
 hundred3 = types.InlineKeyboardButton(text='300 000 ₽', callback_data='three_hundred')
 really_confirm_more_money_keyboard.add(hundred, hundred3)
-really_confirm_more_money_keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='more_money1'))
+# really_confirm_more_money_keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='more_money1'))
 
 really_confirm_food_keyboard = types.InlineKeyboardMarkup(row_width=2)
 button5 = types.InlineKeyboardButton(text='👍 Я понял/а', callback_data='agree_food')
-button6 = types.InlineKeyboardButton(text='Назад', callback_data='healthy_food1')
-really_confirm_food_keyboard.add(button5, button6)
+# button6 = types.InlineKeyboardButton(text='Назад', callback_data='healthy_food1')
+really_confirm_food_keyboard.add(button5)
 
 really_confirm_programming_keyboard = types.InlineKeyboardMarkup(row_width=2)
 button7 = types.InlineKeyboardButton(text='👍 Я понял/а', callback_data='agree_programming')
-button8 = types.InlineKeyboardButton(text='Назад', callback_data='programming1')
-really_confirm_programming_keyboard.add(button7, button8)
+#button8 = types.InlineKeyboardButton(text='Назад', callback_data='programming1')
+really_confirm_programming_keyboard.add(button7)
 
 really_confirm_instruments_keyboard = types.InlineKeyboardMarkup(row_width=2)
 piano = types.InlineKeyboardButton(text='Фортепиано', callback_data='piano')

@@ -55,6 +55,6 @@ future_date = datetime.datetime.today() + datetime.timedelta(days=2)
 print(future_date.date().day, myMonth, "через два дня будет делать!")
 print(datetime.datetime.weekday(now))
 print(myMonth)"""
-
-print(get_date_to_start_dispute(datetime.datetime.today(), "select_monday"))
+print(datetime.datetime.today())
+print(get_date_to_start_dispute(datetime.datetime.today(), "select_after_tomorrow"))
 

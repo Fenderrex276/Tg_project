@@ -17,7 +17,8 @@ class DisputeWithFriend:
 
     def register_commands(self):
         # команды
-        self.dp.register_message_handler(self.dispute_handler, text=[menu_keyboard, "🤜 Спорим 🤛"], state=Form.none)
+        self.dp.register_message_handler(self.dispute_handler, text=[menu_keyboard, "🤜 Спорим 🤛"], state="*")
+        self.dp.register_message_handler(self.dispute_handler, text=[menu_keyboard, "🤜 Спорим 🤛"])
 
     def register_handlers(self):
         ...

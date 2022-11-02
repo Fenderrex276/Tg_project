@@ -9,9 +9,10 @@ from branches.confirm_dispute.branches import ConfirmDispute
 from aiogram import executor
 from branches.training.callbacks import register_callback as rc5
 from branches.training.branches import Training
-
-branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training]
-callbacks = [rc1, rc2, rc3, rc4, rc5]
+from branches.thirty_days_dispute.branches import CurrentDispute
+from branches.thirty_days_dispute.callbacks import register_callback as rc6
+branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training, CurrentDispute]
+callbacks = [rc1, rc2, rc3, rc4, rc5, rc6]
 
 
 class DisputeBot:

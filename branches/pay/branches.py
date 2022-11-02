@@ -27,9 +27,9 @@ class Pay:
     async def input_other_sum(self, message: types.Message, state: FSMContext):
 
         if int(message.text) > 150000:
-            print('Сумма не должна превышать 150 000 ₽')
+            await message.answer(text='Сумма не должна превышать 150000 ₽')
         elif int(message.text) < 15000:
-            print('Сумма должна быть не менее 15 000 ₽')
+            await message.answer(text='Сумма должна быть не менее 15000 ₽')
         else:
             print('Готово')
             await state.update_data(deposit=message.text)

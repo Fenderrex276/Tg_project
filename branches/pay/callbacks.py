@@ -17,9 +17,8 @@ async def choose_sum_to_pay(call: types.CallbackQuery):
 async def check_sum(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(deposit=call.data)
     await PayStates.none.set()
-    await call.message.answer(text='Готово')
-    await call.message.answer(text=application_for_payment_msg, reply_markup=get_banking_detials_keyboard,
-                              parse_mode=ParseMode.MARKDOWN)
+    await call.message.edit_text(text=application_for_payment_msg, reply_markup=get_banking_detials_keyboard,
+                                 parse_mode=ParseMode.MARKDOWN)
 
 
 async def other_sum_to_pay(call: types.CallbackQuery):
@@ -32,7 +31,7 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
     bank_details_msg = ("Заявка #TG2802\n Переведи точную сумму:\n"
                         f" {money['deposit']} ₽\n По реквизитам карты:\n"
                         " 4276 4000 4033 9999\n (без коммента)")
-    await call.message.answer(text=bank_details_msg, reply_markup=confirm_deposit_payed_keyboard)
+    await call.message.edit_text(text=bank_details_msg, reply_markup=confirm_deposit_payed_keyboard)
 
 
 async def successful_payment(call: types.CallbackQuery, state: FSMContext):
@@ -43,7 +42,7 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
                            f" 🔥 Твой депозит пополнен на {v['deposit']} ₽ и заморожен до конца пари — соблюдай "
                            f"условия каждый"
                            " из 30 дней и сохрани депозит, всё зависит только от тебя")
-    await call.message.answer(text=success_payment_msg, reply_markup=go_keyboard)
+    await call.message.edit_text(text=success_payment_msg, reply_markup=go_keyboard)
 
 
 async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
@@ -129,8 +128,8 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
                                 "До победы осталось 30 дней\n"
                                 f"Право на ошибку: {data['promocode']}")
 
-    await call.message.answer(text=start_current_disput_msg, reply_markup=next_step_keyboard,
-                              parse_mode=ParseMode.MARKDOWN)
+    await call.message.edit_text(text=start_current_disput_msg, reply_markup=next_step_keyboard,
+                                 parse_mode=ParseMode.MARKDOWN)
 
 
 def register_callback(bot, dp: Dispatcher):
