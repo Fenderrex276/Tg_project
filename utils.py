@@ -56,5 +56,5 @@ print(future_date.date().day, myMonth, "через два дня будет де
 print(datetime.datetime.weekday(now))
 print(myMonth)"""
 print(datetime.datetime.today())
-print(get_date_to_start_dispute(datetime.datetime.today(), "select_after_tomorrow"))
+# print(get_date_to_start_dispute(datetime.datetime.today(), "select_after_tomorrow"))
 

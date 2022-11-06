@@ -34,3 +34,16 @@ knowledge_base_keyboard.add(types.InlineKeyboardButton(text='🎪 Медиате
 knowledge_base_keyboard.add(types.InlineKeyboardButton(text='🥺 Минута отчаяния', callback_data='despair'))
 knowledge_base_keyboard.add(types.InlineKeyboardButton(text='🧠 FAQ', callback_data='faq'))
 knowledge_base_keyboard.add(types.InlineKeyboardButton(text='👍🏼 Отзывы об игре', callback_data='reviews'))
+
+
+account_keyboard = types.InlineKeyboardMarkup(row_width=2)
+account_keyboard.add(types.InlineKeyboardButton(text='💎 Моё имя', callback_data='change_name'),
+                     types.InlineKeyboardButton(text='💰 Депозит', callback_data='deposit'))
+account_keyboard.add(types.InlineKeyboardButton(text='🌍 Часовой пояс', callback_data='timezone'),
+                     types.InlineKeyboardButton(text='🆘 Поддержка', callback_data='support'))
+
+
+change_name_keyboard = types.InlineKeyboardMarkup(row_width=2)
+change_name_keyboard.add(types.InlineKeyboardButton(text='Изменить', callback_data="change_name_access"),
+                         types.InlineKeyboardButton(text='Оставить так', callback_data="cancel_change_name"))
+
