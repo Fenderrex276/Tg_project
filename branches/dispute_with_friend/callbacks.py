@@ -94,7 +94,7 @@ async def update_disput_choice(call: types.CallbackQuery, state: FSMContext):
     print(v)
     print(call.message.message_id)
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    await call.bot.delete_message(call.message.chat.id, v['id_to_delete'])
+#    await call.bot.delete_message(call.message.chat.id, v['id_to_delete'])
     tmp_msg = ''
     tmp_keyboard = types.InlineKeyboardMarkup
     video = InputFile

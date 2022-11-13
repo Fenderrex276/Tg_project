@@ -18,7 +18,7 @@ class Start:
         self.dp.register_message_handler(self.start_handler, commands=["start"])
 
         self.dp.register_message_handler(self.faq_handler, text=[menu_keyboard, "🫀FAQ"], state="*")
-
+        self.dp.register_message_handler(self.reviews, text=[menu_keyboard, "👍Отзывы"], state="*")
     def register_handlers(self):
         ...
 
@@ -44,4 +44,10 @@ class Start:
         await self.bot.delete_message(message.chat.id, message.message_id)
         
         await self.bot.send_message(message.from_user.id, first_faq_msg, reply_markup=first_button)
+
+    async def reviews(self, message: types.Message):
+        msg = "Читайте отзывы пользователей об игре и их личном опыте на нашем телеграмм-канале:"
+
+        await self.bot.send_message(message.from_user.id, text=msg, reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(text="Открыть", url="https://t.me/DisputeGame")))
 

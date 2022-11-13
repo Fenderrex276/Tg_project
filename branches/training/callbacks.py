@@ -1,3 +1,5 @@
+import uuid
+
 from aiogram import Dispatcher
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -68,13 +70,15 @@ async def send_video_note(call: types.CallbackQuery, state: FSMContext):
 
 
 async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
-
     v = await state.get_data()
     print(v)
 
     await RoundVideo.objects.acreate(tg_id=v['video_id'],
-                                     user_tg_id=call.from_user.id, chat_tg_id=call.message.chat.id)
-
+                                     user_tg_id=call.from_user.id,
+                                     chat_tg_id=call.message.chat.id,
+                                     code_in_video="3028",
+                                     id_video=uuid.uuid4().time_mid,
+                                     type_video=RoundVideo.TypeVideo.test)
 
     tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
     await Video.none.set()
@@ -91,16 +95,15 @@ async def send_new_video(call: types.CallbackQuery, state: FSMContext):
 
 async def pin_a_chat(call: types.CallbackQuery):
     photo = InputFile("media/training/done.jpg")
-    await call.message.answer(text=pin_chat_msg)
 
-    await call.message.answer_photo(photo=photo, reply_markup=success_pin_keyboard)
+    await call.message.answer_photo(photo=photo, caption=pin_chat_msg, reply_markup=success_pin_keyboard)
 
 
 async def end_test_dispute(call: types.CallbackQuery):
     photo = InputFile("media/training/end_test.jpg")
-    await call.message.answer_photo(photo=photo)
     msg = "Поздравляем! Теперь ты сможешь добиться любой своей цели. Удачи 😉"
-    await call.message.answer(text=msg, reply_markup=go_to_dispute_keyboard)
+
+    await call.message.answer_photo(photo=photo, caption=msg, reply_markup=go_to_dispute_keyboard)
 
 
 def register_callback(bot, dp: Dispatcher):

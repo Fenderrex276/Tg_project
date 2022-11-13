@@ -11,9 +11,9 @@ async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
     recieve_message = video_text(data)
-    await call.message.answer_photo(photo=InputFile(recieve_message[0]))
-    await call.message.answer(text=recieve_message[1], reply_markup=menu_keyboard,
-                              parse_mode=ParseMode.MARKDOWN)
+    await call.message.answer_photo(photo=InputFile(recieve_message[0]), caption=recieve_message[1],
+                                    reply_markup=menu_keyboard,
+                                    parse_mode=ParseMode.MARKDOWN)
 
 
 def video_text(data: dict):

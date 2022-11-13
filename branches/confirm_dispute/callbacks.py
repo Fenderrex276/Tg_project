@@ -142,14 +142,16 @@ async def geo_position(call: types.CallbackQuery, state: FSMContext):
 
 async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
+
     await call.message.answer(text=tmp_msg, reply_markup=types.ReplyKeyboardRemove())
     variant = await state.get_data()
-    date_to_start = get_date_to_start_dispute(call.message.date, variant['start_disput'])
+    date_to_start = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
 
     choice_msg = ""
     tmp_keyboard = types.InlineKeyboardMarkup
     photo = InputFile
     promocode = variant['promocode']
+
     if variant['action'] == 'alcohol':
         photo = InputFile("media/disputs_images/alcohol.jpg")
         choice_msg = f'{confirm_alcohol_disput_msg} Начало 🚩{date_to_start} \n Право на ошибку: {promocode}\n\n' \
@@ -247,9 +249,8 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
                      f'{second_msg} '
         tmp_keyboard = painting_deposit_keyboard
 
-    await call.message.answer_photo(photo=photo)
-    await call.message.answer(text=choice_msg, reply_markup=tmp_keyboard, parse_mode=ParseMode.MARKDOWN_V2)
-    await state.update_data({'id_to_delete': call.message.message_id + 2})
+    await call.message.answer_photo(photo=photo, caption=choice_msg, reply_markup=tmp_keyboard, parse_mode=ParseMode.MARKDOWN_V2)
+    await state.update_data({'id_to_delete': call.message.message_id})
     await Promo.next()
 
 

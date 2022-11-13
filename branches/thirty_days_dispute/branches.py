@@ -1,10 +1,12 @@
+import datetime
+
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode, InputFile
 from .keyboards import *
 from .states import StatesDispute
 from .callbacks import video_text
-
+import pytz
 
 class CurrentDispute:
     def __init__(self, bot: Bot, dp: Dispatcher):
@@ -36,9 +38,10 @@ class CurrentDispute:
         recieve_message = video_text(data)
         await state.update_data(name=message.from_user.first_name)
 
-        await message.answer_photo(photo=InputFile(recieve_message[0]))
-        await message.answer(text=recieve_message[1], reply_markup=report_diary_keyboard,
-                             parse_mode=ParseMode.MARKDOWN)
+        await message.answer_photo(photo=InputFile(recieve_message[0]),
+                                   caption=recieve_message[1],
+                                   reply_markup=report_diary_keyboard,
+                                   parse_mode=ParseMode.MARKDOWN)
 
     async def knowledge_base(self, message: types.Message):
         await StatesDispute.knowledge_base.set()
@@ -56,7 +59,9 @@ class CurrentDispute:
                "Здесь ты можешь изменить своё имя, вывести выигранный депозит, "
                "изменить свой часовой пояс или написать свой вопрос в тех. "
                "поддержку через форму обратной связи.")
-
+        print(message.date.utcnow())
+        future_date = message.date.utcnow() + datetime.timedelta(days=7, hours=7)
+        print(future_date)
         await message.answer(text=msg, reply_markup=account_keyboard, parse_mode=ParseMode.MARKDOWN)
 
     async def input_name(self, message: types.Message, state: FSMContext):
@@ -68,3 +73,5 @@ class CurrentDispute:
     async def process_name_invalid(self, message: types.Message):
         msg = "Максимум 20 символов, пожалуйста попробуйте ещё раз"
         return await message.answer(msg)
+
+

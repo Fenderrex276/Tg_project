@@ -1,6 +1,5 @@
 from aiogram.utils.markdown import link
 
-date_to_start = ''
 
 test_alcohol_link = link("Например", "https://novosibirsk.vseinstrumenti.ru/avtogarazhnoe-oborudovanie/avtomobilnye"
                                      "-aksessuary/avarijnoe/alkotestery/delta/at-200/")

@@ -7,6 +7,7 @@ from branches.confirm_dispute.states import Promo
 from branches.pay.keyboards import *
 from branches.pay.messages import *
 from branches.pay.states import PayStates
+from db.models import Users
 
 
 async def choose_sum_to_pay(call: types.CallbackQuery):
@@ -127,6 +128,21 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
                                 f"⏳ Отправлять в бот до {time_before}\n\n"
                                 "До победы осталось 30 дней\n"
                                 f"Право на ошибку: {data['promocode']}")
+
+    start_d = ""
+    if data['start_disput'] == "select_after_tomorrow":
+        start_d = "tomorrow"
+    elif data['start_disput'] == "select_monday":
+        start_d = "monday"
+    deposit = int(data['deposit'].replace(" ", ""))
+
+    await Users.objects.acreate(user_id=call.from_user.id,
+                                user_name=call.from_user.first_name,
+                                action=data['action'],
+                                additional_action=data['additional_action'],
+                                start_disput=start_d,
+                                deposit=deposit,
+                                count_days=30)
 
     await call.message.edit_text(text=start_current_disput_msg, reply_markup=next_step_keyboard,
                                  parse_mode=ParseMode.MARKDOWN)

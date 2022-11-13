@@ -20,8 +20,12 @@ class Training:
         self.dp.register_message_handler(self.recieve_video_note, content_types=['video_note'],
                                          state=Video.recv_video_note)
         self.dp.register_message_handler(self.recieve_video, content_types=['video'], state=Video.recv_video)
-        self.dp.register_message_handler(self.is_not_a_video, state=Video.recv_video)
-        self.dp.register_message_handler(self.is_not_a_video, state=Video.recv_video_note)
+        self.dp.register_message_handler(self.is_not_a_video,
+                                         content_types=['text', 'audio', 'photo', 'sticker', 'voice'],
+                                         state=Video.recv_video)
+        self.dp.register_message_handler(self.is_not_a_video,
+                                         content_types=['text', 'audio', 'photo', 'sticker', 'voice'],
+                                         state=Video.recv_video_note)
 
     async def recieve_video_note(self, message: types.Message, state: FSMContext):
         file_id = message.video_note.file_id
