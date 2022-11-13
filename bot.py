@@ -12,8 +12,14 @@ from branches.training.callbacks import register_callback as rc5
 from branches.training.branches import Training
 from branches.thirty_days_dispute.branches import CurrentDispute
 from branches.thirty_days_dispute.callbacks import register_callback as rc6
+from branches.knowledge_base.principles_of_success.callbacks import register_callback as rc7
+from branches.knowledge_base.memes.callbacks import register_callback as rc8
+from branches.knowledge_base.despair_minute.callbacks import register_callback as rc9
+from branches.knowledge_base.films.callbacks import register_callback as rc10
+from branches.knowledge_base.books.callbacks import register_callback as rc11
+from branches.knowledge_base.TED.callbacks import register_callback as rc12
 branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training, CurrentDispute]
-callbacks = [rc1, rc2, rc3, rc4, rc5, rc6]
+callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12]
 
 class DisputeBot:
     def __init__(self, bot, dp):
