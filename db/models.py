@@ -33,3 +33,15 @@ class Users(models.Model):
     count_days = models.IntegerField()
     number_dispute = models.CharField(max_length=6)
 
+
+class Support(models.Model):
+    class TypeSolve(models.TextChoices):
+        new = "new"
+        done = "done"
+        in_process = "in_process"
+
+    user_id = models.IntegerField()
+    id_dispute = models.IntegerField()
+    chat_id = models.IntegerField()
+    problem = models.CharField(max_length=256)
+    solved = models.CharField('статус вопроса', choices=TypeSolve.choices, max_length=10)
