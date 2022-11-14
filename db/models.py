@@ -11,6 +11,7 @@ class RoundVideo(models.Model):
         test = "test"
         dispute = "dispute"
         archive = "archive"
+
     tg_id = models.CharField(max_length=90)
     user_tg_id = models.IntegerField()
     chat_tg_id = models.IntegerField()
@@ -21,7 +22,6 @@ class RoundVideo(models.Model):
 
 
 class Users(models.Model):
-
     user_id = models.IntegerField()
     user_name = models.CharField(max_length=20)
     action = models.CharField(max_length=20)
@@ -46,6 +46,7 @@ class Support(models.Model):
     problem = models.CharField(max_length=256)
     solved = models.CharField('статус вопроса', choices=TypeSolve.choices, max_length=10)
 
+
 class FAQ(models.Model):
-    chat_id = models.IntegerField()
-    faq_num = models.IntegerField()
+    chat_id = models.IntegerField(primary_key=True)
+    faq_num = models.IntegerField(default=0)

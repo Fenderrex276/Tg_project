@@ -18,8 +18,9 @@ from branches.knowledge_base.despair_minute.callbacks import register_callback a
 from branches.knowledge_base.films.callbacks import register_callback as rc10
 from branches.knowledge_base.books.callbacks import register_callback as rc11
 from branches.knowledge_base.TED.callbacks import register_callback as rc12
+from branches.knowledge_base.FAQ.callbacks import register_callback as rc13
 branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training, CurrentDispute]
-callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12]
+callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12, rc13]
 
 class DisputeBot:
     def __init__(self, bot, dp):
