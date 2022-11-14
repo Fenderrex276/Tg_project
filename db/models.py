@@ -45,3 +45,7 @@ class Support(models.Model):
     chat_id = models.IntegerField()
     problem = models.CharField(max_length=256)
     solved = models.CharField('статус вопроса', choices=TypeSolve.choices, max_length=10)
+
+class FAQ(models.Model):
+    chat_id = models.IntegerField()
+    faq_num = models.IntegerField()
