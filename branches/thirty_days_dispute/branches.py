@@ -1,12 +1,18 @@
 import datetime
+import random
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode, InputFile
+
+from .diary import questions
 from .keyboards import *
 from .states import StatesDispute
 from .callbacks import video_text
 import pytz
+from .callbacks import random_question
+from ..training.keyboards import send_video_keyboard
+
 
 class CurrentDispute:
     def __init__(self, bot: Bot, dp: Dispatcher):
@@ -30,6 +36,17 @@ class CurrentDispute:
                                          state=StatesDispute.change_name)
 
         self.dp.register_message_handler(self.input_name, state=StatesDispute.change_name)
+        self.dp.register_message_handler(self.recieve_video_note, content_types=['video_note'],
+                                         state=StatesDispute.video_note)
+        self.dp.register_message_handler(self.recieve_video, content_types=['video'], state=StatesDispute.video_note)
+        self.dp.register_message_handler(self.is_not_a_video,
+                                         content_types=['text', 'audio', 'photo', 'sticker', 'voice'],
+                                         state=StatesDispute.video)
+        self.dp.register_message_handler(self.is_not_a_video,
+                                         content_types=['text', 'audio', 'photo', 'sticker', 'voice'],
+                                         state=StatesDispute.video_note)
+        self.dp.register_message_handler(self.inpute_answer, state=StatesDispute.none)
+        self.dp.register_message_handler(self.inpute_support, state=StatesDispute.new_question)
 
     async def the_hero_path(self, message: types.Message, state: FSMContext):
         await StatesDispute.none.set()
@@ -59,9 +76,7 @@ class CurrentDispute:
                "Здесь ты можешь изменить своё имя, вывести выигранный депозит, "
                "изменить свой часовой пояс или написать свой вопрос в тех. "
                "поддержку через форму обратной связи.")
-        print(message.date.utcnow())
-        future_date = message.date.utcnow() + datetime.timedelta(days=7, hours=7)
-        print(future_date)
+
         await message.answer(text=msg, reply_markup=account_keyboard, parse_mode=ParseMode.MARKDOWN)
 
     async def input_name(self, message: types.Message, state: FSMContext):
@@ -74,4 +89,40 @@ class CurrentDispute:
         msg = "Максимум 20 символов, пожалуйста попробуйте ещё раз"
         return await message.answer(msg)
 
+    async def recieve_video_note(self, message: types.Message, state: FSMContext):
+        file_id = message.video_note.file_id
+        await state.update_data(video_id=file_id)
+
+        tmp_msg = "Пожалуйста, проверь, чётко ли слышен 📣 код на этом видео перед отправкой"
+        await message.answer(text=tmp_msg, reply_markup=send_video_keyboard)
+
+    async def recieve_video(self, message: types.Message, state: FSMContext):
+        file_id = message.video.file_id
+
+        await state.update_data(video_id=file_id)
+
+        tmp_msg = "Пожалуйста, проверь, чётко ли слышен 📣 код на этом видео перед отправкой"
+        await message.answer(text=tmp_msg, reply_markup=send_video_keyboard)
+
+    async def is_not_a_video(self, message: types.Message):
+        error_message = "Ошибка. Мы принимаем репорт только в видео-формате."
+        await message.answer(text=error_message, reply_markup=types.ReplyKeyboardRemove())
+
+    async def inpute_answer(self, message: types.Message, state: FSMContext):
+        print(message.text)
+
+        await message.answer('Готово!')
+        number = await state.get_data()
+        ind = number['number_question']
+        second_ind = random.randint(0, 29)
+        if second_ind == ind:
+            second_ind = random.randint(0, 29)
+        await state.update_data(number_question=second_ind)
+        await message.answer(text=questions[second_ind], reply_markup=admit_or_pass_keyboard)
+
+    async def inpute_support(self, message: types.Message, state: FSMContext):
+        print("support", message.text)
+
+        await StatesDispute.none.set()
+        await message.answer(text='Готово! 🤗 Спасибо')
 

@@ -6,4 +6,6 @@ class StatesDispute(StatesGroup):
     knowledge_base = State()
     change_name = State()
     none = State()
-
+    video_note = State()
+    video = State()
+    new_question = State()

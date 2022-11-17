@@ -22,6 +22,7 @@ from branches.knowledge_base.FAQ.callbacks import register_callback as rc13
 branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training, CurrentDispute]
 callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12, rc13]
 
+
 class DisputeBot:
     def __init__(self, bot, dp):
         self.bot = bot

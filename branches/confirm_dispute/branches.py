@@ -46,7 +46,7 @@ class ConfirmDispute:
         loc = message.location
         # print(loc)
         tmp = get_timezone(loc)
-
+        await state.update_data(timezone=tmp[:len(tmp) - 4])
         msg = f"Установлен часовой пояс {tmp}"
 
         await message.answer(text=msg, reply_markup=menu_keyboard)
@@ -147,5 +147,5 @@ class ConfirmDispute:
         await message.answer_photo(photo=photo, caption=choice_msg, reply_markup=tmp_keyboard,
                                    parse_mode=ParseMode.MARKDOWN_V2)
 #        await message.answer(text=choice_msg, reply_markup=tmp_keyboard, parse_mode=ParseMode.MARKDOWN_V2)
-        await state.update_data({'id_to_delete': message.message_id})
+        await state.update_data({'id_to_delete': message.message_id + 1}) # ??????? пофиксить
         await Promo.next()

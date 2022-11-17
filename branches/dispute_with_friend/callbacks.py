@@ -49,7 +49,7 @@ async def back_message(call: types.CallbackQuery):
 
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
     await call.message.answer(text=dispute_choice_msg, reply_markup=thirty_days_keyboard)
-
+    await call.answer()
 
 async def smoking_drink_drugs(call: types.CallbackQuery, state: FSMContext):
     await state.update_data({'id_to_delete': call.message.message_id})

@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from aiogram import Bot, Dispatcher
 from aiogram import types
@@ -30,8 +31,11 @@ class Admin:
         self.dp.register_callback_query_handler(self.enter, text='enter_bot')
         self.dp.register_message_handler(self.reports, text="✅ Репорты", state="*")
         self.dp.register_callback_query_handler(self.test_videos, text='test_videos', state="*")
-        self.dp.register_callback_query_handler(self.access_video, text='good', state="*")
+        self.dp.register_callback_query_handler(self.access_video, text='confirm_video', state="*")
+        self.dp.register_callback_query_handler(self.confirm_video, text='good', state="*")
         self.dp.register_callback_query_handler(self.refused_video, text='bad', state="*")
+        self.dp.register_callback_query_handler(self.thirty_days_videos, text='every_day', state="*")
+        self.dp.register_callback_query_handler(self.back_to_menu, text='back_reports', state="*")
 
     async def start_handler(self, message: types.Message):
         msg = "Введи свой 🗝 ключ для входа:"
@@ -58,7 +62,7 @@ class Admin:
 
     async def test_videos(self, call: types.CallbackQuery, state: FSMContext):
 
-        new_videos = RoundVideo.objects.filter(status="").first()
+        new_videos = RoundVideo.objects.filter(status="", type_video="test").first()
 
         if new_videos is None:
             await call.message.answer("Нет новых видео")
@@ -69,14 +73,14 @@ class Admin:
 
             code = " ".join(list(new_videos.code_in_video))
 
-            tmp_msg = (f"Диспут \#D{id_dispute}\n"
+            tmp_msg = (f"Диспут #D{id_dispute}\n"
                        f"*День 0*\n\n"
                        f"🔒 {code}\n"
                        f"{purpose}")
             # print(new_videos.tg_id, "ADMIN BOT")
 
-            await state.update_data(video_user_id=new_videos.tg_id)
-            await call.message.answer(text=tmp_msg, parse_mode=ParseMode.MARKDOWN_V2)
+            await state.update_data(video_user_id=new_videos.tg_id, user_id=call.from_user.id)
+            await call.message.answer(text=tmp_msg, parse_mode=ParseMode.MARKDOWN)
             if user.action == "money":
                 await call.message.answer_video(video=new_videos.tg_id,
                                                 reply_markup=test_keyboard)
@@ -105,7 +109,7 @@ class Admin:
                                    reply_markup=success_keyboard)
         date_now = call.message.date + datetime.timedelta(minutes=1)
         scheduler.start()
-        scheduler.add_job(self.new_code, "date", run_date=date_now, args=(user.chat_tg_id,))
+        scheduler.add_job(self.new_code, "date", run_date=date_now, args=(user.chat_tg_id, state, ))
         scheduler.print_jobs()
 
     async def refused_video(self, call: types.CallbackQuery, state: FSMContext):
@@ -113,7 +117,34 @@ class Admin:
         RoundVideo.objects.filter(data['video_user_id']).update(status="bad")
         await call.message.answer(text="Готово")
 
-    async def new_code(self, chat_id: int):
+    async def new_code(self, chat_id: int, state: FSMContext):
         new_code = str(randint(1000, 9999))
-        msg = f"Твой новый код: {new_code}"
-        await mainbot.send_message(text=msg, chat_id=chat_id)
+        code = " ".join(list(new_code))
+        msg = f"Твой новый код: {code}"
+        data = await state.get_data()
+        await RoundVideo.objects.acreate(user_tg_id=data['user_id'],
+                                         chat_tg_id=chat_id,
+                                         code_in_video=new_code,
+                                         id_video=uuid.uuid4().time_mid,
+                                         type_video=RoundVideo.TypeVideo.dispute)
+
+        await mainbot.send_message(text=msg, chat_id=chat_id, reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(text="Отправить репорт", callback_data="send_dispute_report")))
+
+    async def thirty_days_videos(self, call: types.CallbackQuery):
+        tmp_msg = "Сюда попадают новые репорты из 30 дневной игры \"Испытания воли\""
+
+        await call.message.edit_text(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(text='🔥 Начать', callback_data='lets_go'),
+            types.InlineKeyboardButton(text='Назад', callback_data='back_reports')))
+
+    async def back_to_menu(self, call: types.CallbackQuery):
+        await call.message.edit_text(text="Меню репортов", reply_markup=reports_menu_keyboard)
+
+    async def confirm_video(self, call: types.CallbackQuery):
+        await call.message.answer(text='Пользователь успешно прошел подготовку и готов к игре?',
+                                  reply_markup=access_keyboard)
+
+    async def back_to_video(self, call: types.CallbackQuery):
+        await call.bot.delete_message(message_id=call.message.message_id, chat_id=call.message.chat.id)
+

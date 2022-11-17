@@ -141,6 +141,7 @@ async def geo_position(call: types.CallbackQuery, state: FSMContext):
 
 
 async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
+    await state.update_data(timezone=call.data, name=call.from_user.first_name)
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
 
     await call.message.answer(text=tmp_msg, reply_markup=types.ReplyKeyboardRemove())

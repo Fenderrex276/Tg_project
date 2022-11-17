@@ -33,13 +33,13 @@ knowledge_base_keyboard.add(types.InlineKeyboardButton(text='🍎 Принцип
 knowledge_base_keyboard.add(types.InlineKeyboardButton(text='🎪 Медиатека', callback_data='mediateka'))
 knowledge_base_keyboard.add(types.InlineKeyboardButton(text='🥺 Минута отчаяния', callback_data='despair'))
 knowledge_base_keyboard.add(types.InlineKeyboardButton(text='🧠 FAQ', callback_data='faq'))
-knowledge_base_keyboard.add(types.InlineKeyboardButton(text='👍🏼 Отзывы об игре', callback_data='reviews'))
+knowledge_base_keyboard.add(types.InlineKeyboardButton(text='👍🏼 Отзывы об игре', url='https://t.me/DisputeGame'))
 
 
 account_keyboard = types.InlineKeyboardMarkup(row_width=2)
 account_keyboard.add(types.InlineKeyboardButton(text='💎 Моё имя', callback_data='change_name'),
                      types.InlineKeyboardButton(text='💰 Депозит', callback_data='deposit'))
-account_keyboard.add(types.InlineKeyboardButton(text='🌍 Часовой пояс', callback_data='timezone'),
+account_keyboard.add(types.InlineKeyboardButton(text='🌍 Часовой пояс', callback_data='change_timezone'),
                      types.InlineKeyboardButton(text='🆘 Поддержка', callback_data='support'))
 
 
@@ -47,3 +47,13 @@ change_name_keyboard = types.InlineKeyboardMarkup(row_width=2)
 change_name_keyboard.add(types.InlineKeyboardButton(text='Изменить', callback_data="change_name_access"),
                          types.InlineKeyboardButton(text='Оставить так', callback_data="cancel_change_name"))
 
+
+admit_or_pass_keyboard = types.InlineKeyboardMarkup(row_width=2)
+admit_or_pass_keyboard.add(types.InlineKeyboardButton(text='Признаться', callback_data='admit'),
+                           types.InlineKeyboardButton(text='Пасс', callback_data='pass'))
+
+
+awards_keyboard = types.InlineKeyboardMarkup(row_width=2)
+awards_keyboard.add(types.InlineKeyboardButton(text='🎟 Промо-код', callback_data='1promo_code1'),
+                    types.InlineKeyboardButton(text='⭐️ DisputeAward', callback_data='dispute_award'))
+awards_keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='return_to_reports'))
