@@ -12,6 +12,10 @@ class RoundVideo(models.Model):
         dispute = "dispute"
         archive = "archive"
 
+    class InProgress(models.TextChoices):
+        done = "done"
+        waiting = "waiting"
+
     tg_id = models.CharField(max_length=90)
     user_tg_id = models.IntegerField()
     chat_tg_id = models.IntegerField()
@@ -19,6 +23,7 @@ class RoundVideo(models.Model):
     status = models.CharField('Статус кружочка', max_length=20, choices=VideoStatus.choices)
     id_video = models.IntegerField()
     type_video = models.CharField('Тип видео', max_length=20, choices=TypeVideo.choices, default="none")
+    in_progress = models.CharField("На рассмотрении", max_length=15, choices=InProgress.choices, default='waiting')
 
 
 class Users(models.Model):
