@@ -1,7 +1,9 @@
 from .branches import Admin
 from aiogram import executor
-
-branches = [Admin]
+from reports.branches import Reports
+from reports.callbacks import register_callback as rc1
+branches = [Admin, Reports]
+callbacks = [rc1]
 
 
 class AdminDisputeBot:
@@ -13,6 +15,8 @@ class AdminDisputeBot:
             b.register_commands()
         for b in branches_init:
             b.register_handlers()
+        for call in callbacks:
+            call(dp, bot)
 
     def start(self):
         executor.start_polling(self.dp, skip_updates=True)
