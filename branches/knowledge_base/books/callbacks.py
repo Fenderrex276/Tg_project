@@ -4,6 +4,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile, ParseMode
 from branches.knowledge_base.books import messages, states, keyboards
+from branches.thirty_days_dispute.states import StatesDispute
 
 
 # books
@@ -42,8 +43,8 @@ async def like_bk(call: types.CallbackQuery):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(books, text='kb_books',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(like_bk, text='like_bk',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(dislike_bk, text='dislike_bk',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)

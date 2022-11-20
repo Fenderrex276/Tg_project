@@ -4,7 +4,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile, ParseMode, InputMedia
 from branches.knowledge_base.despair_minute import messages, states, keyboards
-
+from branches.thirty_days_dispute.states import StatesDispute
 
 # principle_of_success
 
@@ -42,12 +42,12 @@ async def like_ps(call: types.CallbackQuery):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(choose_ps, text='despair',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(dislike_ps, text='start_md',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(like_ps, text='like_md',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(dislike_ps, text='dislike_md',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(md, text='md',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)

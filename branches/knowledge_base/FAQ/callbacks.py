@@ -1,7 +1,6 @@
 from aiogram import Dispatcher, types
 from aiogram.types import InputFile, ParseMode, InputMedia
 from branches.knowledge_base.FAQ import messages, states, keyboards, branches
-from db.models import FAQ
 
 
 async def next_faq(call: types.CallbackQuery):

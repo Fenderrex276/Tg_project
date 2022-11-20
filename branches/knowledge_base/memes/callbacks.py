@@ -4,7 +4,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile, ParseMode
 from branches.knowledge_base.memes import messages, states, keyboards
-
+from branches.thirty_days_dispute.states import StatesDispute
 
 # memes
 
@@ -32,8 +32,8 @@ async def like_meme(call: types.CallbackQuery):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(dislike_meme, text='memes',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(like_meme, text='like_meme',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(dislike_meme, text='dislike_meme',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)

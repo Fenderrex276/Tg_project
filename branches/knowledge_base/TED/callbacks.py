@@ -7,7 +7,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile, ParseMode
 from branches.knowledge_base.TED import messages, states, keyboards
-
+from branches.thirty_days_dispute.states import StatesDispute
 
 async def dislike_ted(call: types.CallbackQuery):
     rand = random.randrange(len(messages.teds))
@@ -36,8 +36,8 @@ async def ted(call: types.CallbackQuery):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(ted, text='ted',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(like_ted, text='like_ted',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(dislike_ted, text='dislike_ted',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)

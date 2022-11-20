@@ -4,7 +4,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile, ParseMode
 from branches.knowledge_base.films import messages, states, keyboards
-
+from branches.thirty_days_dispute.states import StatesDispute
 
 # principle_of_success
 
@@ -41,12 +41,12 @@ async def like_fm(call: types.CallbackQuery):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(choose_fm, text='mediateka',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(dislike_fm, text='start_fm',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(like_fm, text='like_fm',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(dislike_fm, text='dislike_fm',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)
     dp.register_callback_query_handler(read_fm, text='films',
-                                       state="*")
+                                       state=StatesDispute.knowledge_base)

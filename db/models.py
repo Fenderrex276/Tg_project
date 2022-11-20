@@ -35,6 +35,7 @@ class Users(models.Model):
     number_dispute = models.CharField(max_length=6)
 
 
+
 class Support(models.Model):
     class TypeSolve(models.TextChoices):
         new = "new"
@@ -42,12 +43,20 @@ class Support(models.Model):
         in_process = "in_process"
 
     user_id = models.IntegerField()
-    id_dispute = models.IntegerField()
+    number_dispute = models.CharField(max_length=6)
     chat_id = models.IntegerField()
     problem = models.CharField(max_length=256)
     solved = models.CharField('статус вопроса', choices=TypeSolve.choices, max_length=10)
 
+class Supt(models.Model):
+    class TypeSolve(models.TextChoices):
+        new = "new"
+        done = "done"
+        in_process = "in_process"
 
-class FAQ(models.Model):
-    chat_id = models.IntegerField(primary_key=True)
-    faq_num = models.IntegerField(default=0)
+    user_id = models.IntegerField()
+    number_dispute = models.CharField(max_length=6)
+    chat_id = models.IntegerField()
+    problem = models.CharField(max_length=256)
+    solved = models.CharField('статус вопроса', choices=TypeSolve.choices, max_length=10)
+

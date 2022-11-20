@@ -4,11 +4,13 @@ import random
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode, InputFile
+from asgiref.sync import sync_to_async
 
 from .diary import questions
 from .keyboards import *
 from .states import StatesDispute
 from .callbacks import video_text
+from db.models import Supt, Users
 import pytz
 from .callbacks import random_question
 
@@ -45,7 +47,7 @@ class CurrentDispute:
                                          content_types=['text', 'audio', 'photo', 'sticker', 'voice'],
                                          state=StatesDispute.video_note)
         self.dp.register_message_handler(self.inpute_answer, state=StatesDispute.diary)
-        self.dp.register_message_handler(self.inpute_support, state=StatesDispute.new_question)
+        self.dp.register_message_handler(self.input_support, state=StatesDispute.new_question)
 
     async def the_hero_path(self, message: types.Message, state: FSMContext):
         await StatesDispute.none.set()
@@ -119,9 +121,12 @@ class CurrentDispute:
         await state.update_data(number_question=second_ind)
         await message.answer(text=questions[second_ind], reply_markup=admit_or_pass_keyboard)
 
-    async def inpute_support(self, message: types.Message, state: FSMContext):
-        print("support", message.text)
-
+    async def input_support(self, message: types.Message, state: FSMContext):
+        nd = await Users.objects.filter(user_id=message.from_user.id).afirst()
+        await Supt.objects.acreate(user_id=message.from_user.id,
+                                      number_dispute=nd.number_dispute,
+                                      chat_id=message.chat.id,
+                                      problem=message.text,
+                                      solved=Supt.TypeSolve.new)
         await StatesDispute.none.set()
         await message.answer(text='Готово! 🤗 Спасибо')
-

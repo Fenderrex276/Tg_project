@@ -9,7 +9,7 @@ from admin.reports.states import ReportStates
 from admin.сallbacks import current_dispute
 from db.models import RoundVideo, Users
 from initialize import bot as mainbot
-from admin.initialze import scheduler
+
 
 
 async def test_videos(call: types.CallbackQuery, state: FSMContext):
@@ -61,9 +61,9 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     await mainbot.send_message(text=f"Твой новый код придёт сюда {start}.", chat_id=user.chat_tg_id,
                                reply_markup=success_keyboard)
     date_now = call.message.date + datetime.timedelta(seconds=30)
-    scheduler.start()
-    scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
-    scheduler.print_jobs()
+    #scheduler.start()
+    #scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
+    #scheduler.print_jobs()
     await test_videos(call, state)
 
 
