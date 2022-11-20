@@ -11,18 +11,17 @@ from db.models import RoundVideo, Users
 from initialize import bot as mainbot
 
 
-
 async def test_videos(call: types.CallbackQuery, state: FSMContext):
-    new_videos = RoundVideo.objects.filter(status="", type_video="test").first()
+    new_video = RoundVideo.objects.filter(status="", type_video="test").first()
 
-    if new_videos is None:
+    if new_video is None:
         await call.message.answer("Нет новых видео")
     else:
-        user = Users.objects.filter(user_id=new_videos.user_tg_id).first()
-        id_dispute = str(new_videos.id_video)
+        user = Users.objects.filter(user_id=new_video.user_tg_id).first()
+        id_dispute = str(new_video.id_video)
         purpose = current_dispute(user.action, user.additional_action)
 
-        code = " ".join(list(new_videos.code_in_video))
+        code = " ".join(list(new_video.code_in_video))
 
         tmp_msg = (f"Диспут #D{id_dispute}\n"
                    f"*День 0*\n\n"
@@ -30,19 +29,20 @@ async def test_videos(call: types.CallbackQuery, state: FSMContext):
                    f"{purpose}")
         # print(new_videos.tg_id, "ADMIN BOT")
 
-        await state.update_data(video_user_id=new_videos.tg_id, user_id=call.from_user.id, id_video=new_videos.id_video)
+        await state.update_data(video_user_id=new_video.tg_id, user_id=call.from_user.id, id_video=new_video.id_video)
         await call.message.answer(text=tmp_msg, parse_mode=ParseMode.MARKDOWN)
         if user.action == "money":
-            await call.message.answer_video(video=new_videos.tg_id,
+            await call.message.answer_video(video=new_video.tg_id,
                                             reply_markup=test_keyboard)
         else:
-            await call.message.answer_video_note(video_note=new_videos.tg_id,
+            await call.message.answer_video_note(video_note=new_video.tg_id,
                                                  reply_markup=test_keyboard)
 
 
 async def access_video(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    RoundVideo.objects.filter(tg_id=data['video_user_id']).update(status="good")
+    RoundVideo.objects.filter(tg_id=data['video_user_id']).update(status="good",
+                                                                  type_video=RoundVideo.TypeVideo.archive)
 
     await call.message.answer(text="Готово!")
 
@@ -61,14 +61,13 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     await mainbot.send_message(text=f"Твой новый код придёт сюда {start}.", chat_id=user.chat_tg_id,
                                reply_markup=success_keyboard)
     date_now = call.message.date + datetime.timedelta(seconds=30)
-    #scheduler.start()
-    #scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
-    #scheduler.print_jobs()
+    # scheduler.start()
+    # scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
+    # scheduler.print_jobs()
     await test_videos(call, state)
 
 
 async def refused_video(call: types.CallbackQuery, state: FSMContext):
-
     await call.message.edit_reply_markup(reply_markup=refused_keyboard)
 
 
@@ -111,7 +110,9 @@ async def confirm_video(call: types.CallbackQuery):
 
 async def refused1_video(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
-    RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad")
+    RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad",
+                                                               type_video=RoundVideo.TypeVideo.archive)
+
     user = RoundVideo.objects.get(tg_id=v['video_user_id'])
 
     await mainbot.send_message(text=" Не видно лица / результатов. Пожалуйста, попробуй ещё раз",
@@ -122,6 +123,7 @@ async def refused1_video(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer('Готово!')
     await test_videos(call, state)
+
 
 async def refused2_video(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
@@ -144,6 +146,43 @@ async def refused3_video(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer("Введите сообщение:")
 
 
+async def archive_button(call: types.CallbackQuery, state: FSMContext):
+    tmp_msg = "Введи номер Диспута (#D****)"
+    await ReportStates.input_id_dispute.set()
+    await call.message.edit_text(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text='Назад', callback_data="back_from_archive")
+    ))
+
+
+async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
+
+    new_dispute = RoundVideo.objects.filter(status="", type_video="dispute").first()
+
+    if new_dispute is None:
+        await call.message.answer("Нет новых видео")
+    else:
+        user = Users.objects.filter(user_id=new_dispute.user_tg_id).first()
+        id_dispute = str(new_dispute.id_video)
+        purpose = current_dispute(user.action, user.additional_action)
+
+        code = " ".join(list(new_dispute.code_in_video))
+
+        tmp_msg = (f"Диспут #D{id_dispute}\n"
+                   f"*День {new_dispute.n_day}*\n\n"
+                   f"🔒 {code}\n"
+                   f"{purpose}")
+        # print(new_videos.tg_id, "ADMIN BOT")
+
+        await state.update_data(video_user_id=new_dispute.tg_id, user_id=call.from_user.id, id_video=new_dispute.id_video)
+        await call.message.answer(text=tmp_msg, parse_mode=ParseMode.MARKDOWN)
+        if user.action == "money":
+            await call.message.answer_video(video=new_dispute.tg_id,
+                                            reply_markup=test_keyboard)
+        else:
+            await call.message.answer_video_note(video_note=new_dispute.tg_id,
+                                                 reply_markup=test_keyboard)
+
+
 def register_callback(dp: Dispatcher, bot: Bot):
     dp.register_callback_query_handler(test_videos, text='test_videos', state="*")
     dp.register_callback_query_handler(access_video, text='confirm_video', state="*")
@@ -155,3 +194,7 @@ def register_callback(dp: Dispatcher, bot: Bot):
     dp.register_callback_query_handler(refused1_video, text="face_result", state="*")
     dp.register_callback_query_handler(refused3_video, text="send_message", state="*")
     dp.register_callback_query_handler(refused2_video, text="incorrect_code", state="*")
+    dp.register_callback_query_handler(archive_button, text="archive", state="*")
+    dp.register_callback_query_handler(archive_button, text="more_video", state="*")
+    dp.register_callback_query_handler(back_to_menu, text="back_from_archive", state="*")
+    dp.register_callback_query_handler(thirty_day_dispute, text='lets_go', state="*")

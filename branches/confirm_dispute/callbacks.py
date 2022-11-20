@@ -12,7 +12,7 @@ from utils import get_date_to_start_dispute
 
 
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='alcohol')
     await call.message.answer(text=alcohol_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_alcohol_keyboard)
@@ -21,7 +21,7 @@ async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
 
 
 async def choice_smoking(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='smoking')
     await call.message.answer(text=smoking_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_alcohol_keyboard)
@@ -29,7 +29,7 @@ async def choice_smoking(call: types.CallbackQuery, state: FSMContext):
 
 
 async def choice_drugs(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='drugs')
     await call.message.answer(text=drugs_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_alcohol_keyboard)
@@ -38,7 +38,7 @@ async def choice_drugs(call: types.CallbackQuery, state: FSMContext):
 
 async def choice_gym(call: types.CallbackQuery, state: FSMContext):
     # print(call.message.text)
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='gym')
 
     await call.message.answer(text=gymm_msg, parse_mode=ParseMode.MARKDOWN,
@@ -47,7 +47,7 @@ async def choice_gym(call: types.CallbackQuery, state: FSMContext):
 
 
 async def choice_lose_weight(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='weight')
 
     await call.message.answer(text=weight_msg, parse_mode=ParseMode.MARKDOWN,
@@ -56,7 +56,7 @@ async def choice_lose_weight(call: types.CallbackQuery, state: FSMContext):
 
 
 async def choice_early_morning(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='morning')
 
     await call.message.answer(text=morning_msg, parse_mode=ParseMode.MARKDOWN,
@@ -65,7 +65,7 @@ async def choice_early_morning(call: types.CallbackQuery, state: FSMContext):
 
 
 async def choice_other_language(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='language')
 
     await call.message.answer(text=language_msg, parse_mode=ParseMode.MARKDOWN,
@@ -74,7 +74,7 @@ async def choice_other_language(call: types.CallbackQuery, state: FSMContext):
 
 
 async def choice_more_money(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='money')
 
     await call.message.answer(text=money_msg, parse_mode=ParseMode.MARKDOWN,
@@ -83,7 +83,7 @@ async def choice_more_money(call: types.CallbackQuery, state: FSMContext):
 
 
 async def choice_healthy_food(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='food')
 
     await call.message.answer(text=healthy_food_msg, parse_mode=ParseMode.MARKDOWN,
@@ -92,7 +92,7 @@ async def choice_healthy_food(call: types.CallbackQuery, state: FSMContext):
 
 
 async def choice_programming(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='programming')
 
     await call.message.answer(text=programming_msg, parse_mode=ParseMode.MARKDOWN,
@@ -101,17 +101,18 @@ async def choice_programming(call: types.CallbackQuery, state: FSMContext):
 
 
 async def choice_instruments(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action="instruments")
 
+    await call.message.answer(text=instruments_msg2)
     await call.message.answer(text=instruments_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_instruments_keyboard)
-    await call.message.answer(text=instruments_msg2)
+
     await call.answer()
 
 
 async def choice_painting(call: types.CallbackQuery, state: FSMContext):
-    await Promo.input_promo.set()
+    await Promo.choose_dispute.set()
     await state.update_data(action='painting')
 
     await call.message.answer(text=painting_msg, parse_mode=ParseMode.MARKDOWN,
@@ -146,7 +147,7 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(timezone=call.data, name=call.from_user.first_name)
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
 
-    await call.message.answer(text=tmp_msg, reply_markup=types.ReplyKeyboardRemove())
+    await call.message.answer(text=tmp_msg)
     variant = await state.get_data()
     future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
     date_to_start = str(future_date.day) + " " + str(future_date.strftime('%B')) + " " + str(future_date.year)
@@ -268,41 +269,41 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(choice_lose_weight, text='select_lose_weight', state=Form.none)
 
     dp.register_callback_query_handler(choice_early_morning, text='select_early_morning', state=Form.none)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='five_am', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='six_am', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='seven_am', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='eight_am', state=Promo.input_promo)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='five_am', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='six_am', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='seven_am', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='eight_am', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(choice_other_language, text='select_other_language', state=Form.none)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='english', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='chinese', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='spanish', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='arabian', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='italian', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='french', state=Promo.input_promo)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='english', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='chinese', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='spanish', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='arabian', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='italian', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='french', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(choice_more_money, text='select_more_money', state=Form.none)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='hundred', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='three_hundred', state=Promo.input_promo)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='hundred', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='three_hundred', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(choice_healthy_food, text='select_healthy_food', state=Form.none)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='agree_food', state=Promo.input_promo)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='agree_food', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(choice_programming, text='select_programming', state=Form.none)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='agree_programming', state=Promo.input_promo)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='agree_programming', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(choice_instruments, text='select_play_instruments', state=Form.none)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='piano', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='guitar', state=Promo.input_promo)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='piano', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='guitar', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(choice_painting, text='select_painting', state=Form.none)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='pad', state=Promo.input_promo)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='hand', state=Promo.input_promo)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='pad', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='hand', state=Promo.choose_dispute)
 
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='next_step_two', state=Promo.input_promo)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='next_step_two', state=Promo.choose_dispute)
 
-    dp.register_callback_query_handler(recieved_date, text='select_monday', state=Promo.input_promo)
-    dp.register_callback_query_handler(recieved_date, text='select_after_tomorrow', state=Promo.input_promo)
+    dp.register_callback_query_handler(recieved_date, text='select_monday', state=Promo.choose_dispute)
+    dp.register_callback_query_handler(recieved_date, text='select_after_tomorrow', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(geo_position, text='next_step_three', state=Promo.input_promo)
     dp.register_callback_query_handler(set_geo_position, text='— 10', state=Promo.geo_position)

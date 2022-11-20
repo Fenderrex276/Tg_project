@@ -7,6 +7,7 @@ from branches.confirm_dispute.states import Promo
 from branches.dispute_with_friend.keyboards import *
 from branches.dispute_with_friend.messages import *
 from branches.dispute_with_friend.states import Form
+from branches.start.keyboards import menu_keyboard
 
 
 async def test_of_will(call: types.CallbackQuery):
