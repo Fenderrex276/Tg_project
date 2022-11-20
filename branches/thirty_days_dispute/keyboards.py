@@ -57,3 +57,8 @@ awards_keyboard = types.InlineKeyboardMarkup(row_width=2)
 awards_keyboard.add(types.InlineKeyboardButton(text='🎟 Промо-код', callback_data='1promo_code1'),
                     types.InlineKeyboardButton(text='⭐️ DisputeAward', callback_data='dispute_award'))
 awards_keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='return_to_reports'))
+
+
+send_video_keyboard = types.InlineKeyboardMarkup(row_width=2)
+send_video_keyboard.add(types.InlineKeyboardButton(text='🚀 Отправить', callback_data='send_video'),
+                        types.InlineKeyboardButton(text='Новое видео', callback_data='send_new_video'))

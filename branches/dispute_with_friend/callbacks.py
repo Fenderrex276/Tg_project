@@ -10,7 +10,7 @@ from branches.dispute_with_friend.states import Form
 
 
 async def test_of_will(call: types.CallbackQuery):
-    # await Form.none.set()
+    await Form.none.set()
 
     photo = InputFile("media/volya/volya.jpg")
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -21,7 +21,7 @@ async def test_of_will(call: types.CallbackQuery):
 
 
 async def return_main_message(call: types.CallbackQuery):
-
+    await Form.none.set()
     await call.bot.edit_message_caption(chat_id=call.message.chat.id,
                                         parse_mode=ParseMode.MARKDOWN,
                                         message_id=call.message.message_id,
@@ -31,7 +31,6 @@ async def return_main_message(call: types.CallbackQuery):
 
 
 async def back_main_message(call: types.CallbackQuery, state: FSMContext):
-
     v = await state.get_data()
     print(v['id_to_delete'])
     photo = InputFile("media/volya/volya.jpg")
@@ -46,10 +45,10 @@ async def back_main_message(call: types.CallbackQuery, state: FSMContext):
 
 
 async def back_message(call: types.CallbackQuery):
-
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
     await call.message.answer(text=dispute_choice_msg, reply_markup=thirty_days_keyboard)
     await call.answer()
+
 
 async def smoking_drink_drugs(call: types.CallbackQuery, state: FSMContext):
     await state.update_data({'id_to_delete': call.message.message_id})
@@ -60,7 +59,6 @@ async def smoking_drink_drugs(call: types.CallbackQuery, state: FSMContext):
 
 
 async def go_to_gym(call: types.CallbackQuery, state: FSMContext):
-
     await state.update_data({'id_to_delete': call.message.message_id})
 
     await call.message.edit_reply_markup(reply_markup=lose_weight_keyboard)
@@ -85,7 +83,6 @@ async def quit_alcohol(call: types.CallbackQuery):
 
 
 async def update_disput_choice(call: types.CallbackQuery, state: FSMContext):
-
     await Form.none.set()
 
     photo = InputFile("media/volya/volya.jpg")
@@ -94,7 +91,7 @@ async def update_disput_choice(call: types.CallbackQuery, state: FSMContext):
     print(v)
     print(call.message.message_id)
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-#    await call.bot.delete_message(call.message.chat.id, v['id_to_delete'])
+    #    await call.bot.delete_message(call.message.chat.id, v['id_to_delete'])
     tmp_msg = ''
     tmp_keyboard = types.InlineKeyboardMarkup
     video = InputFile
@@ -150,7 +147,7 @@ async def update_disput_choice(call: types.CallbackQuery, state: FSMContext):
     await call.bot.send_photo(chat_id=call.message.chat.id, photo=photo,
                               caption=tmp_msg, parse_mode=ParseMode.MARKDOWN)
 
-    await state.update_data({'id_to_delete': call.message.message_id+1})
+    await state.update_data({'id_to_delete': call.message.message_id + 1})
     if v['action'] == 'money':
         await call.bot.send_video(call.message.chat.id, video, reply_markup=tmp_keyboard)
     else:
@@ -208,7 +205,7 @@ async def early_morning(call: types.CallbackQuery, state: FSMContext):
     video = InputFile("media/videos/morning.mp4")
     await call.bot.send_video_note(call.message.chat.id, video, reply_markup=confirm_early_morning_keyboard)
     # await call.message.answer(text=early_morning_msg, parse_mode=ParseMode.MARKDOWN,
-                          #    reply_markup=confirm_early_morning_keyboard)
+    #    reply_markup=confirm_early_morning_keyboard)
     await call.answer()
 
 
@@ -305,16 +302,16 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(lose_weight, text='lose_weight', state=Form.none)
 
     dp.register_callback_query_handler(early_morning, text='early_morning', state="*")
-#    dp.register_callback_query_handler(early_morning1, text='early_morning1', state=Promo.input_promo)
+    #    dp.register_callback_query_handler(early_morning1, text='early_morning1', state=Promo.input_promo)
     dp.register_callback_query_handler(teach_other_language, text='other_language', state=Form.none)
-#    dp.register_callback_query_handler(teach_other_language1, text='other_language1', state=Promo.input_promo)
+    #    dp.register_callback_query_handler(teach_other_language1, text='other_language1', state=Promo.input_promo)
     dp.register_callback_query_handler(more_money, text='more_money', state="*")
-#    dp.register_callback_query_handler(more_money1, text='more_money1', state=Promo.input_promo)
+    #    dp.register_callback_query_handler(more_money1, text='more_money1', state=Promo.input_promo)
 
     dp.register_callback_query_handler(cook_healthy_food, text='healthy_food', state=Form.none)
-#    dp.register_callback_query_handler(cook_healthy_food1, text='healthy_food1', state=Promo.input_promo)
+    #    dp.register_callback_query_handler(cook_healthy_food1, text='healthy_food1', state=Promo.input_promo)
     dp.register_callback_query_handler(learn_programming, text='programming', state=Form.none)
-#    dp.register_callback_query_handler(learn_programming1, text='programming1', state=Promo.input_promo)
+    #    dp.register_callback_query_handler(learn_programming1, text='programming1', state=Promo.input_promo)
     dp.register_callback_query_handler(play_instruments, text='learn_play', state=Form.none)
     dp.register_callback_query_handler(learn_painting, text='painting', state=Form.none)
 

@@ -11,7 +11,6 @@ from .states import StatesDispute
 from .callbacks import video_text
 import pytz
 from .callbacks import random_question
-from ..training.keyboards import send_video_keyboard
 
 
 class CurrentDispute:
@@ -45,7 +44,7 @@ class CurrentDispute:
         self.dp.register_message_handler(self.is_not_a_video,
                                          content_types=['text', 'audio', 'photo', 'sticker', 'voice'],
                                          state=StatesDispute.video_note)
-        self.dp.register_message_handler(self.inpute_answer, state=StatesDispute.none)
+        self.dp.register_message_handler(self.inpute_answer, state=StatesDispute.diary)
         self.dp.register_message_handler(self.inpute_support, state=StatesDispute.new_question)
 
     async def the_hero_path(self, message: types.Message, state: FSMContext):
@@ -106,7 +105,7 @@ class CurrentDispute:
 
     async def is_not_a_video(self, message: types.Message):
         error_message = "Ошибка. Мы принимаем репорт только в видео-формате."
-        await message.answer(text=error_message, reply_markup=types.ReplyKeyboardRemove())
+        await message.answer(text=error_message)
 
     async def inpute_answer(self, message: types.Message, state: FSMContext):
         print(message.text)

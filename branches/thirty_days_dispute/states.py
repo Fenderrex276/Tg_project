@@ -9,3 +9,4 @@ class StatesDispute(StatesGroup):
     video_note = State()
     video = State()
     new_question = State()
+    diary = State()

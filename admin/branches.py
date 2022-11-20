@@ -1,17 +1,9 @@
-import datetime
-import uuid
-
 from aiogram import Bot, Dispatcher
-from aiogram import types
-from aiogram.dispatcher import FSMContext
-from random import randint
+
 from .keyboards import *
 from .states import AdminStates
 from .apikeys import api_keys_arr
-from db.models import RoundVideo, Users
 from .сallbacks import *
-from initialize import bot as mainbot
-from initialize import scheduler
 
 
 class Admin:
@@ -28,7 +20,7 @@ class Admin:
         self.dp.register_message_handler(self.start_handler, commands=["start"], state='*')
         self.dp.register_message_handler(self.start_handler, text=["start"], state='*')
         self.dp.register_message_handler(self.check_key, state=AdminStates.input_key)
-        self.dp.register_callback_query_handler(self.enter, text='enter_bot')
+        self.dp.register_callback_query_handler(self.enter, text='enter_bot', state="*")
         self.dp.register_message_handler(self.reports, text="✅ Репорты", state="*")
 
     async def start_handler(self, message: types.Message):
@@ -43,12 +35,12 @@ class Admin:
                                         reply_markup=types.InlineKeyboardMarkup()
                                         .add(types.InlineKeyboardButton('🔒 Войти', callback_data='enter_bot')
                                              ))
-            await state.set_state(AdminStates.is_admin)
+            await AdminStates.is_admin.set()
         else:
             await self.bot.send_message(message.from_user.id, "Введён неверный ключ")
 
     async def enter(self, call: types.CallbackQuery, state: FSMContext):
-        await self.bot.send_message(call.from_user.id, "Меню админа", reply_markup=admin_menu)
+        await call.message.answer("Меню админа", reply_markup=admin_menu)
 
     async def reports(self, message: types.Message, state: FSMContext):
 

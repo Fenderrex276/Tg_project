@@ -24,5 +24,6 @@ class DisputeWithFriend:
         ...
 
     async def dispute_handler(self, message: types.Message):
+        await Form.none.set()
         await self.bot.send_message(message.from_user.id, dispute_choice_msg, parse_mode=ParseMode.MARKDOWN,
                                     reply_markup=thirty_days_keyboard)

@@ -1,15 +1,13 @@
 import random
-import uuid
-
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile, ParseMode
-
 from .diary import questions
 from .keyboards import *
 from .states import StatesDispute
 from db.models import RoundVideo
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
+
 
 
 async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
@@ -20,6 +18,7 @@ async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer_photo(photo=InputFile(recieve_message[0]), caption=recieve_message[1],
                                     reply_markup=menu_keyboard,
                                     parse_mode=ParseMode.MARKDOWN)
+    await call.answer()
 
 
 def video_text(data: dict):
@@ -105,8 +104,9 @@ def video_text(data: dict):
 
 
 async def reports(call: types.CallbackQuery):
-    photo = InputFile("media/days_of_dispute/zero_day.jpg")
-    await call.message.answer_photo(photo, reply_markup=report_keyboard)
+    main_photo = InputFile("media/days_of_dispute/zero_day.jpg")
+    await call.message.answer_photo(main_photo, reply_markup=report_keyboard)
+    await call.answer()
 
 
 async def choose_name_button(call: types.CallbackQuery, state: FSMContext):
@@ -116,6 +116,7 @@ async def choose_name_button(call: types.CallbackQuery, state: FSMContext):
            "если хочешь изменить своё имя в Диспуте")
 
     await call.message.edit_text(text=msg, reply_markup=change_name_keyboard)
+    await call.answer()
 
 
 async def change_name(call: types.CallbackQuery, state: FSMContext):
@@ -123,17 +124,47 @@ async def change_name(call: types.CallbackQuery, state: FSMContext):
     msg = "💬 Введи своё новое имя:"
 
     await call.message.edit_text(text=msg)
+    await call.answer()
 
 
 async def check_report(call: types.CallbackQuery, state: FSMContext):
-    """await RoundVideo.objects.acreate(tg_id=v['video_id'],
-                                     user_tg_id=call.from_user.id,
-                                     chat_tg_id=call.message.chat.id,
-                                     code_in_video="3028",
-                                     id_video=uuid.uuid4().time_mid,
-                                     type_video=RoundVideo.TypeVideo.test)
-    """
-    await call.message.answer(text='Твой новый код придёт в бот автоматически.')
+
+    try:
+        user_video = await RoundVideo.objects.aget(user_tg_id=call.from_user.id,
+                                                   chat_tg_id=call.message.chat.id,
+                                                   type_video=RoundVideo.TypeVideo.dispute
+                                                   )
+        data = await state.get_data()
+        # user_video = await RoundVideo.objects.aget(id_video=data['id_video_code'])
+        if user_video.status == "" and user_video.tg_id != "":
+            tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
+            await call.message.answer(text=tmp_msg)
+            await state.update_data(id_video_code="")
+        else:
+            new_code = " ".join(list(user_video.code_in_video))
+            temp_array = get_message_video(data, new_code)
+            await call.message.answer(text=temp_array[0])
+            await state.update_data(new_code=user_video.code_in_video, id_video_code=user_video.id_video)
+            if data['action'] == 'money':
+                await StatesDispute.video.set()
+                await call.message.answer_video(video=InputFile(temp_array[1]))
+            else:
+                await StatesDispute.video_note.set()
+                await call.message.answer_video_note(video_note=InputFile(temp_array[1]))
+    except:
+        await call.message.answer(text='Твой новый код придёт в бот автоматически.')
+    await call.answer()
+
+
+async def recieved_video(call: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    await StatesDispute.none.set()
+    await RoundVideo.objects.filter(chat_tg_id=call.message.chat.id,
+                                    type_video=RoundVideo.TypeVideo.dispute,
+                                    id_video=data['id_video_code']).aupdate(tg_id=data['video_id'])
+    tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
+    await call.message.answer(text=tmp_msg)
+    await call.answer()
 
 
 async def send_new_report_from_admin(call: types.CallbackQuery, state: FSMContext):
@@ -142,37 +173,51 @@ async def send_new_report_from_admin(call: types.CallbackQuery, state: FSMContex
                                               chat_tg_id=call.message.chat.id,
                                               type_video=RoundVideo.TypeVideo.dispute
                                               )
-
+    print(new_video.id_video)
     data = await state.get_data()
-    video = InputFile
-    tmp_msg = ""
-    await state.update_data(new_code=new_video.code_in_video, id_video_code=new_video.id)
+
+    await state.update_data(new_code=new_video.code_in_video, id_video_code=new_video.id_video)
 
     new_code = " ".join(list(new_video.code_in_video))
+    temp_array = get_message_video(data, new_code)
 
+    await call.message.answer(text=temp_array[0])
+
+    if data['action'] == 'money':
+        await StatesDispute.video.set()
+        await call.message.answer_video(video=InputFile(temp_array[1]))
+    else:
+        await StatesDispute.video_note.set()
+        await call.message.answer_video_note(video_note=InputFile(temp_array[1]))
+    await call.answer()
+
+
+def get_message_video(data, new_code):
+    tmp_msg = ""
+    video = ""
     if data['action'] == 'alcohol':
         tmp_msg = ("⏰ Отправь до 22:30 кружочек с тестом на алкоголь"
                    f" как на примере, произнеси код 🔒 {new_code}")
-        video = InputFile("media/videos/alcohol.mp4")
+        video = "media/videos/alcohol.mp4"
     elif data['action'] == 'drugs':
         tmp_msg = ("⏰ Отправь до 00:00 кружочек с тестом на ПАВ "
                    "(даже если он пока положительный), оторви полоску,"
                    f" как на примере, произнеси код 🔒 {new_code}")
-        video = InputFile("media/videos/drugs.mp4")
+        video = "media/videos/drugs.mp4"
     elif data['action'] == 'smoking':
         tmp_msg = ("⏰ Отправь до 22:30 кружочек с тестом на никотин "
                    "(даже если он пока положительный), оторви полоску как на "
                    f"примере, произнеси код 🔒 {new_code}")
 
-        video = InputFile("media/videos/smoke.mp4")
+        video = "media/videos/smoke.mp4"
     elif data['action'] == 'gym':
         tmp_msg = ("⏰ Отправь до 22:30 кружочек в зеркале в спорт-зале, "
                    f"как на примере, произнеси код 🔒 {new_code}")
-        video = InputFile("media/videos/gym.mp4")
+        video = "media/videos/gym.mp4"
     elif data['action'] == 'weight':
         tmp_msg = ("⏰ Отправь до 22:30 кружочек своего взвешивания,"
                    f" как на примере, произнеси код 🔒 {new_code}")
-        video = InputFile("media/videos/weight.mp4")
+        video = "media/videos/weight.mp4"
     elif data['action'] == 'morning':
         if data['additional_action'] == 'five_am':
             tmp_msg = f"⏰ Отправь до 5:30 кружочек в зеркале, как на примере, произнеси код 🔒 {new_code}"
@@ -182,37 +227,33 @@ async def send_new_report_from_admin(call: types.CallbackQuery, state: FSMContex
             tmp_msg = f"⏰ Отправь до 7:30 кружочек в зеркале, как на примере, произнеси код 🔒 {new_code}"
         elif data['additional_action'] == 'eight_am':
             tmp_msg = f"⏰ Отправь до 8:30 кружочек в зеркале, как на примере, произнеси код 🔒 {new_code}"
-        video = InputFile("media/videos/morning.mp4")
+        video = "media/videos/morning.mp4"
     elif data['action'] == 'language':
         tmp_msg = ("⏰ Отправь до 22:30 кружочек с конспектами своего занятия, "
                    f"как на примере, произнеси код 🔒 {new_code}")
-        video = InputFile("media/videos/language.mp4")
+        video = "media/videos/language.mp4"
     elif data['action'] == 'money':
         tmp_msg = ("⏰ Отправь до 22:30 видео-запись экрана со своего специального депозитного счета,"
                    f" как на примере, на видео должен быть код 🔒 {new_code}")
-        video = InputFile("media/videos/bank.mp4")
+        video = "media/videos/bank.mp4"
     elif data['action'] == 'food':
         tmp_msg = ("⏰ Отправь до 22:30 кружочек процесса приготовления здоровой еды,"
                    f" как на примере, произнеси код 🔒 {new_code}")
-        video = InputFile("media/videos/food.mp4")
+        video = "media/videos/food.mp4"
     elif data['action'] == 'programming':
         tmp_msg = ("⏰ Отправь до 22:30 кружочек процесса программирования,"
                    f" как на примере, произнеси код 🔒 {new_code}")
-        video = InputFile("media/videos/programming.mp4")
+        video = "media/videos/programming.mp4"
     elif data['action'] == 'instruments':
         tmp_msg = ("⏰ Отправь до 22:30 кружочек процесса занятий на муз."
                    f" инструменте, как на примере, произнеси код 🔒 {new_code}")
 
-        video = InputFile("media/videos/piano.mp4")
+        video = "media/videos/piano.mp4"
     elif data['action'] == 'painting':
         tmp_msg = f"⏰ Отправь до 22:30 кружочек процесса рисования, как на примере, произнеси код 🔒 {new_code}"
-        video = InputFile("media/videos/painting.mp4")
+        video = "media/videos/painting.mp4"
 
-    await call.message.answer(text=tmp_msg)
-    if data['action'] == 'money':
-        await call.message.answer_video(video=video)
-    else:
-        await call.message.answer_video_note(video_note=video)
+    return [tmp_msg, video]
 
 
 async def diary_button(call: types.CallbackQuery, state: FSMContext):
@@ -228,6 +269,7 @@ async def diary_button(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(number_question=random.randint(0, 29))
     await call.message.answer(text=msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='🎲 Рандомно', callback_data='random_questions')))
+    await call.answer()
 
 
 async def random_question(call: types.CallbackQuery, state: FSMContext):
@@ -238,11 +280,14 @@ async def random_question(call: types.CallbackQuery, state: FSMContext):
         second_ind = random.randint(0, 29)
     await state.update_data(number_question=second_ind)
     await call.message.answer(text=questions[second_ind], reply_markup=admit_or_pass_keyboard)
+    await call.answer()
 
 
 async def admit_answer(call: types.CallbackQuery, state: FSMContext):
+    await StatesDispute.diary.set()
     msg = "💬 Пиши всё, что придёт в голову:"
     await call.message.answer(text=msg)
+    await call.answer()
 
 
 async def next_question(call: types.CallbackQuery, state: FSMContext):
@@ -254,6 +299,7 @@ async def next_question(call: types.CallbackQuery, state: FSMContext):
         second_ind = random.randint(0, 29)
     await state.update_data(number_question=second_ind)
     await call.message.answer(text=questions[second_ind], reply_markup=admit_or_pass_keyboard)
+    await call.answer()
 
 
 async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
@@ -287,10 +333,12 @@ async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='👍 Спасибо', callback_data='Thanks1')))
+    await call.answer()
 
 
 async def return_reports(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_caption(caption="", reply_markup=report_keyboard)
+    await call.answer()
 
 
 async def awards(call: types.CallbackQuery, state: FSMContext):
@@ -298,6 +346,7 @@ async def awards(call: types.CallbackQuery, state: FSMContext):
                "Выбери задание и зарабатывай дополнительные 💰 в свой депозит")
 
     await call.message.edit_caption(caption=tmp_msg, reply_markup=awards_keyboard)
+    await call.answer()
 
 
 async def promo_code_awards(call: types.CallbackQuery, state: FSMContext):
@@ -311,12 +360,14 @@ async def promo_code_awards(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='🎟 Мой код', callback_data='user_promocode'),
         types.InlineKeyboardButton(text='Назад', callback_data='back_awards')))
+    await call.answer()
 
 
 async def my_promocode(call: types.CallbackQuery, state: FSMContext):
     sobchak = "SOBCHAK"
     await call.message.answer(text=sobchak)
     await call.message.answer(text='Зажми промо-код, чтобы скопировать')
+    await call.answer()
 
 
 async def dispute_awards(call: types.CallbackQuery, state: FSMContext):
@@ -331,6 +382,7 @@ async def dispute_awards(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='👀 Выбрать', callback_data='choose_video_to_dispute_award')))
+    await call.answer()
 
 
 async def deposit_button(call: types.CallbackQuery, state: FSMContext):
@@ -345,6 +397,7 @@ async def deposit_button(call: types.CallbackQuery, state: FSMContext):
         types.InlineKeyboardButton(text='Вывод 💰', callback_data='withdrawal_deposit'),
         types.InlineKeyboardButton(text='Личные 🎯️ цели', callback_data='personal_goals')),
                               parse_mode=ParseMode.MARKDOWN_V2)
+    await call.answer()
 
 
 async def withdraw_deposit(call: types.CallbackQuery, state: FSMContext):
@@ -354,6 +407,7 @@ async def withdraw_deposit(call: types.CallbackQuery, state: FSMContext):
                "карту или в BTC станет доступен в этом окне")
 
     await call.message.answer(text=tmp_msg, parse_mode=ParseMode.MARKDOWN_V2)
+    await call.answer()
 
 
 async def change_timezone(call: types.CallbackQuery, state: FSMContext):
@@ -365,6 +419,7 @@ async def change_timezone(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer(text=tmp_msg)
     await call.message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
+    await call.answer()
 
 
 async def return_account(call: types.CallbackQuery, state: FSMContext):
@@ -376,12 +431,14 @@ async def return_account(call: types.CallbackQuery, state: FSMContext):
            "поддержку через форму обратной связи.")
 
     await call.message.edit_text(text=msg, reply_markup=account_keyboard, parse_mode=ParseMode.MARKDOWN)
+    await call.answer()
 
 
 async def new_time_zone(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(timezone=call.data)
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
     await call.message.answer(text=tmp_msg)
+    await call.answer()
 
 
 async def support_button(call: types.CallbackQuery, state: FSMContext):
@@ -394,13 +451,16 @@ async def support_button(call: types.CallbackQuery, state: FSMContext):
                "стороне 🤝")
 
     await call.message.edit_text(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
-        types.InlineKeyboardButton(text='Сообщить о проблеме', callback_data='send_new_support')), parse_mode=ParseMode.MARKDOWN)
+        types.InlineKeyboardButton(text='Сообщить о проблеме', callback_data='send_new_support')),
+                                 parse_mode=ParseMode.MARKDOWN)
+    await call.answer()
 
 
 async def new_support_question(call: types.CallbackQuery, state: FSMContext):
     await StatesDispute.new_question.set()
 
     await call.message.answer(text='💬 Введи сообщение:')
+    await call.answer()
 
 
 def register_callback(bot, dp: Dispatcher):
@@ -413,7 +473,7 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(diary_button, text='diary', state=StatesDispute.none)
     dp.register_callback_query_handler(random_question, text='random_questions', state=StatesDispute.none)
     dp.register_callback_query_handler(admit_answer, text='admit', state=StatesDispute.none)
-    dp.register_callback_query_handler(next_question, text='pass', state=StatesDispute.none)
+    dp.register_callback_query_handler(next_question, text='pass', state=StatesDispute.diary)
     dp.register_callback_query_handler(dispute_rules, text='rules', state=StatesDispute.none)
     dp.register_callback_query_handler(return_reports, text='Thanks1', state=StatesDispute.none)
     dp.register_callback_query_handler(awards, text='bonuses', state=StatesDispute.none)
@@ -460,3 +520,5 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(new_time_zone, text='+11', state=StatesDispute.account)
     dp.register_callback_query_handler(support_button, text='support', state=StatesDispute.account)
     dp.register_callback_query_handler(new_support_question, text='send_new_support', state=StatesDispute.account)
+    dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video)
+    dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video_note)

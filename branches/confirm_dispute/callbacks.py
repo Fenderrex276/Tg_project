@@ -16,6 +16,7 @@ async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(action='alcohol')
     await call.message.answer(text=alcohol_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_alcohol_keyboard)
+
     await call.answer()
 
 
@@ -30,7 +31,6 @@ async def choice_smoking(call: types.CallbackQuery, state: FSMContext):
 async def choice_drugs(call: types.CallbackQuery, state: FSMContext):
     await Promo.input_promo.set()
     await state.update_data(action='drugs')
-
     await call.message.answer(text=drugs_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_alcohol_keyboard)
     await call.answer()
@@ -106,7 +106,8 @@ async def choice_instruments(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer(text=instruments_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_instruments_keyboard)
-    await call.answer(text=instruments_msg2)
+    await call.message.answer(text=instruments_msg2)
+    await call.answer()
 
 
 async def choice_painting(call: types.CallbackQuery, state: FSMContext):
@@ -127,6 +128,7 @@ async def monday_or_after_tomorrow(call: types.CallbackQuery, state: FSMContext)
 
 
 async def recieved_date(call: types.CallbackQuery, state: FSMContext):
+    await Promo.input_promo.set()
     await state.update_data(start_disput=call.data)
     await call.message.edit_text(text=promo_code_msg, reply_markup=no_promo_code_keyboard)
     await call.answer()
@@ -146,7 +148,8 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer(text=tmp_msg, reply_markup=types.ReplyKeyboardRemove())
     variant = await state.get_data()
-    date_to_start = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
+    future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
+    date_to_start = str(future_date.day) + " " + str(future_date.strftime('%B')) + " " + str(future_date.year)
 
     choice_msg = ""
     tmp_keyboard = types.InlineKeyboardMarkup
@@ -250,9 +253,11 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
                      f'{second_msg} '
         tmp_keyboard = painting_deposit_keyboard
 
-    await call.message.answer_photo(photo=photo, caption=choice_msg, reply_markup=tmp_keyboard, parse_mode=ParseMode.MARKDOWN_V2)
+    await call.message.answer_photo(photo=photo, caption=choice_msg, reply_markup=tmp_keyboard,
+                                    parse_mode=ParseMode.MARKDOWN_V2)
     await state.update_data({'id_to_delete': call.message.message_id})
     await Promo.next()
+    await call.answer()
 
 
 def register_callback(bot, dp: Dispatcher):

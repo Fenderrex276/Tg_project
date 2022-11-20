@@ -52,9 +52,8 @@ def get_date_to_start_dispute(current_date: datetime.datetime, start_date: str, 
 
     elif start_date == 'select_after_tomorrow':
         future_date += datetime.timedelta(days=2)
-    print(future_date)
-    new_date = str(future_date.day) + " " + str(future_date.strftime('%B')) + " " + str(future_date.year)
-    return new_date
+    #print(future_date)
+    return future_date
 
 
 def get_current_timezone(timezone: str):

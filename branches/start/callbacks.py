@@ -9,31 +9,38 @@ from branches.start.keyboards import *
 
 async def second_message(call: types.CallbackQuery):
     await call.message.edit_text(text=second_faq_msg, reply_markup=second_buttons)
+    await call.answer()
 
 
 async def previous_first_message(call: types.CallbackQuery):
     await call.message.edit_text(text=first_faq_msg, reply_markup=first_button)
+    await call.answer()
 
 
 async def third_message(call: types.CallbackQuery):
     await call.message.edit_text(text=third_faq_msg, reply_markup=third_buttons)
+    await call.answer()
 
 
 async def previous_second_message(call: types.CallbackQuery):
     await call.message.edit_text(text=second_faq_msg, reply_markup=second_buttons)
+    await call.answer()
 
 
 async def fourth_message(call: types.CallbackQuery):
     await call.message.edit_text(text=fourth_faq_msg, reply_markup=fourth_button)
+    await call.answer()
 
 
 async def previous_third_message(call: types.CallbackQuery):
     await call.message.edit_text(text=third_faq_msg, reply_markup=third_buttons)
+    await call.answer()
 
 
 async def delete_message(call: types.CallbackQuery):
 
     await call.message.delete()
+    await call.answer()
 
 
 def register_callback(bot, dp: Dispatcher):

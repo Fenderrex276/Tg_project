@@ -16,3 +16,6 @@ Shapely==1.8.5.post1
 typing_extensions==4.4.0
 tzwhere==3.0.3
 yarl==1.8.1
+
+Django~=4.1.2
+APScheduler~=3.9.1.post1
