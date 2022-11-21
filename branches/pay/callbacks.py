@@ -12,8 +12,12 @@ from db.models import Users
 
 async def choose_sum_to_pay(call: types.CallbackQuery):
     await PayStates.pay.set()
-    await call.message.answer(text=deposit_msg, reply_markup=choose_sum_keyboard, parse_mode=ParseMode.MARKDOWN_V2)
+
+    await call.message.answer(text=deposit_msg, reply_markup=types.ReplyKeyboardRemove())
+    await call.message.answer(text="*Выбери комфортную сумму*", parse_mode=ParseMode.MARKDOWN_V2,
+                              reply_markup=choose_sum_keyboard)
     await call.answer()
+
 
 async def check_sum(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(deposit=call.data)
@@ -22,10 +26,12 @@ async def check_sum(call: types.CallbackQuery, state: FSMContext):
                                  parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 
+
 async def other_sum_to_pay(call: types.CallbackQuery):
     await PayStates.input_sum.set()
     await call.message.answer(text=other_sum_msg, reply_markup=types.ReplyKeyboardRemove())
     await call.answer()
+
 
 async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
     money = await state.get_data()
@@ -34,6 +40,7 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
                         " 4276 4000 4033 9999\n (без коммента)")
     await call.message.edit_text(text=bank_details_msg, reply_markup=confirm_deposit_payed_keyboard)
     await call.answer()
+
 
 async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()

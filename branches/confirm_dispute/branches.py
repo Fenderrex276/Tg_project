@@ -49,7 +49,7 @@ class ConfirmDispute:
         await state.update_data(timezone=tmp[:len(tmp) - 4])
         msg = f"Установлен часовой пояс {tmp}"
 
-        await message.answer(text=msg, reply_markup=menu_keyboard)
+        await message.answer(text=msg)
 
         variant = await state.get_data()
 
