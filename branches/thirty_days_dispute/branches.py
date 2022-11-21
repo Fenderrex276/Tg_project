@@ -124,9 +124,9 @@ class CurrentDispute:
     async def input_support(self, message: types.Message, state: FSMContext):
         nd = await Users.objects.filter(user_id=message.from_user.id).afirst()
         await Supt.objects.acreate(user_id=message.from_user.id,
-                                      number_dispute=nd.number_dispute,
-                                      chat_id=message.chat.id,
-                                      problem=message.text,
-                                      solved=Supt.TypeSolve.new)
+                                   number_dispute=nd.number_dispute,
+                                   chat_id=message.chat.id,
+                                   problem=message.text,
+                                   solved=Supt.TypeSolve.new)
         await StatesDispute.none.set()
         await message.answer(text='Готово! 🤗 Спасибо')

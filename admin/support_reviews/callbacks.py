@@ -1,8 +1,9 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from admin.support_reviews import keyboards, messages, branches
+from admin.support_reviews import keyboards, messages, branches, states
 from admin.states import AdminStates
 from admin.keyboards import support_menu_keyboard
+
 
 num_review = 0
 
@@ -40,15 +41,21 @@ async def get_review(call: types.CallbackQuery, state: FSMContext):
     await branches.write_quest(num_review, message=call.message)
     await call.answer()
 
+async def review_sup(call: types.CallbackQuery, state: FSMContext):
+    await call.message.answer(text="Введи ответ пользователю:")
+    await state.get_data()
+    await call.answer()
 
 def register_callback(dp: Dispatcher, bot):
     dp.register_callback_query_handler(start_review_menu, text='supp',
-                                       state=AdminStates.is_admin)
+                                       state=states.ReviewStates.none)
     dp.register_callback_query_handler(back, text='back_sup',
-                                       state=AdminStates.is_admin)
+                                       state=states.ReviewStates.none)
     dp.register_callback_query_handler(start_review, text='new_review',
-                                       state=AdminStates.is_admin)
+                                       state=states.ReviewStates.none)
     dp.register_callback_query_handler(back_to_review, text='back_to_reviews',
-                                       state=AdminStates.is_admin)
+                                       state=states.ReviewStates.none)
     dp.register_callback_query_handler(get_review, text='start_review',
-                                       state=AdminStates.is_admin)
+                                       state=states.ReviewStates.none)
+    dp.register_callback_query_handler(review_sup, text='review_sup',
+                                       state=states.ReviewStates.none)
