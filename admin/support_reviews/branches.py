@@ -7,7 +7,6 @@ from admin.states import AdminStates
 from initialize import bot as mainbot
 
 
-
 class Reviews:
     def __init__(self, bot: Bot, dp: Dispatcher):
         self.bot = bot
@@ -42,14 +41,16 @@ class Reviews:
     async def write_archive(self, message: types.Message):
         try:
             s = Supt.objects.filter(number_dispute=message.text, solved="done").all()
-            for sup in s:
-                try:
-                    nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_days
-                except:
-                    nds = "0"
-                nd = await Users.objects.filter(user_id=sup.user_id).afirst()
-                await message.answer(getQuestions(Nums.num_review, nd.number_dispute, nds, sup.problem))
-
+            if s.count() > 0:
+                for sup in s:
+                    try:
+                        nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_days
+                    except:
+                        nds = "0"
+                    nd = await Users.objects.filter(user_id=sup.user_id).afirst()
+                    await message.answer(getQuestions(Nums.num_review, nd.number_dispute, nds, sup.problem))
+            else:
+                await message.answer("Диспут не найден. Скопируй номер диспута и введи (#D****):")
         except:
             await message.answer("Диспут не найден. Скопируй номер диспута и введи (#D****):")
 
@@ -81,5 +82,3 @@ async def write_pass_quest(num_review, num_pass, message: types.Message):
                              reply_markup=keyboards.review_pass_keyboard)
     except:
         await message.answer("Упс... Отложенных обращений в поддержку нет")
-
-
