@@ -2,7 +2,7 @@ from aiogram import types
 
 start_md_keyboard = types.InlineKeyboardMarkup(row_width=1)
 start_md_keyboard.add(types.InlineKeyboardButton(text='👍 Читать', callback_data='read_faq'))
-start_md_keyboard.add(types.InlineKeyboardButton(text='❓ Задать свой вопрос', callback_data='my_quest'))
+start_md_keyboard.add(types.InlineKeyboardButton(text='❓ Задать свой вопрос', callback_data='support'))
 
 
 control_md_keyboard = types.InlineKeyboardMarkup(row_width=2)

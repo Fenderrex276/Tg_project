@@ -12,7 +12,7 @@ from db.models import RoundVideo, Users
 from .сallbacks import *
 from initialize import bot as mainbot
 from initialize import scheduler
-
+from admin.support_reviews.states import ReviewStates
 
 class Admin:
     def __init__(self, bot: Bot, dp: Dispatcher):
@@ -58,6 +58,6 @@ class Admin:
     async def supports(self, message: types.Message, state: FSMContext):
 
         await message.answer(text="💚 Поддержка и отзывы", reply_markup=support_menu_keyboard)
-
+        await ReviewStates.none.set()
 
 

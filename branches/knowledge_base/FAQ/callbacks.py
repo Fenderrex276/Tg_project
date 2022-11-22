@@ -1,6 +1,7 @@
 from aiogram import Dispatcher, types
 from aiogram.types import InputFile, ParseMode, InputMedia
 from branches.knowledge_base.FAQ import messages, states, keyboards, branches
+from branches.thirty_days_dispute.states import StatesDispute
 
 
 async def next_faq(call: types.CallbackQuery):
@@ -37,6 +38,7 @@ async def first_faq(call: types.CallbackQuery):
 
 
 async def choose_faq(call: types.CallbackQuery):
+    await StatesDispute.account.set()
     await call.bot.delete_message(message_id=call.message.message_id,chat_id= call.message.chat.id)
     await call.message.answer(text=messages.start_FAQ, reply_markup=keyboards.start_md_keyboard,
                               parse_mode=ParseMode.MARKDOWN)
@@ -47,8 +49,8 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(choose_faq, text='faq',
                                        state="*")
     dp.register_callback_query_handler(first_faq, text='read_faq',
-                                       state="*")
+                                       state=StatesDispute.account)
     dp.register_callback_query_handler(next_faq, text='next_faq',
-                                       state="*")
+                                       state=StatesDispute.account)
     dp.register_callback_query_handler(prev_faq, text='back_faq',
-                                       state="*")
+                                       state=StatesDispute.account)
