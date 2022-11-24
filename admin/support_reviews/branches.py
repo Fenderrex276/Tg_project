@@ -44,7 +44,7 @@ class Reviews:
             if s.count() > 0:
                 for sup in s:
                     try:
-                        nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_days
+                        nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_day
                     except:
                         nds = "0"
                     nd = await Users.objects.filter(user_id=sup.user_id).afirst()

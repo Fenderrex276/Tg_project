@@ -2,10 +2,12 @@ from .branches import Admin
 from aiogram import executor
 from reports.branches import Reports
 from reports.callbacks import register_callback as rc1
+from support_reviews.callbacks import register_callback as rc2
 from initialze import scheduler
+from .support_reviews.branches import Reviews
 
-branches = [Admin, Reports]
-callbacks = [rc1]
+branches = [Admin, Reports, Reviews]
+callbacks = [rc1, rc2]
 
 
 class AdminDisputeBot:

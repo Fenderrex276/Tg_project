@@ -4,6 +4,8 @@ from random import randint
 from aiogram import Dispatcher, Bot, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode
+
+from admin.initialze import scheduler
 from admin.keyboards import *
 from admin.reports.states import ReportStates
 from admin.сallbacks import current_dispute
@@ -60,10 +62,10 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=user.chat_tg_id)
     await mainbot.send_message(text=f"Твой новый код придёт сюда {start}.", chat_id=user.chat_tg_id,
                                reply_markup=success_keyboard)
-    date_now = call.message.date + datetime.timedelta(seconds=30)
-    # scheduler.start()
-    # scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
-    # scheduler.print_jobs()
+    """date_now = call.message.date.utcnow() + datetime.timedelta(seconds=30)
+
+    scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
+    scheduler.print_jobs()"""
     await test_videos(call, state)
 
 
@@ -183,6 +185,21 @@ async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
                                                  reply_markup=test_keyboard)
 
 
+async def ninety_day_volya(call: types.CallbackQuery, state: FSMContext):
+    tmp_msg = "Сюда попадают новые репорты из 90 дневной игры \"Личные цели\""
+
+    await call.message.answer(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text="🔥 Начать", callback_data="start_volya"),
+        types.InlineKeyboardButton(text="Назад", callback_data="back_from_volya")
+    ))
+
+
+async def new_videos_volya(call: types.CallbackQuery, state: FSMContext):
+    tmp_msg = "Новых репортов в категории “Личные цели” не обнаружено."
+
+    await call.message.answer(text=tmp_msg)
+
+
 def register_callback(dp: Dispatcher, bot: Bot):
     dp.register_callback_query_handler(test_videos, text='test_videos', state="*")
     dp.register_callback_query_handler(access_video, text='confirm_video', state="*")
@@ -198,3 +215,6 @@ def register_callback(dp: Dispatcher, bot: Bot):
     dp.register_callback_query_handler(archive_button, text="more_video", state="*")
     dp.register_callback_query_handler(back_to_menu, text="back_from_archive", state="*")
     dp.register_callback_query_handler(thirty_day_dispute, text='lets_go', state="*")
+    dp.register_callback_query_handler(ninety_day_volya, text="before_result", state="*")
+    dp.register_callback_query_handler(back_to_menu, text="back_from_volya", state="*")
+    dp.register_callback_query_handler(new_videos_volya, text="start_volya", state="*")

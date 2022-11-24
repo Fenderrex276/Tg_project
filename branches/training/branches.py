@@ -24,7 +24,7 @@ class Training:
                                          content_types=['text', 'audio', 'photo', 'sticker', 'voice'],
                                          state=Video.recv_video)
         self.dp.register_message_handler(self.is_not_a_video,
-                                         content_types=['text', 'audio', 'photo', 'sticker', 'voice'],
+                                         content_types=['text', 'audio', 'photo', 'sticker', 'voice', 'video'],
                                          state=Video.recv_video_note)
 
     async def recieve_video_note(self, message: types.Message, state: FSMContext):

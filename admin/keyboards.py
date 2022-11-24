@@ -1,7 +1,8 @@
 from aiogram import types
 
 admin_menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
-admin_menu.add(types.KeyboardButton("✅ Репорты"), types.KeyboardButton("💚 Поддержка и отзывы"))
+admin_menu.add(types.KeyboardButton("✅ Репорты"))
+admin_menu.add(types.KeyboardButton("💚 Поддержка и отзывы"))
 
 reports_menu_keyboard = types.InlineKeyboardMarkup()
 reports_menu_keyboard.add(types.InlineKeyboardButton(text="Ежедневные", callback_data="every_day"))
