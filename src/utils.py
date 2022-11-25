@@ -29,7 +29,7 @@ def get_timezone(location: dict):
 
 def get_date_to_start_dispute(current_date: datetime.datetime, start_date: str, timezone: str):
 
-    locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
+#    locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
     # print("ARGUMENTS : ", current_date.utcnow(), start_date, timezone)
     hours, minutes = get_current_timezone(timezone)
 
