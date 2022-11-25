@@ -1,6 +1,5 @@
 import os
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
@@ -16,3 +15,6 @@ INSTALLED_APPS = (
 )
 
 SECRET_KEY = 'ogew78f887fho273f1o3f(&*^&%Y(&*^G&fr46'
+
+TOKEN_CLIENT = os.getenv('TOKEN_CLIENT')
+TOKEN_ADMIN = os.getenv('TOKEN_ADMIN')
