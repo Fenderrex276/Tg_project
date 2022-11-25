@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+FROM python:3.10
+
+WORKDIR "/src/ClientBot"
+ENV PYTHONPATH "${PYTHONPATH}:/src"
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+COPY python/requirements.txt /src/ClientBot/
+
+#RUN apt update
+
+RUN pip3 install -r requirements.txt
+
+COPY /src /src/ClientBot
+
+ENTRYPOINT ["python3", "client/client_main.py"]
+

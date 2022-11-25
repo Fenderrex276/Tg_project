@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+FROM python:3.10
+
+WORKDIR "/src/AdminBot"
+ENV PYTHONPATH "${PYTHONPATH}:/src"
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+COPY python/requirements.txt /src/AdminBot/
+
+#RUN apt update
+
+RUN pip3 install -r requirements.txt
+
+COPY /src /src/AdminBot
+
+ENTRYPOINT ["python3", "admin/admin_main.py"]
