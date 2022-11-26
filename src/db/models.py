@@ -23,16 +23,16 @@ class RoundVideo(models.Model):
 
 
 class Users(models.Model):
-    user_id = models.IntegerField()
-    user_name = models.CharField(max_length=20)
-    action = models.CharField(max_length=20)
-    additional_action = models.CharField(max_length=20)
-    start_disput = models.CharField(max_length=10)
-    deposit = models.IntegerField()
-    promocode_user = models.CharField(max_length=10)
-    promocode_from_friend = models.CharField(max_length=10)
-    count_days = models.IntegerField()
-    number_dispute = models.CharField(max_length=6)
+    user_id = models.IntegerField(verbose_name="ID пользователя в Телеграмм")
+    user_name = models.CharField(max_length=20, verbose_name="Имя пользователя")
+    action = models.CharField(max_length=20, verbose_name="?")
+    additional_action = models.CharField(max_length=20, verbose_name="?")
+    start_disput = models.CharField(max_length=10, verbose_name="Когда начинается диспут")
+    deposit = models.IntegerField(verbose_name="Сумма депозита")
+    promocode_user = models.CharField(max_length=10, verbose_name="Промокод пользователя")
+    promocode_from_friend = models.CharField(max_length=10, verbose_name="Промокод-приглашение")
+    count_days = models.IntegerField(verbose_name="Сколько дней длится диспут")
+    number_dispute = models.CharField(max_length=6, verbose_name="?")
 
 
 class Support(models.Model):
