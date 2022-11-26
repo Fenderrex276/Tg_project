@@ -4,7 +4,7 @@ from aiogram import types, Bot, Dispatcher
 from admin.support_reviews.messages import getQuestions
 from admin.support_reviews import keyboards, states
 from admin.states import AdminStates
-from admin.initialize import bot as mainbot
+from client.initialize import bot as mainbot
 
 
 class Reviews:

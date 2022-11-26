@@ -1,7 +1,7 @@
 from aiogram import types, Dispatcher, Bot
 from aiogram.dispatcher import FSMContext
 
-from admin.initialize import bot as mainbot
+from client.initialize import bot as mainbot
 from admin.reports.states import ReportStates
 from admin.сallbacks import current_dispute
 from db.models import RoundVideo, Users
