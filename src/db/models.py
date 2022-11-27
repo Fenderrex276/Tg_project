@@ -22,7 +22,7 @@ class RoundVideo(models.Model):
     n_day = models.IntegerField(default=0)
 
 
-class Users(models.Model):
+class User(models.Model):
     user_id = models.IntegerField(verbose_name="ID пользователя в Телеграмм")
     user_name = models.CharField(max_length=20, verbose_name="Имя пользователя")
     action = models.CharField(max_length=20, verbose_name="?")
@@ -33,6 +33,16 @@ class Users(models.Model):
     promocode_from_friend = models.CharField(max_length=10, verbose_name="Промокод-приглашение")
     count_days = models.IntegerField(verbose_name="Сколько дней длится диспут")
     number_dispute = models.CharField(max_length=6, verbose_name="?")
+
+
+class PeriodicTask(models.Model):
+    user_id = models.IntegerField(verbose_name="ID пользователя в Телеграмм")
+    fun = models.CharField(max_length=20, verbose_name="Название периодической функции")
+    job_id = models.CharField(max_length=20, verbose_name="id задачи")
+    hour = models.CharField(max_length=20, default="*", verbose_name="В какой час вызвать")
+    minute = models.CharField(max_length=20, default="*", verbose_name="В какую минуту вызвать")
+    second = models.CharField(max_length=20, default="*", verbose_name="В какую секунду вызвать")
+    kwargs = models.JSONField(verbose_name="Переменные, которые передаются в функцию")
 
 
 class Support(models.Model):
