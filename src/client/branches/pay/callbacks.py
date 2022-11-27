@@ -7,17 +7,17 @@ from client.branches.confirm_dispute.states import Promo
 from client.branches.pay.keyboards import *
 from client.branches.pay.messages import *
 from client.branches.pay.states import PayStates
-from db.models import Users
+from db.models import User
 from client.tasks import del_scheduler, scheduler_add_job
 from client.initialize import dp
 
 
-async def choose_sum_to_pay(call: types.CallbackQuery):
+async def choose_sum_to_pay(call: types.CallbackQuery, state: FSMContext):
     await PayStates.pay.set()
 
     del_scheduler(f'{call.from_user.id}_reminder')
-
-    scheduler_add_job(dp, 'reminder', call.from_user.id, 2)
+    redis_data = await state.get_data()
+    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 2)
     await call.message.answer(text=deposit_msg, reply_markup=types.ReplyKeyboardRemove())
     await call.message.answer(text="*Выбери комфортную сумму*", parse_mode=ParseMode.MARKDOWN_V2,
                               reply_markup=choose_sum_keyboard)
@@ -32,7 +32,8 @@ async def check_sum(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     del_scheduler(f'{call.from_user.id}_reminder')
 
-    scheduler_add_job(dp, 'reminder', call.from_user.id, 3)
+    redis_data = await state.get_data()
+    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 3)
 
 
 async def other_sum_to_pay(call: types.CallbackQuery):
@@ -50,13 +51,13 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     del_scheduler(f'{call.from_user.id}_reminder')
 
-    scheduler_add_job(dp, 'reminder', call.from_user.id, 4)
+    redis_data = await state.get_data()
+    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 4)
     # TODO Куда улетает запрос после жмяка на Подтвердить
 
 
 async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
-    print(v)
 
     success_payment_msg = ("Поздравляем 🎉 ты уже в шаге от цели. Заявка #TG2802 успешно оплачена.\n\n"
                            f" 🔥 Твой депозит пополнен на {v['deposit']} ₽ и заморожен до конца пари — соблюдай "
@@ -66,7 +67,8 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     del_scheduler(f'{call.from_user.id}_reminder')
 
-    scheduler_add_job(dp, 'reminder', call.from_user.id, 5)
+    redis_data = await state.get_data()
+    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 5)
 
 
 async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
@@ -159,13 +161,13 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
         start_d = "monday"
     deposit = int(data['deposit'].replace(" ", ""))
 
-    await Users.objects.acreate(user_id=call.from_user.id,
-                                user_name=call.from_user.first_name,
-                                action=data['action'],
-                                additional_action=data['additional_action'],
-                                start_disput=start_d,
-                                deposit=deposit,
-                                count_days=30)
+    await User.objects.acreate(user_id=call.from_user.id,
+                               user_name=call.from_user.first_name,
+                               action=data['action'],
+                               additional_action=data['additional_action'],
+                               start_disput=start_d,
+                               deposit=deposit,
+                               count_days=30)
 
     await call.message.edit_text(text=start_current_disput_msg, reply_markup=next_step_keyboard,
                                  parse_mode=ParseMode.MARKDOWN)

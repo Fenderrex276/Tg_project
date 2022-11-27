@@ -72,7 +72,8 @@ async def send_video_note(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     del_scheduler(f'{call.from_user.id}_reminder')
 
-    scheduler_add_job(dp, 'reminder', call.from_user.id, 6)
+    redis_data = await state.get_data()
+    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 6)
 
 
 async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):

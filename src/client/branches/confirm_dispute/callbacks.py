@@ -8,7 +8,7 @@ from client.branches.confirm_dispute.keyboards import *
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from client.branches.confirm_dispute.states import Promo
 from client.branches.dispute_with_friend.states import Form
-from db.models import Users
+from db.models import User
 from utils import get_date_to_start_dispute
 from client.tasks import scheduler_add_job
 
@@ -123,7 +123,7 @@ async def choice_painting(call: types.CallbackQuery, state: FSMContext):
 
 
 async def monday_or_after_tomorrow(call: types.CallbackQuery, state: FSMContext):
-    print(call.data)
+    # print(call.data)
     await state.update_data(additional_action=call.data)
 
     await call.message.edit_text(text=monday_or_later_msg, reply_markup=select_day_keyboard)
@@ -148,15 +148,14 @@ async def geo_position(call: types.CallbackQuery, state: FSMContext):
 async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     from client.initialize import dp
 
-    if Users.objects.filter(user_id=call.from_user.id).exists():
-        print("TYTYTYTYTYTYYTYTYTYTYT")
-    else:
-        scheduler_add_job(dp, "reminder", call.from_user.id, 1)
-
     await state.update_data(timezone=call.data, name=call.from_user.first_name)
 
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
 
+    if User.objects.filter(user_id=call.from_user.id).exists():
+        print("TYTYTYTYTYTYYTYTYTYTYT")
+    else:
+        scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1)
     await call.message.answer(text=tmp_msg)
     variant = await state.get_data()
     future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)

@@ -10,7 +10,7 @@ from .diary import questions
 from .keyboards import *
 from .states import StatesDispute
 from .callbacks import video_text
-from db.models import Supt, Users
+from db.models import Supt, User
 import pytz
 from .callbacks import random_question
 
@@ -122,7 +122,7 @@ class CurrentDispute:
         await message.answer(text=questions[second_ind], reply_markup=admit_or_pass_keyboard)
 
     async def input_support(self, message: types.Message, state: FSMContext):
-        nd = await Users.objects.filter(user_id=message.from_user.id).afirst()
+        nd = await User.objects.filter(user_id=message.from_user.id).afirst()
         await Supt.objects.acreate(user_id=message.from_user.id,
                                    number_dispute=nd.number_dispute,
                                    chat_id=message.chat.id,
