@@ -8,7 +8,9 @@ from client.branches.confirm_dispute.keyboards import *
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from client.branches.confirm_dispute.states import Promo
 from client.branches.dispute_with_friend.states import Form
+from db.models import Users
 from utils import get_date_to_start_dispute
+from client.tasks import scheduler_add_job
 
 
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
@@ -144,7 +146,15 @@ async def geo_position(call: types.CallbackQuery, state: FSMContext):
 
 
 async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
+    from client.initialize import dp
+
+    if Users.objects.filter(user_id=call.from_user.id).exists():
+        print("TYTYTYTYTYTYYTYTYTYTYT")
+    else:
+        scheduler_add_job(dp, "reminder", call.from_user.id, 1)
+
     await state.update_data(timezone=call.data, name=call.from_user.first_name)
+
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
 
     await call.message.answer(text=tmp_msg)

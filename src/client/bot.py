@@ -19,7 +19,8 @@ from branches.thirty_days_dispute.branches import CurrentDispute
 from branches.thirty_days_dispute.callbacks import register_callback as rc6
 from branches.training.branches import Training
 from branches.training.callbacks import register_callback as rc5
-from client.tasks import scheduler_init
+from client.initialize import scheduler
+
 
 branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training, CurrentDispute]
 callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12, rc13]
@@ -38,5 +39,5 @@ class DisputeBot:
             call(bot, dp)
 
     def start(self):
-        scheduler_init()
+        scheduler.start()
         executor.start_polling(self.dp, skip_updates=True)

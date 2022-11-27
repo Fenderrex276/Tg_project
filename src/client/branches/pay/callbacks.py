@@ -8,11 +8,16 @@ from client.branches.pay.keyboards import *
 from client.branches.pay.messages import *
 from client.branches.pay.states import PayStates
 from db.models import Users
+from client.tasks import del_scheduler, scheduler_add_job
+from client.initialize import dp
 
 
 async def choose_sum_to_pay(call: types.CallbackQuery):
     await PayStates.pay.set()
 
+    del_scheduler(f'{call.from_user.id}_reminder')
+
+    scheduler_add_job(dp, 'reminder', call.from_user.id, 2)
     await call.message.answer(text=deposit_msg, reply_markup=types.ReplyKeyboardRemove())
     await call.message.answer(text="*Выбери комфортную сумму*", parse_mode=ParseMode.MARKDOWN_V2,
                               reply_markup=choose_sum_keyboard)
@@ -25,6 +30,9 @@ async def check_sum(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_text(text=application_for_payment_msg, reply_markup=get_banking_detials_keyboard,
                                  parse_mode=ParseMode.MARKDOWN)
     await call.answer()
+    del_scheduler(f'{call.from_user.id}_reminder')
+
+    scheduler_add_job(dp, 'reminder', call.from_user.id, 3)
 
 
 async def other_sum_to_pay(call: types.CallbackQuery):
@@ -40,6 +48,10 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
                         " 4276 4000 4033 9999\n (без коммента)")
     await call.message.edit_text(text=bank_details_msg, reply_markup=confirm_deposit_payed_keyboard)
     await call.answer()
+    del_scheduler(f'{call.from_user.id}_reminder')
+
+    scheduler_add_job(dp, 'reminder', call.from_user.id, 4)
+    # TODO Куда улетает запрос после жмяка на Подтвердить
 
 
 async def successful_payment(call: types.CallbackQuery, state: FSMContext):
@@ -52,6 +64,9 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
                            " из 30 дней и сохрани депозит, всё зависит только от тебя")
     await call.message.edit_text(text=success_payment_msg, reply_markup=go_keyboard)
     await call.answer()
+    del_scheduler(f'{call.from_user.id}_reminder')
+
+    scheduler_add_job(dp, 'reminder', call.from_user.id, 5)
 
 
 async def start_current_disput(call: types.CallbackQuery, state: FSMContext):

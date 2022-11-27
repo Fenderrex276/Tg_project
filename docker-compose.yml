@@ -23,6 +23,7 @@ services:
       context: ./
       dockerfile: python/Dockerfile.client_bot
     environment:
+      DJANGO_ALLOW_ASYNC_UNSAFE: 'true'
       DJANGO_SETTINGS_MODULE: settings.settings
     env_file:
       - ./src/settings/config.env
