@@ -8,7 +8,7 @@ from client.initialize import bot as mainbot
 from admin.keyboards import *
 from admin.reports.states import ReportStates
 from admin.сallbacks import current_dispute
-from db.models import RoundVideo, Users
+from db.models import RoundVideo, User
 
 
 async def test_videos(call: types.CallbackQuery, state: FSMContext):
@@ -17,7 +17,7 @@ async def test_videos(call: types.CallbackQuery, state: FSMContext):
     if new_video is None:
         await call.message.answer("Нет новых видео")
     else:
-        user = Users.objects.filter(user_id=new_video.user_tg_id).first()
+        user = User.objects.filter(user_id=new_video.user_tg_id).first()
         id_dispute = str(new_video.id_video)
         purpose = current_dispute(user.action, user.additional_action)
 
@@ -47,7 +47,7 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer(text="Готово!")
 
     user = RoundVideo.objects.get(tg_id=data['video_user_id'])
-    current_user = Users.objects.filter(user_id=user.user_tg_id).first()
+    current_user = User.objects.filter(user_id=user.user_tg_id).first()
     start = ""
 
     if current_user.start_disput == "tomorrow":
@@ -160,7 +160,7 @@ async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
     if new_dispute is None:
         await call.message.answer("Нет новых видео")
     else:
-        user = Users.objects.filter(user_id=new_dispute.user_tg_id).first()
+        user = User.objects.filter(user_id=new_dispute.user_tg_id).first()
         id_dispute = str(new_dispute.id_video)
         purpose = current_dispute(user.action, user.additional_action)
 

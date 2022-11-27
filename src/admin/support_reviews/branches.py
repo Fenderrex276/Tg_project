@@ -1,5 +1,5 @@
 from admin.support_reviews.callbacks import Nums
-from db.models import Supt, Users, RoundVideo
+from db.models import Supt, User, RoundVideo
 from aiogram import types, Bot, Dispatcher
 from admin.support_reviews.messages import getQuestions
 from admin.support_reviews import keyboards, states
@@ -47,7 +47,7 @@ class Reviews:
                         nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_day
                     except:
                         nds = "0"
-                    nd = await Users.objects.filter(user_id=sup.user_id).afirst()
+                    nd = await User.objects.filter(user_id=sup.user_id).afirst()
                     await message.answer(getQuestions(Nums.num_review, nd.number_dispute, nds, sup.problem))
             else:
                 await message.answer("Диспут не найден. Скопируй номер диспута и введи (#D****):")
@@ -62,7 +62,7 @@ async def write_quest(num_review, message: types.Message):
             nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_days
         except:
             nds = "0"
-        nd = await Users.objects.filter(user_id=sup.user_id).afirst()
+        nd = await User.objects.filter(user_id=sup.user_id).afirst()
         await message.answer(getQuestions(num_review, nd.number_dispute, nds, sup.problem),
                              reply_markup=keyboards.review_keyboard)
     except:
@@ -77,7 +77,7 @@ async def write_pass_quest(num_review, num_pass, message: types.Message):
             nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_days
         except:
             nds = "0"
-        nd = await Users.objects.filter(user_id=sup.user_id).afirst()
+        nd = await User.objects.filter(user_id=sup.user_id).afirst()
         await message.answer(getQuestions(num_review, nd.number_dispute, nds, sup.problem),
                              reply_markup=keyboards.review_pass_keyboard)
     except:

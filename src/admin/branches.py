@@ -8,7 +8,7 @@ from random import randint
 from .keyboards import *
 from .states import AdminStates
 from .apikeys import api_keys_arr
-from db.models import RoundVideo, Users
+from db.models import RoundVideo, User
 from .сallbacks import *
 from client.initialize import bot as mainbot
 from admin.support_reviews.states import ReviewStates

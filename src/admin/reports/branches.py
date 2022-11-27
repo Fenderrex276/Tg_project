@@ -4,7 +4,7 @@ from aiogram.dispatcher import FSMContext
 from client.initialize import bot as mainbot
 from admin.reports.states import ReportStates
 from admin.сallbacks import current_dispute
-from db.models import RoundVideo, Users
+from db.models import RoundVideo, User
 
 
 class Reports:
@@ -61,7 +61,7 @@ class Reports:
                 await message.answer(text=tmp_msg)
             else:
                 await ReportStates.none.set()
-                user = Users.objects.filter(user_id=dispute_video.user_tg_id).first()
+                user = User.objects.filter(user_id=dispute_video.user_tg_id).first()
                 code_in_video = " ".join(list(dispute_video.code_in_video))
                 description_dispute = current_dispute(user.action, user.additional_action)
                 answer_admin = ""
