@@ -9,7 +9,7 @@ from client.branches.confirm_dispute.states import Promo
 from client.branches.confirm_dispute.keyboards import *
 from client.branches.confirm_dispute.mesages import *
 from utils import get_timezone, get_date_to_start_dispute
-
+from db.models import User
 
 class ConfirmDispute:
     def __init__(self, bot: Bot, dp: Dispatcher):
@@ -26,14 +26,16 @@ class ConfirmDispute:
         self.dp.register_message_handler(self.get_geo_position, content_types=['location'], state=Promo.geo_position)
 
     async def input_promo_code_handler(self, message: types.Message, state: FSMContext):
-        promocodes = ['HUI', 'ZALUPA', 'CHLEN', 'PIDARAS']
+        promocodes = ['HUI', 'ZALUPA', 'CHLEN', 'PIDARAS', 'SOBCHAK']
 
         print(message.text)
-
-        if message.text in promocodes:
+        # TODO проходимся по базе и ищем промокоды среди зарегистрированных пользоватей
+        #  ищем по полю promocode_user если находим то добавляем этот промокод в поле
+        #  promocode_from_user текущего пользователя, но сначала храним его в редисе
+        if message.text in promocodes or User.objects.filter(promocode_user=message.text).exists():
             msg = 'Спасибо 🙏 Промо-код успешно принят.'
             await Promo.next()
-            await state.update_data(promocode='1')
+            await state.update_data(promocode=message.text)
             await message.answer(text=msg)
             await message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
 

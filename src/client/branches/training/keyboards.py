@@ -6,7 +6,9 @@ test_confirm_keyboard.add(types.InlineKeyboardButton(text='😌 Испытать
 send_video_keyboard = types.InlineKeyboardMarkup(row_width=2)
 send_video_keyboard.add(types.InlineKeyboardButton(text='🚀 Отправить', callback_data='send_video'),
                         types.InlineKeyboardButton(text='Новое видео', callback_data='send_new_video'))
-
+send_help_keyboard = types.InlineKeyboardMarkup(row_width=2)
+send_help_keyboard.add(types.InlineKeyboardButton(text='Новое видео', callback_data='next_one1'),
+                       types.InlineKeyboardButton(text='Поддержка', callback_data='podderzka'))
 success_keyboard = types.InlineKeyboardMarkup()
 success_keyboard.add(types.InlineKeyboardButton(text='👍 Хорошо', callback_data='good'))
 success_pin_keyboard = types.InlineKeyboardMarkup()

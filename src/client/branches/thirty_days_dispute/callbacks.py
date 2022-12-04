@@ -5,16 +5,16 @@ from aiogram.types import InputFile, ParseMode
 from .diary import questions
 from .keyboards import *
 from .states import StatesDispute
-from db.models import RoundVideo
+from db.models import RoundVideo, User
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
-
 
 
 async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
     await StatesDispute.none.set()
-
+    await state.update_data(is_deleted=-1)
     data = await state.get_data()
     recieve_message = video_text(data)
+
     await call.message.answer_photo(photo=InputFile(recieve_message[0]), caption=recieve_message[1],
                                     reply_markup=menu_keyboard,
                                     parse_mode=ParseMode.MARKDOWN)
@@ -103,8 +103,9 @@ def video_text(data: dict):
     return [purpose, start_current_disput_msg]
 
 
-async def reports(call: types.CallbackQuery):
+async def reports(call: types.CallbackQuery, state: FSMContext):
     main_photo = InputFile("client/media/days_of_dispute/zero_day.jpg")
+    await state.update_data(is_deleted=-1)
     await call.message.answer_photo(main_photo, reply_markup=report_keyboard)
     await call.answer()
 
@@ -128,7 +129,7 @@ async def change_name(call: types.CallbackQuery, state: FSMContext):
 
 
 async def check_report(call: types.CallbackQuery, state: FSMContext):
-
+    # await state.update_data(current_message=1, id_to_delete=call.message.message_id+1)
     try:
         user_video = await RoundVideo.objects.aget(user_tg_id=call.from_user.id,
                                                    chat_tg_id=call.message.chat.id,
@@ -152,6 +153,7 @@ async def check_report(call: types.CallbackQuery, state: FSMContext):
                 await StatesDispute.video_note.set()
                 await call.message.answer_video_note(video_note=InputFile(temp_array[1]))
     except:
+
         await call.message.answer(text='Твой новый код придёт в бот автоматически.')
     await call.answer()
 
@@ -266,7 +268,8 @@ async def diary_button(call: types.CallbackQuery, state: FSMContext):
            "отправляются и "
            "остаются здесь, наедине с тобой.\n\n"
            "Перечитай и проанализируй их, посмотри на ситуации и себя со стороны и продолжай свой путь")
-    await state.update_data(number_question=random.randint(0, 29))
+
+    await state.update_data(number_question=random.randint(0, 45))
     await call.message.answer(text=msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='🎲 Рандомно', callback_data='random_questions')))
     await call.answer()
@@ -345,6 +348,19 @@ async def awards(call: types.CallbackQuery, state: FSMContext):
     tmp_msg = ("👑 Бонусы — 0 ₽\n\n"
                "Выбери задание и зарабатывай дополнительные 💰 в свой депозит")
 
+    # data = await state.get_data()
+    #
+    # try:
+    #     await call.bot.delete_message(chat_id=call.message.chat.id,
+    #                                   message_id=data['promocode_msg_delete'])
+    #     await call.bot.delete_message(chat_id=call.message.chat.id,
+    #                                   message_id=data['promocode_msg_delete'] + 1)
+    # finally:
+    #     """if is_deleted['is_deleted'] == 1:
+    #     await call.bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id + 1)
+    #     await call.bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id + 2)
+    #     await state.update_data(is_deleted=0)
+    #     """
     await call.message.edit_caption(caption=tmp_msg, reply_markup=awards_keyboard)
     await call.answer()
 
@@ -360,13 +376,28 @@ async def promo_code_awards(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='🎟 Мой код', callback_data='user_promocode'),
         types.InlineKeyboardButton(text='Назад', callback_data='back_awards')))
+
     await call.answer()
 
 
 async def my_promocode(call: types.CallbackQuery, state: FSMContext):
-    sobchak = "SOBCHAK"
-    await call.message.answer(text=sobchak)
-    await call.message.answer(text='Зажми промо-код, чтобы скопировать')
+    print("PROMOCODE ENTER: ", call.message.message_id)
+    # is_deleted = await state.get_data()
+    # if 'promocode_msg_delete' not in is_deleted:
+    #     await state.update_data(promocode_msg_delete=call.message.message_id + 1)
+    # else:
+    #     try:
+    #         await call.bot.delete_message(chat_id=call.message.chat.id,
+    #                                       message_id=is_deleted['promocode_msg_delete'])
+    #         await call.bot.delete_message(chat_id=call.message.chat.id,
+    #                                       message_id=is_deleted['promocode_msg_delete'] + 1)
+    #     finally:
+    #         await state.update_data(promocode_msg_delete=is_deleted['promocode_msg_delete'] + 2)
+
+    user_promocode = await User.objects.filter(user_id=call.from_user.id).alast()
+    await call.message.answer(text=user_promocode.promocode_user)
+    await call.message.answer(text="Зажми промо-код, чтобы скопировать")
+
     await call.answer()
 
 
@@ -416,8 +447,10 @@ async def change_timezone(call: types.CallbackQuery, state: FSMContext):
     geo_position_msg = (
         "🌍 Укажи разницу во времени относительно UTC (Москва +3, Красноярск +7 и тд) или отправь в бот "
         "геопозицию (возьмем только часовой пояс)")
-
-    await call.message.answer(text=tmp_msg)
+    await StatesDispute.new_timezone.set()
+    test_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    test_keyboard.add(types.KeyboardButton(text='Отправить гео 📍', request_location=True))
+    await call.message.answer(text=tmp_msg, reply_markup=test_keyboard)
     await call.message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
     await call.answer()
 
@@ -437,7 +470,8 @@ async def return_account(call: types.CallbackQuery, state: FSMContext):
 async def new_time_zone(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(timezone=call.data)
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
-    await call.message.answer(text=tmp_msg)
+    await StatesDispute.none.set()
+    await call.message.answer(text=tmp_msg, reply_markup=menu_keyboard)
     await call.answer()
 
 
@@ -486,39 +520,40 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(withdraw_deposit, text='withdrawal_deposit', state=StatesDispute.account)
     dp.register_callback_query_handler(change_timezone, text='change_timezone', state=StatesDispute.account)
     dp.register_callback_query_handler(return_account, text='cancel_change_name', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 10', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 9:30', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 9', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 8', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 7', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 6', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 5', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 4', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 3:30', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 3', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 2', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='— 1', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+0', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+1', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+2', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+3', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+3:30', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+4', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+4:30', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+5', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+5:30', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+5:45', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+6', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+6:30', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+7', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+8', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+8:45', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+9', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+9:30', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+10', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+10:30', state=StatesDispute.account)
-    dp.register_callback_query_handler(new_time_zone, text='+11', state=StatesDispute.account)
+    dp.register_callback_query_handler(new_time_zone, text='— 10', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 9:30', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 9', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 8', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 7', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 6', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 5', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 4', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 3:30', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 3', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 2', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='— 1', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+0', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+1', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+2', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+3', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+3:30', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+4', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+4:30', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+5', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+5:30', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+5:45', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+6', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+6:30', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+7', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+8', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+8:45', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+9', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+9:30', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+10', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+10:30', state=StatesDispute.new_timezone)
+    dp.register_callback_query_handler(new_time_zone, text='+11', state=StatesDispute.new_timezone)
     dp.register_callback_query_handler(support_button, text='support', state=StatesDispute.account)
     dp.register_callback_query_handler(new_support_question, text='send_new_support', state=StatesDispute.account)
     dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video)
     dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video_note)
+    dp.register_callback_query_handler(my_promocode, text='user_promocode', state=StatesDispute.promo_code)

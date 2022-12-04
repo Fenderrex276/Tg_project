@@ -13,8 +13,8 @@ class RoundVideo(models.Model):
         archive = "archive"
 
     tg_id = models.CharField(max_length=90)
-    user_tg_id = models.IntegerField()
-    chat_tg_id = models.IntegerField()
+    user_tg_id = models.BigIntegerField()
+    chat_tg_id = models.BigIntegerField()
     code_in_video = models.CharField(max_length=4)
     status = models.CharField('Статус кружочка', max_length=20, choices=VideoStatus.choices)
     id_video = models.IntegerField()
@@ -23,7 +23,7 @@ class RoundVideo(models.Model):
 
 
 class User(models.Model):
-    user_id = models.IntegerField(verbose_name="ID пользователя в Телеграмм")
+    user_id = models.BigIntegerField(verbose_name="ID пользователя в Телеграмм")
     user_name = models.CharField(max_length=20, verbose_name="Имя пользователя")
     action = models.CharField(max_length=20, verbose_name="?")
     additional_action = models.CharField(max_length=20, verbose_name="?")
@@ -36,7 +36,7 @@ class User(models.Model):
 
 
 class PeriodicTask(models.Model):
-    user_id = models.IntegerField(verbose_name="ID пользователя в Телеграмм")
+    user_id = models.BigIntegerField(verbose_name="ID пользователя в Телеграмм")
     fun = models.CharField(max_length=20, verbose_name="Название периодической функции")
     job_id = models.CharField(max_length=20, verbose_name="id задачи")
     hour = models.CharField(max_length=20, default="*", verbose_name="В какой час вызвать")
@@ -51,9 +51,9 @@ class Support(models.Model):
         done = "done"
         in_process = "in_process"
 
-    user_id = models.IntegerField()
+    user_id = models.BigIntegerField()
     number_dispute = models.CharField(max_length=6)
-    chat_id = models.IntegerField()
+    chat_id = models.BigIntegerField()
     problem = models.CharField(max_length=256)
     solved = models.CharField('статус вопроса', choices=TypeSolve.choices, max_length=10)
 
@@ -64,8 +64,8 @@ class Supt(models.Model):
         done = "done"
         in_process = "in_process"
 
-    user_id = models.IntegerField()
+    user_id = models.BigIntegerField()
     number_dispute = models.CharField(max_length=6)
-    chat_id = models.IntegerField()
+    chat_id = models.BigIntegerField()
     problem = models.CharField(max_length=256)
     solved = models.CharField('статус вопроса', choices=TypeSolve.choices, max_length=10)

@@ -17,7 +17,8 @@ async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
     await state.update_data(action='alcohol')
     await call.message.answer(text=alcohol_msg, parse_mode=ParseMode.MARKDOWN,
-                              reply_markup=really_confirm_alcohol_keyboard)
+                              reply_markup=really_confirm_alcohol_keyboard,
+                              disable_web_page_preview=True)
 
     await call.answer()
 
@@ -26,7 +27,8 @@ async def choice_smoking(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
     await state.update_data(action='smoking')
     await call.message.answer(text=smoking_msg, parse_mode=ParseMode.MARKDOWN,
-                              reply_markup=really_confirm_alcohol_keyboard)
+                              reply_markup=really_confirm_alcohol_keyboard,
+                              disable_web_page_preview=True)
     await call.answer()
 
 
@@ -34,7 +36,8 @@ async def choice_drugs(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
     await state.update_data(action='drugs')
     await call.message.answer(text=drugs_msg, parse_mode=ParseMode.MARKDOWN,
-                              reply_markup=really_confirm_alcohol_keyboard)
+                              reply_markup=really_confirm_alcohol_keyboard,
+                              disable_web_page_preview=True)
     await call.answer()
 
 
@@ -78,7 +81,7 @@ async def choice_other_language(call: types.CallbackQuery, state: FSMContext):
 async def choice_more_money(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
     await state.update_data(action='money')
-
+    await call.message.answer(text=money_msg2)
     await call.message.answer(text=money_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_more_money_keyboard)
     await call.answer()
@@ -155,7 +158,7 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     if User.objects.filter(user_id=call.from_user.id).exists():
         print("TYTYTYTYTYTYYTYTYTYTYT")
     else:
-        scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1)
+        await scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1)
     await call.message.answer(text=tmp_msg)
     variant = await state.get_data()
     future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
@@ -197,16 +200,20 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
         tmp_keyboard = weight_deposit_keyboard
 
     elif variant['action'] == 'morning':
+        tmp_start = ""
         if variant['additional_action'] == 'five_am':
             photo = InputFile("client/media/disputs_images/five_am.jpg")
+            tmp_start = "5:30"
         elif variant['additional_action'] == 'six_am':
             photo = InputFile("client/media/disputs_images/six_am.jpg")
+            tmp_start = "6:30"
         elif variant['additional_action'] == 'seven_am':
             photo = InputFile("client/media/disputs_images/seven_am.jpg")
+            tmp_start = "7:30"
         elif variant['additional_action'] == 'eight_am':
             photo = InputFile("client/media/disputs_images/eight_am.jpg")
-
-        choice_msg = f'{confirm_morning_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
+            tmp_start = "8:30"
+        choice_msg = f'{confirm_morning_disput_msg} ⌛ Отправлять в бот до {tmp_start}\n\nНачало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
                      f'{second_msg}'
         tmp_keyboard = morning_deposit_keyboard
 

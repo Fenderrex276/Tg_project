@@ -44,5 +44,5 @@ class Training:
 
     async def is_not_a_video(self, message: types.Message):
         error_message = "Ошибка. Мы принимаем репорт только в видео-формате."
-        await message.answer(text=error_message, reply_markup=types.ReplyKeyboardRemove())
+        await message.answer(text=error_message, reply_markup=send_help_keyboard)
 

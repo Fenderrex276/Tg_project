@@ -2,7 +2,7 @@ from aiogram import Dispatcher
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode
-
+import secrets
 from client.branches.confirm_dispute.states import Promo
 from client.branches.pay.keyboards import *
 from client.branches.pay.messages import *
@@ -17,7 +17,7 @@ async def choose_sum_to_pay(call: types.CallbackQuery, state: FSMContext):
 
     del_scheduler(f'{call.from_user.id}_reminder')
     redis_data = await state.get_data()
-    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 2)
+    await scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 2)
     await call.message.answer(text=deposit_msg, reply_markup=types.ReplyKeyboardRemove())
     await call.message.answer(text="*Выбери комфортную сумму*", parse_mode=ParseMode.MARKDOWN_V2,
                               reply_markup=choose_sum_keyboard)
@@ -33,7 +33,7 @@ async def check_sum(call: types.CallbackQuery, state: FSMContext):
     del_scheduler(f'{call.from_user.id}_reminder')
 
     redis_data = await state.get_data()
-    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 3)
+    await scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 3)
 
 
 async def other_sum_to_pay(call: types.CallbackQuery):
@@ -52,7 +52,7 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
     del_scheduler(f'{call.from_user.id}_reminder')
 
     redis_data = await state.get_data()
-    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 4)
+    await scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 4)
     # TODO Куда улетает запрос после жмяка на Подтвердить
 
 
@@ -68,7 +68,7 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     del_scheduler(f'{call.from_user.id}_reminder')
 
     redis_data = await state.get_data()
-    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 5)
+    await scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 5)
 
 
 async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
@@ -167,8 +167,10 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
                                additional_action=data['additional_action'],
                                start_disput=start_d,
                                deposit=deposit,
+                               promocode_user=secrets.token_hex(nbytes=5),
+                               promocode_from_friend=data['promocode'],
                                count_days=30)
-
+    await state.update_data(name=call.from_user.first_name)
     await call.message.edit_text(text=start_current_disput_msg, reply_markup=next_step_keyboard,
                                  parse_mode=ParseMode.MARKDOWN)
     await call.answer()

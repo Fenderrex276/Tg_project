@@ -21,6 +21,16 @@ async def test_of_will(call: types.CallbackQuery):
     await call.answer()
 
 
+async def personal_goals(call: types.CallbackQuery):
+    photo = InputFile("client/media/volya/goals.jpg")
+    await call.bot.delete_message(call.message.chat.id, call.message.message_id)
+    test_keyboard = types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text='Испытания воли (30 дней)', callback_data='thirty_days')
+    )
+    await call.bot.send_photo(chat_id=call.message.chat.id, photo=photo, reply_markup=test_keyboard,
+                              caption=personal_goals_msg)
+
+
 async def return_main_message(call: types.CallbackQuery):
     await Form.none.set()
     await call.bot.edit_message_caption(chat_id=call.message.chat.id,
@@ -47,7 +57,8 @@ async def back_main_message(call: types.CallbackQuery, state: FSMContext):
 
 async def back_message(call: types.CallbackQuery):
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    await call.message.answer(text=dispute_choice_msg, reply_markup=thirty_days_keyboard)
+    await call.message.answer(text=dispute_choice_msg, reply_markup=thirty_days_keyboard,
+                              parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 
 
@@ -172,7 +183,7 @@ async def quit_drugs(call: types.CallbackQuery):
                                         message_id=call.message.message_id,
                                         caption=quit_drugs_msg)
     video = InputFile("client/media/videos/drugs.mp4")
-    await call.bot.send_video_note(call.message.chat.id, video, reply_markup=confirm_smoking_keyboard)
+    await call.bot.send_video_note(call.message.chat.id, video, reply_markup=confirm_drugs_keyboard)
     await call.answer()
 
 
@@ -284,6 +295,7 @@ async def learn_painting(call: types.CallbackQuery):
 
 
 def register_callback(bot, dp: Dispatcher):
+    dp.register_callback_query_handler(personal_goals, text='ninety_days', state="*")
     dp.register_callback_query_handler(test_of_will, text='thirty_days', state="*")
 
     dp.register_callback_query_handler(back_message, text='back_full_menu', state=Form.none)

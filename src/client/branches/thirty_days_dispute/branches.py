@@ -6,6 +6,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode, InputFile
 from asgiref.sync import sync_to_async
 
+from utils import get_timezone
 from .diary import questions
 from .keyboards import *
 from .states import StatesDispute
@@ -48,14 +49,15 @@ class CurrentDispute:
                                          state=StatesDispute.video_note)
         self.dp.register_message_handler(self.inpute_answer, state=StatesDispute.diary)
         self.dp.register_message_handler(self.input_support, state=StatesDispute.new_question)
+        self.dp.register_message_handler(self.new_timezone, content_types=['location'],
+                                         state=StatesDispute.new_timezone)
 
     async def the_hero_path(self, message: types.Message, state: FSMContext):
         await StatesDispute.none.set()
         data = await state.get_data()
         print(data)
         recieve_message = video_text(data)
-        await state.update_data(name=message.from_user.first_name)
-
+        print('HEROPATH, ', message.message_id)
         await message.answer_photo(photo=InputFile(recieve_message[0]),
                                    caption=recieve_message[1],
                                    reply_markup=report_diary_keyboard,
@@ -79,6 +81,15 @@ class CurrentDispute:
                "поддержку через форму обратной связи.")
 
         await message.answer(text=msg, reply_markup=account_keyboard, parse_mode=ParseMode.MARKDOWN)
+
+    async def new_timezone(self, message: types.Message, state: FSMContext):
+        loc = message.location
+        # print(loc)
+        tmp = get_timezone(loc)
+        await state.update_data(timezone=tmp[:len(tmp) - 4])
+        msg = f"Установлен часовой пояс {tmp}"
+        await StatesDispute.none.set()
+        await message.answer(text=msg, reply_markup=menu_keyboard)
 
     async def input_name(self, message: types.Message, state: FSMContext):
         await StatesDispute.account.set()

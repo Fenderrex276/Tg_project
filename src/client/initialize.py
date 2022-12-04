@@ -7,6 +7,6 @@ from settings.settings import TOKEN_CLIENT
 
 TOKEN = TOKEN_CLIENT
 bot = Bot(TOKEN)
-storage = RedisStorage2(host='redis', port=6379, db=10)
+storage = RedisStorage2(host='redis', port=6379, db=4)
 dp = Dispatcher(bot, storage=storage)
 scheduler = AsyncIOScheduler(timezone=utc)

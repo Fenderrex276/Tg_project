@@ -13,7 +13,9 @@ from db.models import RoundVideo
 import asyncio
 
 
-async def preparation_for_dispute(call: types.CallbackQuery):
+async def preparation_for_dispute(call: types.CallbackQuery, state: FSMContext):
+    await Video.none.set()
+    redis_data = await state.update_data(id_dispute=uuid.uuid4().time_mid)
     photo = InputFile("client/media/training/algorithm.jpg")
     await call.message.answer_photo(photo=photo, caption=algorithm_msg)
     await call.message.answer(text=algorithm_msg2, reply_markup=test_confirm_keyboard)
@@ -73,7 +75,7 @@ async def send_video_note(call: types.CallbackQuery, state: FSMContext):
     del_scheduler(f'{call.from_user.id}_reminder')
 
     redis_data = await state.get_data()
-    scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 6)
+    await scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 6)
 
 
 async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
@@ -84,13 +86,14 @@ async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
                                      user_tg_id=call.from_user.id,
                                      chat_tg_id=call.message.chat.id,
                                      code_in_video="3028",
-                                     id_video=uuid.uuid4().time_mid,
+                                     id_video=v['id_dispute'],
                                      type_video=RoundVideo.TypeVideo.test)
 
     tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
 
     print("FROM USER_BOT", v['video_id'])
     print("CHAT_ID", call.message.chat.id)
+    await Video.next_step.set()
     await call.message.answer(text=tmp_msg, reply_markup=types.ReplyKeyboardRemove())
     await call.bot.send_video_note(video_note=v['video_id'], chat_id=-1001845655881)
     await call.answer()
@@ -108,7 +111,6 @@ async def send_new_video(call: types.CallbackQuery, state: FSMContext):
 
 async def pin_a_chat(call: types.CallbackQuery):
     photo = InputFile("client/media/training/done.jpg")
-    await Video.none.set()
     await call.message.answer_photo(photo=photo, caption=pin_chat_msg, reply_markup=success_pin_keyboard)
     await call.answer()
 
@@ -123,12 +125,14 @@ async def end_test_dispute(call: types.CallbackQuery, state: FSMContext):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(preparation_for_dispute, text='step_to_test_video_note', state="*")
-    dp.register_callback_query_handler(send_video_note, text='next_one', state="*")
+    dp.register_callback_query_handler(send_video_note, text='next_one', state=Video.none)
     dp.register_callback_query_handler(send_video_to_admin, text='send_video', state=Video.recv_video)
     dp.register_callback_query_handler(send_video_to_admin, text='send_video', state=Video.recv_video_note)
     dp.register_callback_query_handler(send_new_video, text='send_new_video', state=Video.recv_video)
     dp.register_callback_query_handler(send_new_video, text='send_new_video', state=Video.recv_video_note)
     dp.register_callback_query_handler(send_new_video, text='send_new1', state=Video.recv_video)
     dp.register_callback_query_handler(send_new_video, text='send_new1', state=Video.recv_video_note)
-    dp.register_callback_query_handler(pin_a_chat, text='good', state=Video.states)
-    dp.register_callback_query_handler(end_test_dispute, text='end_test', state=Video.states)
+    dp.register_callback_query_handler(pin_a_chat, text='good', state=Video.next_step)
+    dp.register_callback_query_handler(end_test_dispute, text='end_test', state=Video.next_step)
+    dp.register_callback_query_handler(send_new_video, text='next_one1', state=Video.recv_video)
+    dp.register_callback_query_handler(send_new_video, text='next_one1', state=Video.recv_video_note)

@@ -5,6 +5,7 @@ from pytz import utc
 
 from client.initialize import scheduler, dp
 from db.models import PeriodicTask
+from utils import get_current_timezone
 
 
 def time_calculated(t_zone):
@@ -17,82 +18,87 @@ def time_calculated(t_zone):
     # print(f'Часы: {hour}')
     # print(f'Минуты: {minute}')
     # print(f'Секунды: {second}')
-    return [str(int(hour) + int(t_zone)), str(minute), str(second)]
+    t_zone_hours, t_zone_minutes = get_current_timezone(t_zone)
+    # TODO for SIM: Мааааакс, тут надо конкретно поебаться ещё с добавлением или вычитанием
+    #  таймзоны относительно UTC^ я тут хуйни наделал но надеюсь потом ты грамотно рассмотришь все ситуации
+    return [str((hour + t_zone_hours) % 24), str((minute + t_zone_minutes) % 60), str(second)]
 
 
-def scheduler_add_job(dp: Dispatcher, t_zone, fun: str, user_id: int, flag: int = -1):
+async def scheduler_add_job(dp: Dispatcher, t_zone, fun: str, user_id: int, flag: int = -1):
     time = time_calculated(t_zone)
-    #time[0] = '*'
-    #time[1] = '*'
-
+    # time[0] = '*'
+    # time[1] = '*'
+    print(time)
     if fun == "reminder":
         if flag == 1:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы остановились на внесении депозита. Может продолжим?"}
 
-            scheduler.add_job(send_reminder, 'cron', id=f'{user_id}_reminder', hour=time[0], minute=time[1],
+            scheduler.add_job(send_reminder, replace_existing=True,  trigger='cron', id=f'{user_id}_reminder', hour=time[0], minute=time[1],
                               second=time[2],
                               kwargs=kwargs)
+            # TODO for SIM: 'conflicts with an existing job'' крч тут такая ошибка вылезала,
+            #  я в функцию add_job добавил параметр 'replace_existing=True' хз, вроде не смертельно но чекнуть стоит
             kwargs.pop('dp')
-            PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
-                                        minute=time[1], second=time[2],
-                                        kwargs=kwargs)
+            await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
+                                               minute=time[1], second=time[2],
+                                               kwargs=kwargs)
 
         elif flag == 2:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы так и не выбрали сумму депозита. Хотите продолжить?"}
 
-            scheduler.add_job(send_reminder, 'cron', hour=time[0], minute=time[1], second=time[2],
+            scheduler.add_job(send_reminder, replace_existing=True,  trigger='cron', hour=time[0], minute=time[1], second=time[2],
                               id=f'{user_id}_reminder',
                               kwargs=kwargs)
             kwargs.pop('dp')
-            PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
+            await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
                                         minute=time[1], second=time[2],
                                         kwargs=kwargs)
         elif flag == 3:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы так и не завершили внесение депозита. Хотите получить реквизиты?"}
 
-            scheduler.add_job(send_reminder, 'cron', hour=time[0], minute=time[1], second=time[2],
+            scheduler.add_job(send_reminder, replace_existing=True,  trigger='cron', hour=time[0], minute=time[1], second=time[2],
                               id=f'{user_id}_reminder',
                               kwargs=kwargs)
             kwargs.pop('dp')
-            PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
-                                        minute=time[1], second=time[2],
-                                        kwargs=kwargs)
+            await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
+                                               minute=time[1], second=time[2],
+                                               kwargs=kwargs)
         elif flag == 4:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы так и не подтвердили желание внести депозит. Хотите продолжить?"}
 
-            scheduler.add_job(send_reminder, 'cron', hour=time[0], minute=time[1], second=time[2],
+            scheduler.add_job(send_reminder, replace_existing=True,  trigger='cron', hour=time[0], minute=time[1], second=time[2],
                               id=f'{user_id}_reminder',
                               kwargs=kwargs)
             kwargs.pop('dp')
-            PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
-                                        minute=time[1], second=time[2],
-                                        kwargs=kwargs)
+            await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
+                                               minute=time[1], second=time[2],
+                                               kwargs=kwargs)
         elif flag == 5:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы внесли депозит, пора начать вашу первый этап диспута. Хотите продолжить?"}
 
-            scheduler.add_job(send_reminder, 'cron', hour=time[0], minute=time[1], second=time[2],
+            scheduler.add_job(send_reminder, replace_existing=True,  trigger='cron', hour=time[0], minute=time[1], second=time[2],
                               id=f'{user_id}_reminder',
                               kwargs=kwargs)
             kwargs.pop('dp')
-            PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
-                                        minute=time[1], second=time[2],
-                                        kwargs=kwargs)
+            await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
+                                               minute=time[1], second=time[2],
+                                               kwargs=kwargs)
         elif flag == 6:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Начните свою первую тренировку уже сейчас. Хотите продолжить?"}
 
-            scheduler.add_job(send_reminder, 'cron', hour=time[0], minute=time[1], second=time[2],
+            scheduler.add_job(send_reminder, replace_existing=True,  trigger='cron', hour=time[0], minute=time[1], second=time[2],
                               id=f'{user_id}_reminder',
                               kwargs=kwargs)
             kwargs.pop('dp')
-            PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
-                                        minute=time[1], second=time[2],
-                                        kwargs=kwargs)
+            await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_reminder', fun="reminder", hour=time[0],
+                                               minute=time[1], second=time[2],
+                                               kwargs=kwargs)
         # elif flag == 7:
         #     scheduler.add_job(send_reminder, 'cron', misnute="*", id=f'{user_id}_reminder',
         #                       kwargs={"call": user_id, "msg": "Вы так и не выбрали сумму депозита. Хотите продолжить?"})
@@ -101,11 +107,11 @@ def scheduler_add_job(dp: Dispatcher, t_zone, fun: str, user_id: int, flag: int 
         #                       kwargs={"call": user_id, "msg": "Вы так и не выбрали сумму депозита. Хотите продолжить?"})
 
     elif fun == "code":
-        scheduler.add_job(send_code, 'cron', id=f'{user_id}_code', minute="*",
+        scheduler.add_job(send_code, replace_existing=True,  trigger='cron', id=f'{user_id}_code', minute="*",
                           kwargs={"dp": dp, "user_id": user_id,
                                   "msg": "Начните свою первую тренировку уже сейчас. Хотите продолжить?"})
     elif fun == "content":
-        scheduler.add_job(send_content, 'cron', id=f'{user_id}_content', minute="*",
+        scheduler.add_job(send_content, replace_existing=True,  trigger='cron', id=f'{user_id}_content', minute="*",
                           kwargs={"dp": dp, "user_id": user_id,
                                   "msg": "Начните свою первую тренировку уже сейчас. Хотите продолжить?"})
         # elif fun == "":
@@ -119,7 +125,7 @@ def load_periodic_tasks():
         kwargs = task.kwargs
         kwargs['dp'] = dp
         # if task.fun == "reminder":
-        scheduler.add_job(send_reminder, 'cron', id=f'{task.job_id}', hour=f'{task.hour}',
+        scheduler.add_job(send_reminder, replace_existing=True,  trigger='cron', id=f'{task.job_id}', hour=f'{task.hour}',
                           minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
         # elif task.fun == "code":
         #     scheduler.add_job(send_code, 'cron', id=f'{task.job_id}', hour=f'{task.hour}',
