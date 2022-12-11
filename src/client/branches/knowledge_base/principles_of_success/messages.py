@@ -13,7 +13,7 @@ message = ''
 f = open('client/media/messages_for_kb/success_messages', 'r')
 i = 0
 for line in f:
-    if '📗' in line and i > 0:
+    if '🎓' in line and i > 0:
         tips.append(message)
         message = line.replace('1.', "")
         message = message.replace('**', "*")
