@@ -12,3 +12,7 @@ class StatesDispute(StatesGroup):
     new_question = State()
     diary = State()
     promo_code = State()
+    personal_goals = State()
+    reports = State()
+    bonuses = State()
+    new_report = State()

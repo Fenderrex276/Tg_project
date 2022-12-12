@@ -7,6 +7,7 @@ from .keyboards import *
 from .states import StatesDispute
 from db.models import RoundVideo, User
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
+from ..dispute_with_friend.messages import personal_goals_msg
 
 
 async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
@@ -104,7 +105,13 @@ def video_text(data: dict):
 
 
 async def reports(call: types.CallbackQuery, state: FSMContext):
-    main_photo = InputFile("client/media/days_of_dispute/zero_day.jpg")
+    main_photo = InputFile("client/media/Disput Bot-2/Default.png")
+    cur_state = await state.get_state()
+    if cur_state not in StatesDispute.states_names:
+        return
+    else:
+        await StatesDispute.reports.set()
+
     await state.update_data(is_deleted=-1)
     await call.message.answer_photo(main_photo, reply_markup=report_keyboard)
     await call.answer()
@@ -129,7 +136,9 @@ async def change_name(call: types.CallbackQuery, state: FSMContext):
 
 
 async def check_report(call: types.CallbackQuery, state: FSMContext):
+    await StatesDispute.new_report.set()
     # await state.update_data(current_message=1, id_to_delete=call.message.message_id+1)
+
     try:
         user_video = await RoundVideo.objects.aget(user_tg_id=call.from_user.id,
                                                    chat_tg_id=call.message.chat.id,
@@ -340,11 +349,17 @@ async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
 
 
 async def return_reports(call: types.CallbackQuery, state: FSMContext):
+    await StatesDispute.reports.set()
     await call.message.edit_caption(caption="", reply_markup=report_keyboard)
     await call.answer()
 
 
 async def awards(call: types.CallbackQuery, state: FSMContext):
+    cur_state = await state.get_state()
+    if cur_state == "StatesDispute:reports" or cur_state == "StatesDispute:bonuses":
+        await StatesDispute.bonuses.set()
+    else:
+        return
     tmp_msg = ("👑 Бонусы — 0 ₽\n\n"
                "Выбери задание и зарабатывай дополнительные 💰 в свой депозит")
 
@@ -381,6 +396,7 @@ async def promo_code_awards(call: types.CallbackQuery, state: FSMContext):
 
 
 async def my_promocode(call: types.CallbackQuery, state: FSMContext):
+    await StatesDispute.promo_code.set()
     print("PROMOCODE ENTER: ", call.message.message_id)
     # is_deleted = await state.get_data()
     # if 'promocode_msg_delete' not in is_deleted:
@@ -418,6 +434,8 @@ async def dispute_awards(call: types.CallbackQuery, state: FSMContext):
 
 async def deposit_button(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
+    await state.update_data(id_to_delete=call.message.message_id)
+
     tmp_msg = (f"*💰 Депозит: {data['deposit']} ₽*\n"
                f"{data['deposit']} ₽ \+ 0 ₽ бонусов\n\n"
                "Твой депозит и бонусы заморожены в Диспуте до момента победы в споре и будут доступны для вывода "
@@ -429,6 +447,31 @@ async def deposit_button(call: types.CallbackQuery, state: FSMContext):
         types.InlineKeyboardButton(text='Личные 🎯️ цели', callback_data='personal_goals')),
                               parse_mode=ParseMode.MARKDOWN_V2)
     await call.answer()
+
+
+async def personal_goals(call: types.CallbackQuery, state: FSMContext):
+    await StatesDispute.personal_goals.set()
+    photo = InputFile("client/media/volya/volya1.jpg")
+    await call.message.answer_photo(photo=photo,
+                                    caption=personal_goals_msg,
+                                    reply_markup=types.InlineKeyboardMarkup().add(
+                                        types.InlineKeyboardButton(text="Назад", callback_data="back_account")
+                                    ))
+
+
+async def return_to_account(call: types.CallbackQuery, state: FSMContext):
+    await StatesDispute.account.set()
+
+    user = await state.get_data()
+    await call.bot.delete_message(message_id=user['id_to_delete'], chat_id=call.message.chat.id)
+    await call.bot.delete_message(message_id=call.message.message_id, chat_id=call.message.chat.id)
+
+    msg = (f"👋 *Привет, {user['name']}* \n\n"
+           "Здесь ты можешь изменить своё имя, вывести выигранный депозит, "
+           "изменить свой часовой пояс или написать свой вопрос в тех. "
+           "поддержку через форму обратной связи.")
+
+    await call.message.answer(text=msg, reply_markup=account_keyboard, parse_mode=ParseMode.MARKDOWN)
 
 
 async def withdraw_deposit(call: types.CallbackQuery, state: FSMContext):
@@ -502,20 +545,20 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(reports, text='report', state=StatesDispute.none)
     dp.register_callback_query_handler(choose_name_button, text='change_name', state=StatesDispute.account)
     dp.register_callback_query_handler(change_name, text='change_name_access', state=StatesDispute.account)
-    dp.register_callback_query_handler(check_report, text="send_new_report", state="*")
+    dp.register_callback_query_handler(check_report, text="send_new_report", state=StatesDispute.reports)
     dp.register_callback_query_handler(send_new_report_from_admin, text="send_dispute_report", state="*")
     dp.register_callback_query_handler(diary_button, text='diary', state=StatesDispute.none)
     dp.register_callback_query_handler(random_question, text='random_questions', state=StatesDispute.none)
     dp.register_callback_query_handler(admit_answer, text='admit', state=StatesDispute.none)
     dp.register_callback_query_handler(next_question, text='pass', state=StatesDispute.diary)
-    dp.register_callback_query_handler(dispute_rules, text='rules', state=StatesDispute.none)
-    dp.register_callback_query_handler(return_reports, text='Thanks1', state=StatesDispute.none)
-    dp.register_callback_query_handler(awards, text='bonuses', state=StatesDispute.none)
-    dp.register_callback_query_handler(return_reports, text='return_to_reports', state=StatesDispute.none)
-    dp.register_callback_query_handler(promo_code_awards, text='1promo_code1', state=StatesDispute.none)
-    dp.register_callback_query_handler(awards, text='back_awards', state=StatesDispute.none)
-    dp.register_callback_query_handler(my_promocode, text='user_promocode', state=StatesDispute.none)
-    dp.register_callback_query_handler(dispute_awards, text='dispute_award', state=StatesDispute.none)
+    dp.register_callback_query_handler(dispute_rules, text='rules', state=StatesDispute.reports)
+    dp.register_callback_query_handler(return_reports, text='Thanks1', state=StatesDispute.reports)
+    dp.register_callback_query_handler(awards, text='bonuses', state=StatesDispute.reports)
+    dp.register_callback_query_handler(return_reports, text='return_to_reports', state=StatesDispute.bonuses)
+    dp.register_callback_query_handler(promo_code_awards, text='1promo_code1', state=StatesDispute.bonuses)
+    dp.register_callback_query_handler(awards, text='back_awards', state=StatesDispute.bonuses)
+    dp.register_callback_query_handler(my_promocode, text='user_promocode', state=StatesDispute.bonuses)
+    dp.register_callback_query_handler(dispute_awards, text='dispute_award', state=StatesDispute.bonuses)
     dp.register_callback_query_handler(deposit_button, text='deposit', state=StatesDispute.account)
     dp.register_callback_query_handler(withdraw_deposit, text='withdrawal_deposit', state=StatesDispute.account)
     dp.register_callback_query_handler(change_timezone, text='change_timezone', state=StatesDispute.account)
@@ -556,4 +599,6 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(new_support_question, text='send_new_support', state=StatesDispute.account)
     dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video)
     dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video_note)
-    dp.register_callback_query_handler(my_promocode, text='user_promocode', state=StatesDispute.promo_code)
+    # dp.register_callback_query_handler(my_promocode, text='user_promocode', state=StatesDispute.promo_code)
+    dp.register_callback_query_handler(personal_goals, text='personal_goals', state=StatesDispute.states)
+    dp.register_callback_query_handler(return_to_account, text="back_account", state=StatesDispute.personal_goals)

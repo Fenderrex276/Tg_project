@@ -53,7 +53,13 @@ class CurrentDispute:
                                          state=StatesDispute.new_timezone)
 
     async def the_hero_path(self, message: types.Message, state: FSMContext):
-        await StatesDispute.none.set()
+        current_state = await state.get_state()
+        print(current_state)
+        if current_state in StatesDispute.states_names:
+            await StatesDispute.none.set()
+            print(current_state)
+        else:
+            return
         data = await state.get_data()
         print(data)
         recieve_message = video_text(data)
