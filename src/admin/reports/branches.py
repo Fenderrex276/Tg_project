@@ -86,7 +86,7 @@ class Reports:
                     types.InlineKeyboardButton(text='Ещё', callback_data='more_video')
                 ))
         else:
-            tmp_msg = "Неккоректный номер дня, попробуйте ещё раз"
+            tmp_msg = "Некорректный номер дня, попробуйте ещё раз"
 
             await message.answer(text=tmp_msg)
 

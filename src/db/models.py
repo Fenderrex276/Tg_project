@@ -38,7 +38,8 @@ class User(models.Model):
 class PeriodicTask(models.Model):
     user_id = models.BigIntegerField(verbose_name="ID пользователя в Телеграмм")
     fun = models.CharField(max_length=20, verbose_name="Название периодической функции")
-    job_id = models.CharField(max_length=20, verbose_name="id задачи")
+    job_id = models.CharField(max_length=255, verbose_name="id задачи")
+    day_of_week = models.CharField(max_length=20, default="*", verbose_name="В какой час вызвать")
     hour = models.CharField(max_length=20, default="*", verbose_name="В какой час вызвать")
     minute = models.CharField(max_length=20, default="*", verbose_name="В какую минуту вызвать")
     second = models.CharField(max_length=20, default="*", verbose_name="В какую секунду вызвать")

@@ -1,10 +1,7 @@
 import datetime
+
 import pytz
 from tzwhere import tzwhere
-from aiogram import types
-import calendar
-import locale
-import uuid
 
 
 def get_timezone(location: dict):
@@ -51,26 +48,24 @@ def get_date_to_start_dispute(current_date: datetime.datetime, start_date: str, 
 
     elif start_date == 'select_after_tomorrow':
         future_date += datetime.timedelta(days=2)
-    #print(future_date)
+    # print(future_date)
     return future_date
 
 
 def get_current_timezone(timezone: str):
     if timezone[0] == "—":
         tmp = timezone[2:].split(":")
-        if len(tmp) == 1:
-            return [int(tmp[0]), 0]
-        elif len(tmp) == 2:
-            return [int(tmp[0]), int(tmp[0])]
+        # print(f'-----> {tmp}')
+        # if len(tmp) == 1:
+        #     return [int(tmp[0]), 0]
+        return [-1 * int(tmp[0]), -1 * int(tmp[1])]
     else:
         tmp = timezone[1:].split(":")
-        print(tmp)
-        if len(tmp) == 1:
-            return [int(tmp[0]), 0]
+        # print(tmp)
+        # if len(tmp) == 1:
+        #     return [int(tmp[0]), 0]
 
-        elif len(tmp) == 2:
-            return [int(tmp[0]), int(tmp[1])]
-
+        return [int(tmp[0]), int(tmp[1])]
 
 
 """myDate = datetime.datetime.today()
