@@ -112,7 +112,7 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
     current_video = await RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                                     type_video=RoundVideo.TypeVideo.archive).alast()
 
-    videos = await RoundVideo.objects.filter(user_tg_id=call.from_user.id, type_video=RoundVideo.TypeVideo.dispute)
+    videos = RoundVideo.objects.filter(user_tg_id=call.from_user.id, type_video=RoundVideo.TypeVideo.dispute)
     if len(videos) > 1:
         user.count_mistakes = user.count_mistakes - 1
         user.save()
