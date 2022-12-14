@@ -63,15 +63,15 @@ class CurrentDispute:
         else:
             return
 
-        user = await User.objects.filter(user_id=message.from_user.id).alast()
+        user = User.objects.filter(user_id=message.from_user.id).last()
         await state.update_data(action=user.action,
-                                    additional_action=user.additional_action,
-                                    start_disput=user.start_disput,
-                                    promocode=user.promocode_from_friend,
-                                    timezone=user.timezone,
-                                    name=user.user_name,
-                                    deposit=user.deposit,
-                                    id_dispute=user.number_dispute)
+                                additional_action=user.additional_action,
+                                start_disput=user.start_disput,
+                                promocode=user.promocode_from_friend,
+                                timezone=user.timezone,
+                                name=user.user_name,
+                                deposit=user.deposit,
+                                id_dispute=user.number_dispute)
         data = await state.get_data()
         print(data)
 
