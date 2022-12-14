@@ -108,9 +108,9 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
 
     main_photo = InputFile("client/media/Disput Bot-2/Default.png")
 
-    user = await User.objects.filter(user_id=call.from_user.id).alast()
-    current_video = await RoundVideo.objects.filter(user_tg_id=call.from_user.id,
-                                                    type_video=RoundVideo.TypeVideo.archive).alast()
+    user = User.objects.filter(user_id=call.from_user.id).last()
+    current_video = RoundVideo.objects.filter(user_tg_id=call.from_user.id,
+                                                    type_video=RoundVideo.TypeVideo.archive).last()
 
     videos = RoundVideo.objects.filter(user_tg_id=call.from_user.id, type_video=RoundVideo.TypeVideo.dispute)
     if len(videos) > 1:

@@ -172,7 +172,7 @@ async def archive_button(call: types.CallbackQuery, state: FSMContext):
 
 
 async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
-    new_dispute = RoundVideo.objects.filter(status="", type_video="dispute").first()
+    new_dispute = RoundVideo.objects.filter(status="", type_video=RoundVideo.TypeVideo.dispute).first()
 
     if new_dispute is None or new_dispute.tg_id == "":
         await call.message.answer("Нет новых видео")
