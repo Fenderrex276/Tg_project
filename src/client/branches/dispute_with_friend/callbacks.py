@@ -343,3 +343,4 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(update_disput_choice, text='edit_disput10', state="*")
     dp.register_callback_query_handler(update_disput_choice, text='edit_disput11', state="*")
     dp.register_callback_query_handler(update_disput_choice, text='edit_disput12', state="*")
+    dp.register_callback_query_handler(test_of_will, text='new_dispute', state="*")

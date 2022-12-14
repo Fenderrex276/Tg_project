@@ -27,7 +27,10 @@ def get_timezone(location: dict):
 def get_date_to_start_dispute(current_date: datetime.datetime, start_date: str, timezone: str):
 
     # print("ARGUMENTS : ", current_date.utcnow(), start_date, timezone)
-    hours, minutes = get_current_timezone(timezone)
+    if ":" not in timezone:
+        timezone += ":00"
+    arr = get_current_timezone(timezone)
+    hours, minutes = arr[0], arr[1]
 
     future_date = current_date.utcnow()
     if timezone[0] == "—":
@@ -77,5 +80,5 @@ print(datetime.datetime.weekday(now))
 print(myMonth)"""
 # print(datetime.datetime.today())
 # print(get_date_to_start_dispute(datetime.datetime.today(), "select_after_tomorrow"))
-
+print(get_current_timezone('+4:00'))
 # print(len(str(get_date_to_start_dispute(datetime.datetime.now(), "select_monday", "+7"))))

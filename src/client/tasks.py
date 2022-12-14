@@ -18,7 +18,12 @@ def time_calculated(t_zone):
     # print(f'Часы: {hour}')
     # print(f'Минуты: {minute}')
     # print(f'Секунды: {second}')
+    if ":" not in t_zone:
+        t_zone += ":00"
+    print(t_zone)
+
     t_zone_hours, t_zone_minutes = get_current_timezone(t_zone)
+
     # TODO [DEPRECATED] for SIM: Мааааакс, тут надо конкретно поебаться ещё с добавлением или вычитанием
     #  таймзоны относительно UTC^ я тут хуйни наделал но надеюсь потом ты грамотно рассмотришь все ситуации
     return [str((hour + t_zone_hours) % 24), str((minute + t_zone_minutes) % 60), str(second)]
@@ -155,26 +160,26 @@ async def init_send_code(user_id, chat_id, when, id_video):
 
         scheduler.add_job(send_first_code, replace_existing=True, trigger='cron', day_of_week=str(week_day),
                           hour='*',
-                          minute='*/2',
+                          minute='*/5',
                           id=f'{user_id}_send_first_code',
                           kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
         # kwargs.pop('dp')
         await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_send_first_code', fun="send_first_code",
                                            day_of_week=str(week_day), hour='*',
-                                           minute='*/2',
+                                           minute='*/5',
                                            kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
         print(scheduler.print_jobs())
     elif when == "послезавтра":
         print("Was послезавтра")
         week_day = '*'  # (my_date.weekday() + 2) % 7
         scheduler.add_job(send_first_code, replace_existing=True, trigger='cron', day_of_week=str(week_day), hour='*',
-                          minute='*/2',
+                          minute='*/5',
                           id=f'{user_id}_send_first_code',
                           kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
         # kwargs.pop('dp')
         await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_send_first_code', fun="send_first_code",
                                            day_of_week=str(week_day), hour='*',
-                                           minute='*/2',
+                                           minute='*/5',
                                            kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
     # elif flag == 7:
     else:
@@ -182,13 +187,13 @@ async def init_send_code(user_id, chat_id, when, id_video):
 
         week_day = '*'
         scheduler.add_job(send_first_code, replace_existing=True, trigger='cron', day_of_week=str(week_day), hour='*',
-                          minute='*/2',
+                          minute='*/5',
                           id=f'{user_id}_send_first_code',
                           kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
         # kwargs.pop('dp')
         await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_send_first_code', fun="send_first_code",
                                            day_of_week=str(week_day), hour='*',
-                                           minute='*/2',
+                                           minute='*/5',
                                            kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
 
 
@@ -208,7 +213,7 @@ def load_periodic_tasks():
             print('Task send_code')
             scheduler.add_job(send_code, replace_existing=True, trigger='cron', day_of_week=str(task.day_of_week),
                               hour='*',
-                              minute='*/2',
+                              minute='*/5',
                               id=f'{kwargs["user_id"]}_send_code',
                               kwargs={'user_id': kwargs['user_id'], 'chat_id': kwargs['chat_id'],
                                       'id_video': kwargs['id_video']})
@@ -216,7 +221,7 @@ def load_periodic_tasks():
             print('Task send_first_code')
             scheduler.add_job(send_first_code, replace_existing=True, trigger='cron', day_of_week=str(task.day_of_week),
                               hour='*',
-                              minute='*/2',
+                              minute='*/5',
                               id=f'{kwargs["user_id"]}_send_first_code',
                               kwargs={'user_id': kwargs['user_id'], 'chat_id': kwargs['chat_id'],
                                       'id_video': kwargs['id_video']})
@@ -242,14 +247,14 @@ async def send_first_code(user_id: int, chat_id: int, id_video: int):
     del_scheduler(f'{user_id}_send_first_code')
     week_day = '*'
     scheduler.add_job(send_code, replace_existing=True, trigger='cron', day_of_week=str(week_day), hour='*',
-                      minute='*/2',
+                      minute='*/5',
                       second='0',
                       id=f'{user_id}_send_code',
                       kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
 
     await PeriodicTask.objects.acreate(user_id=user_id, job_id=f'{user_id}_send_code', fun="send_code",
                                        day_of_week=str(week_day), hour='*',
-                                       minute='*/2',
+                                       minute='*/5',
                                        second='0',
                                        kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
 

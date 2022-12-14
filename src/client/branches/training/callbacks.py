@@ -104,6 +104,11 @@ async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
 
 
 async def send_new_video(call: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    if data['action'] == 'money':
+        await Video.recv_video.set()
+    else:
+        await Video.recv_video_note.set()
     tmp_msg = "Отправь новое видео, на котором чётко слышан код"
     await call.message.answer(text=tmp_msg)
     await call.answer()
@@ -130,8 +135,8 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(send_video_to_admin, text='send_video', state=Video.recv_video_note)
     dp.register_callback_query_handler(send_new_video, text='send_new_video', state=Video.recv_video)
     dp.register_callback_query_handler(send_new_video, text='send_new_video', state=Video.recv_video_note)
-    dp.register_callback_query_handler(send_new_video, text='send_new1', state=Video.recv_video)
-    dp.register_callback_query_handler(send_new_video, text='send_new1', state=Video.recv_video_note)
+    dp.register_callback_query_handler(send_new_video, text='send_new1', state=Video.all_states)
+    dp.register_callback_query_handler(send_new_video, text='send_new1', state=Video.all_states)
     dp.register_callback_query_handler(pin_a_chat, text='good', state=Video.next_step)
     dp.register_callback_query_handler(end_test_dispute, text='end_test', state=Video.next_step)
     dp.register_callback_query_handler(send_new_video, text='next_one1', state=Video.recv_video)

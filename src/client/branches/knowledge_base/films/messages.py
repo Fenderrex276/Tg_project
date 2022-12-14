@@ -3,7 +3,7 @@ principles_fm_success_msg = """*🎪 Мировые шедевры литера�
  как они идут свой путь к заветным мечтам и добиваются амбицизных целей."""
 
 tips = []
-
+trailers = []
 message = ''
 f = open('client/media/messages_for_kb/films_messages', 'r')
 i = 0
@@ -12,8 +12,17 @@ for line in f:
         tips.append(message)
         message = line.replace('1.', "")
         message = message.replace('**', "*")
+
+    elif 'Трейлер:' in line:
+        continue
+
     elif '[' in line:
-        pass
+        trailers.append(line[1:line.find(']')])
     else:
+
         message += line.replace('1.', "")
+        message = message.replace("\n\n\n", "\n")
+
     i +=1
+
+

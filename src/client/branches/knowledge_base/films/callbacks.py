@@ -3,6 +3,8 @@ import random
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile, ParseMode
+from aiogram.utils.markdown import link
+
 from client.branches.knowledge_base.films import messages, states, keyboards
 from client.branches.thirty_days_dispute.states import StatesDispute
 
@@ -15,16 +17,21 @@ async def choose_fm(call: types.CallbackQuery):
 
 async def read_fm(call: types.CallbackQuery):
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
+
     rand = random.randrange(len(messages.tips))
-    await call.message.answer(text=messages.tips[rand], reply_markup=keyboards.control_fm_keyboard,
+    l = link(title='Трейлер:', url=messages.trailers[rand])
+
+    await call.message.answer(text=f"{messages.tips[rand]}{l}", reply_markup=keyboards.control_fm_keyboard,
                               parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 
 async def dislike_fm(call: types.CallbackQuery):
     try:
         rand = random.randrange(len(messages.tips))
-        await call.message.edit_text(text=messages.tips[rand], reply_markup=keyboards.control_fm_keyboard,
-                                     parse_mode=ParseMode.MARKDOWN)
+
+        l = link(title='Трейлер:', url=messages.trailers[rand])
+        await call.message.answer(text=f"{messages.tips[rand]}{l}", reply_markup=keyboards.control_fm_keyboard,
+                                  parse_mode=ParseMode.MARKDOWN)
         await call.answer()
     except:
         await dislike_fm(call)
@@ -35,7 +42,9 @@ async def like_fm(call: types.CallbackQuery):
     await call.bot.edit_message_reply_markup(chat_id=call.message.chat.id,
                                         message_id=call.message.message_id)
     #await call.bot.send_video(call.message.chat.id, 'https://youtu.be/1JbcDpNh7hM')
-    await call.message.answer(text=messages.tips[rand], reply_markup=keyboards.control_fm_keyboard,
+    l = link(title='Трейлер:', url=messages.trailers[rand])
+
+    await call.message.answer(text=f"{messages.tips[rand]}{l}", reply_markup=keyboards.control_fm_keyboard,
                               parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 

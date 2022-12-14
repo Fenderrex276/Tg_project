@@ -16,7 +16,7 @@ async def dislike_ted(call: types.CallbackQuery):
     await call.bot.send_video(call.message.chat.id, messages.teds[rand],
                               reply_markup=keyboards.control_ted_keyboard)
     await call.answer()
-
+#TODO сделать словарь где название теда ключ, значение - сам видос
 
 async def like_ted(call: types.CallbackQuery):
     rand = random.randrange(len(messages.teds))

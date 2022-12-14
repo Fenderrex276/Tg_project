@@ -32,7 +32,9 @@ class User(models.Model):
     promocode_user = models.CharField(max_length=10, verbose_name="Промокод пользователя")
     promocode_from_friend = models.CharField(max_length=10, verbose_name="Промокод-приглашение")
     count_days = models.IntegerField(verbose_name="Сколько дней длится диспут")
-    number_dispute = models.CharField(max_length=6, verbose_name="?")
+    number_dispute = models.CharField(max_length=6, verbose_name="уникальный идентификатор диспута")
+    timezone = models.CharField(max_length=7, verbose_name='Таймзона')
+    count_mistakes = models.IntegerField(verbose_name='количество попыток')
 
 
 class PeriodicTask(models.Model):

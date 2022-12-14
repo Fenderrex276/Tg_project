@@ -105,7 +105,39 @@ def video_text(data: dict):
 
 
 async def reports(call: types.CallbackQuery, state: FSMContext):
+
     main_photo = InputFile("client/media/Disput Bot-2/Default.png")
+
+    user = await User.objects.filter(user_id=call.from_user.id).alast()
+    current_video = await RoundVideo.objects.filter(user_tg_id=call.from_user.id,
+                                                    type_video=RoundVideo.TypeVideo.archive).alast()
+
+    videos = await RoundVideo.objects.filter(user_tg_id=call.from_user.id, type_video=RoundVideo.TypeVideo.dispute)
+    if len(videos) > 1:
+        user.count_mistakes = user.count_mistakes - 1
+        user.save()
+
+    if current_video.status == "good" and user.count_days != 30:
+
+        if (user.count_mistakes == 3 or (user.count_mistakes == 2 and user.promocode_from_friend == '0')) and user.count_days == 29:
+            main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
+        elif user.count_mistakes == 2 and user.count_days == 29 and user.promocode_from_friend != '0':
+            main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{2}.png")
+        elif user.count_mistakes == 1 and user.count_days == 29 and user.promocode_from_friend == '0':
+            main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{1}.png")
+        elif user.count_mistakes == 3 or (user.count_mistakes == 2 and user.promocode_from_friend == '0'):
+            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{1}.png")
+        elif user.count_mistakes == 2 or (user.count_mistakes == 1 and user.promocode_from_friend == '0'):
+            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
+
+    elif current_video.status == "bad" and user.count_days != 30:
+        if user.count_mistakes == 2 and user.promocode_from_friend != '0':
+            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{3}.png")
+        elif user.count_mistakes == 1:
+            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{2}.png")
+        elif user.count_mistakes == 0:
+            main_photo = InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png")
+
     cur_state = await state.get_state()
     if cur_state not in StatesDispute.states_names:
         return
@@ -113,7 +145,12 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
         await StatesDispute.reports.set()
 
     await state.update_data(is_deleted=-1)
-    await call.message.answer_photo(main_photo, reply_markup=report_keyboard)
+
+    if user.count_mistakes == 0:
+       await call.message.answer_photo(InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png"), reply_markup=end_game_keyboard)
+    else:
+        await call.message.answer_photo(main_photo, reply_markup=report_keyboard)
+
     await call.answer()
 
 
@@ -140,10 +177,10 @@ async def check_report(call: types.CallbackQuery, state: FSMContext):
     # await state.update_data(current_message=1, id_to_delete=call.message.message_id+1)
 
     try:
-        user_video = await RoundVideo.objects.aget(user_tg_id=call.from_user.id,
+        user_video = await RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                                    chat_tg_id=call.message.chat.id,
                                                    type_video=RoundVideo.TypeVideo.dispute
-                                                   )
+                                                   ).alast()
         data = await state.get_data()
         # user_video = await RoundVideo.objects.aget(id_video=data['id_video_code'])
         if user_video.status == "" and user_video.tg_id != "":
@@ -174,27 +211,32 @@ async def recieved_video(call: types.CallbackQuery, state: FSMContext):
                                     type_video=RoundVideo.TypeVideo.dispute,
                                     id_video=data['id_video_code']).aupdate(tg_id=data['video_id'])
     tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
+    await call.bot.send_video_note(video_note=data['video_id'], chat_id=-1001845655881)
     await call.message.answer(text=tmp_msg)
     await call.answer()
 
 
 async def send_new_report_from_admin(call: types.CallbackQuery, state: FSMContext):
     # print(call.from_user.id, call.message.chat.id)
-    new_video = await RoundVideo.objects.aget(user_tg_id=call.from_user.id,
+    new_video = await RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                               chat_tg_id=call.message.chat.id,
                                               type_video=RoundVideo.TypeVideo.dispute
-                                              )
+                                              ).alast()
+
     print(new_video.id_video)
-    data = await state.get_data()
+
+    # data = await state.get_data()
 
     await state.update_data(new_code=new_video.code_in_video, id_video_code=new_video.id_video)
 
     new_code = " ".join(list(new_video.code_in_video))
-    temp_array = get_message_video(data, new_code)
+    user = await User.objects.filter(user_id=call.from_user.id).alast()
+
+    temp_array = get_message_video({'action': user.action, 'additional_action': user.additional_action}, new_code)
 
     await call.message.answer(text=temp_array[0])
 
-    if data['action'] == 'money':
+    if user.action == 'money':
         await StatesDispute.video.set()
         await call.message.answer_video(video=InputFile(temp_array[1]))
     else:
@@ -512,6 +554,9 @@ async def return_account(call: types.CallbackQuery, state: FSMContext):
 
 async def new_time_zone(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(timezone=call.data)
+    user = User.objects.filter(user_id=call.from_user.id).last()
+    user.timezone = call.data
+    user.save()
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
     await StatesDispute.none.set()
     await call.message.answer(text=tmp_msg, reply_markup=menu_keyboard)
@@ -550,6 +595,8 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(diary_button, text='diary', state=StatesDispute.none)
     dp.register_callback_query_handler(random_question, text='random_questions', state=StatesDispute.none)
     dp.register_callback_query_handler(admit_answer, text='admit', state=StatesDispute.none)
+    dp.register_callback_query_handler(admit_answer, text='admit', state=StatesDispute.diary)
+    dp.register_callback_query_handler(next_question, text='pass', state=StatesDispute.none)
     dp.register_callback_query_handler(next_question, text='pass', state=StatesDispute.diary)
     dp.register_callback_query_handler(dispute_rules, text='rules', state=StatesDispute.reports)
     dp.register_callback_query_handler(return_reports, text='Thanks1', state=StatesDispute.reports)
@@ -602,3 +649,5 @@ def register_callback(bot, dp: Dispatcher):
     # dp.register_callback_query_handler(my_promocode, text='user_promocode', state=StatesDispute.promo_code)
     dp.register_callback_query_handler(personal_goals, text='personal_goals', state=StatesDispute.states)
     dp.register_callback_query_handler(return_to_account, text="back_account", state=StatesDispute.personal_goals)
+    dp.register_callback_query_handler(reports, text='nice_god_job', state="*")
+    dp.register_callback_query_handler(reports, text='try_again', state="*")

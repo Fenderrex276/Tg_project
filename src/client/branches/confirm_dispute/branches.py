@@ -62,7 +62,11 @@ class ConfirmDispute:
         choice_msg = ""
         tmp_keyboard = types.InlineKeyboardMarkup
         photo = InputFile
+
         promocode = variant['promocode']
+        if promocode != '0':
+            promocode = '1'
+
         if variant['action'] == 'alcohol':
             photo = InputFile("client/media/disputs_images/alcohol.jpg")
             choice_msg = f'{confirm_alcohol_disput_msg}Начало 🚩{date_start} \nПраво на ошибку: {promocode}\n\n{second_msg}'

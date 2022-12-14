@@ -10,12 +10,12 @@ from admin.сallbacks import current_dispute
 from client.initialize import bot as mainbot
 from client.tasks import init_send_code
 from db.models import RoundVideo, User
-
+from aiogram.types import InputFile
 
 async def test_videos(call: types.CallbackQuery, state: FSMContext):
     new_video = RoundVideo.objects.filter(status="", type_video="test").first()
 
-    if new_video is None:
+    if new_video is None or new_video.tg_id == "":
         await call.message.answer("Нет новых видео")
     else:
         user = User.objects.filter(user_id=new_video.user_tg_id).first()
@@ -79,12 +79,19 @@ async def new_code(chat_id: int, user_id, id_video):
     new_code = str(randint(1000, 9999))
     code = " ".join(list(new_code))
     msg = f"Твой новый код: {code}"
+
+    user = User.objects.filter(user_id=user_id).last()
+    user.count_days = user.count_days - 1
+    print("USER AFTER CODE : ", user.count_days)
+    user.save()
+    print("USER DAY IN VIDEO CODE : ", 30 - user.count_days)
+
     await RoundVideo.objects.acreate(user_tg_id=user_id,
                                      chat_tg_id=chat_id,
                                      code_in_video=new_code,
                                      id_video=id_video,
                                      type_video=RoundVideo.TypeVideo.dispute,
-                                     n_day=1)
+                                     n_day=(30 - user.count_days))
 
     await mainbot.send_message(text=msg, chat_id=chat_id, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text="Отправить репорт", callback_data="send_dispute_report")))
@@ -116,7 +123,11 @@ async def refused1_video(call: types.CallbackQuery, state: FSMContext):
     RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad",
                                                                type_video=RoundVideo.TypeVideo.archive)
 
-    user = RoundVideo.objects.get(tg_id=v['video_user_id'])
+    user = await RoundVideo.objects.aget(tg_id=v['video_user_id'])
+    tmp = User.objects.filter(user_id=user.user_tg_id).last()
+
+    tmp.count_mistakes = tmp.count_mistakes - 1
+    tmp.save()
 
     await mainbot.send_message(text=" Не видно лица / результатов. Пожалуйста, попробуй ещё раз",
                                chat_id=user.chat_tg_id,
@@ -130,9 +141,12 @@ async def refused1_video(call: types.CallbackQuery, state: FSMContext):
 
 async def refused2_video(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
-    RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad")
-    user = RoundVideo.objects.get(tg_id=v['video_user_id'])
+    RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad", type_video=RoundVideo.TypeVideo.archive)
+    user = await RoundVideo.objects.aget(tg_id=v['video_user_id'])
+    tmp = User.objects.filter(user_id=user.user_tg_id).last()
 
+    tmp.count_mistakes = tmp.count_mistakes - 1
+    tmp.save()
     await mainbot.send_message(text="На видео не слышно кода. Пожалуйста, попробуй ещё раз",
                                chat_id=user.chat_tg_id,
                                reply_markup=types.InlineKeyboardMarkup().add(
@@ -160,7 +174,7 @@ async def archive_button(call: types.CallbackQuery, state: FSMContext):
 async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
     new_dispute = RoundVideo.objects.filter(status="", type_video="dispute").first()
 
-    if new_dispute is None:
+    if new_dispute is None or new_dispute.tg_id == "":
         await call.message.answer("Нет новых видео")
     else:
         user = User.objects.filter(user_id=new_dispute.user_tg_id).first()
@@ -180,10 +194,60 @@ async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
         await call.message.answer(text=tmp_msg, parse_mode=ParseMode.MARKDOWN)
         if user.action == "money":
             await call.message.answer_video(video=new_dispute.tg_id,
-                                            reply_markup=test_keyboard)
+                                            reply_markup=volya_keyboard)
         else:
             await call.message.answer_video_note(video_note=new_dispute.tg_id,
-                                                 reply_markup=test_keyboard)
+                                                 reply_markup=volya_keyboard)
+
+
+async def accept_current_dispute(call: types.CallbackQuery, state: FSMContext):
+    tmp_msg = "На видео один и тот же человек по голосу?"
+    await call.message.answer(text=tmp_msg, reply_markup=access_volya_keyboard)
+
+
+async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    RoundVideo.objects.filter(tg_id=data['video_user_id']).update(status="good",
+                                                                         type_video=RoundVideo.TypeVideo.archive)
+
+    await call.message.answer(text="Готово!")
+
+    user = RoundVideo.objects.filter(tg_id=data['video_user_id']).last()
+
+    await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=user.chat_tg_id)
+    await mainbot.send_message(text="Твой новый код придёт сюда завтра.", chat_id=user.chat_tg_id,
+                               reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(
+                                   text='Отлично!', callback_data="nice_god_job")))
+
+
+    """reply_markup = types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text='Отлично!', callback_data='nice_go_next')
+    )"""
+
+    # TODO Вставить сюда функцию init отправки кода
+    data = await state.get_data()
+    await thirty_day_dispute(call, state)
+
+
+async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext):
+    v = await state.get_data()
+    RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad",
+                                                               type_video=RoundVideo.TypeVideo.archive)
+
+    user = RoundVideo.objects.get(tg_id=v['video_user_id'])
+    id_user = user.user_tg_id
+    tmp = User.objects.filter(user_id=user.user_tg_id).last()
+
+    tmp.count_mistakes = tmp.count_mistakes - 1
+    tmp.save()
+
+    await mainbot.send_message(text="⛔️ Несоответствие условиям спора",
+                               chat_id=user.chat_tg_id, reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')
+        ))
+
+    await call.message.answer('Готово!')
+    await test_videos(call, state)
 
 
 async def ninety_day_volya(call: types.CallbackQuery, state: FSMContext):
@@ -219,3 +283,7 @@ def register_callback(dp: Dispatcher, bot: Bot):
     dp.register_callback_query_handler(ninety_day_volya, text="before_result", state="*")
     dp.register_callback_query_handler(back_to_menu, text="back_from_volya", state="*")
     dp.register_callback_query_handler(new_videos_volya, text="start_volya", state="*")
+    dp.register_callback_query_handler(accept_current_dispute, text='good1', state="*")
+    dp.register_callback_query_handler(access_volya_dispute, text='confirm_video1', state="*")
+    dp.register_callback_query_handler(refused_video_thirty_day, text="bad_video_day", state="*")
+    dp.register_callback_query_handler(refused_video_thirty_day, text='bad1', state="*")

@@ -142,7 +142,9 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
     elif data['action'] == 'painting':
         purpose = "🎨 Научусь рисовать"
         video_with_code = "🤳 Видео с кодом и процессом"
-
+    promo = data['promocode']
+    if promo != '0':
+        promo = '1'
     start_current_disput_msg = (f"👋 Привет, {call.from_user.first_name},"
                                 f" заверши свою подготовку к цели и начни путь героя.\n\n"
                                 "*Твоя цель:*\n"
@@ -152,7 +154,7 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
                                 f"{video_with_code}\n"
                                 f"⏳ Отправлять в бот до {time_before}\n\n"
                                 "До победы осталось 30 дней\n"
-                                f"Право на ошибку: {data['promocode']}")
+                                f"Право на ошибку: {promo}")
 
     start_d = ""
     if data['start_disput'] == "select_after_tomorrow":
@@ -161,6 +163,9 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
         start_d = "monday"
     deposit = int(data['deposit'].replace(" ", ""))
 
+    mistake = 0
+    if data['promocode'] != '0':
+        mistake = 1
     await User.objects.acreate(user_id=call.from_user.id,
                                user_name=call.from_user.first_name,
                                action=data['action'],
@@ -169,7 +174,10 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
                                deposit=deposit,
                                promocode_user=secrets.token_hex(nbytes=5),
                                promocode_from_friend=data['promocode'],
-                               count_days=30)
+                               count_days=30,
+                               timezone = data['timezone'],
+                               count_mistakes=(2 + mistake))
+
     await state.update_data(name=call.from_user.first_name)
     await call.message.edit_text(text=start_current_disput_msg, reply_markup=next_step_keyboard,
                                  parse_mode=ParseMode.MARKDOWN)

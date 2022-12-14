@@ -4,6 +4,7 @@ import random
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode, InputFile
+from aiogram.utils.markdown import link
 from asgiref.sync import sync_to_async
 
 from utils import get_timezone
@@ -28,7 +29,7 @@ class CurrentDispute:
 
     def register_handlers(self):
         self.dp.register_message_handler(self.the_hero_path, text=[menu_keyboard, "✅ Путь героя"],
-                                         state=StatesDispute.all_states)
+                                         state="*")
         self.dp.register_message_handler(self.knowledge_base, text=[menu_keyboard, "💚 База знаний"],
                                          state=StatesDispute.all_states)
         self.dp.register_message_handler(self.account, text=[menu_keyboard, "🟢 Аккаунт"],
@@ -55,13 +56,25 @@ class CurrentDispute:
     async def the_hero_path(self, message: types.Message, state: FSMContext):
         current_state = await state.get_state()
         print(current_state)
+        await StatesDispute.none.set()
         if current_state in StatesDispute.states_names:
             await StatesDispute.none.set()
             print(current_state)
         else:
             return
+
+        user = await User.objects.filter(user_id=message.from_user.id).alast()
+        await state.update_data(action=user.action,
+                                    additional_action=user.additional_action,
+                                    start_disput=user.start_disput,
+                                    promocode=user.promocode_from_friend,
+                                    timezone=user.timezone,
+                                    name=user.user_name,
+                                    deposit=user.deposit,
+                                    id_dispute=user.number_dispute)
         data = await state.get_data()
         print(data)
+
         recieve_message = video_text(data)
         print('HEROPATH, ', message.message_id)
         await message.answer_photo(photo=InputFile(recieve_message[0]),
@@ -93,6 +106,9 @@ class CurrentDispute:
         # print(loc)
         tmp = get_timezone(loc)
         await state.update_data(timezone=tmp[:len(tmp) - 4])
+        user = User.objects.filter(user_id=message.from_user.id).last()
+        user.timezone = tmp[:len(tmp) - 4]
+        user.save()
         msg = f"Установлен часовой пояс {tmp}"
         await StatesDispute.none.set()
         await message.answer(text=msg, reply_markup=menu_keyboard)
@@ -100,7 +116,9 @@ class CurrentDispute:
     async def input_name(self, message: types.Message, state: FSMContext):
         await StatesDispute.account.set()
         await state.update_data(name=message.text)
-
+        user = User.objects.filter(user_id=message.from_user.id).last()
+        user.user_name = message.text
+        user.save()
         await message.answer(text='Готово!')
 
     async def process_name_invalid(self, message: types.Message):

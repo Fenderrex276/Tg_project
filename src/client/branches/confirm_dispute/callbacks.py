@@ -168,6 +168,8 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     tmp_keyboard = types.InlineKeyboardMarkup
     photo = InputFile
     promocode = variant['promocode']
+    if promocode != '0':
+        promocode = '1'
 
     if variant['action'] == 'alcohol':
         photo = InputFile("client/media/disputs_images/alcohol.jpg")

@@ -62,3 +62,10 @@ awards_keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data=
 send_video_keyboard = types.InlineKeyboardMarkup(row_width=2)
 send_video_keyboard.add(types.InlineKeyboardButton(text='🚀 Отправить', callback_data='send_video'),
                         types.InlineKeyboardButton(text='Новое видео', callback_data='send_new_video'))
+
+
+end_game_keyboard = types.InlineKeyboardMarkup(row_width=2)
+end_game_keyboard.add(types.InlineKeyboardButton(text='Поделиться', callback_data='qwerta'),
+                      types.InlineKeyboardButton(text='Оставить ✌️ отзыв', callback_data='new_review'))
+end_game_keyboard.add(types.InlineKeyboardButton(text='Спорим 🤝 ещё', callback_data='new_dispute'))
+
