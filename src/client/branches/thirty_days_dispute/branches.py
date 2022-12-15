@@ -157,9 +157,13 @@ class CurrentDispute:
         await message.answer(text=questions[second_ind], reply_markup=admit_or_pass_keyboard)
 
     async def input_support(self, message: types.Message, state: FSMContext):
-        nd = await User.objects.filter(user_id=message.from_user.id).afirst()
+        try:
+            nd = await User.objects.filter(user_id=message.from_user.id).afirst()
+            n = nd.number_dispute
+        except:
+            n = 0
         await Supt.objects.acreate(user_id=message.from_user.id,
-                                   number_dispute=nd.number_dispute,
+                                   number_dispute=n,
                                    chat_id=message.chat.id,
                                    problem=message.text,
                                    solved=Supt.TypeSolve.new)

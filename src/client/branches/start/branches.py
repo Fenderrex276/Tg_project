@@ -1,9 +1,12 @@
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InputFile
-
+from aiogram.types import InputFile, ParseMode
 from client.branches.dispute_with_friend.states import Form
+from client.branches.knowledge_base.FAQ import messages, keyboards
 from client.branches.start.keyboards import *
 from client.branches.start.messages import first_faq_msg
+from client.branches.knowledge_base.FAQ.callbacks import choose_faq
+from client.branches.thirty_days_dispute.states import StatesDispute
 
 
 class Start:
@@ -42,9 +45,11 @@ class Start:
             message.from_user.id, msg, reply_markup=menu_keyboard)
 
     async def faq_handler(self, message: types.Message):
-        await self.bot.delete_message(message.chat.id, message.message_id)
+        await StatesDispute.account.set()
+        await self.bot.delete_message(message_id=message.message_id, chat_id=message.chat.id)
+        await message.answer(text=messages.start_FAQ, reply_markup=keyboards.start_md_keyboard,
+                                  parse_mode=ParseMode.MARKDOWN)
 
-        await self.bot.send_message(message.from_user.id, first_faq_msg, reply_markup=first_button)
 
     async def reviews(self, message: types.Message):
         msg = "Читайте отзывы пользователей об игре и их личном опыте на нашем телеграмм-канале:"

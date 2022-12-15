@@ -15,7 +15,6 @@ def createKeyboard(buttons: list, rows: list = None) -> types.ReplyKeyboardMarku
 
     return keyboard
 
-
 buttons_menu = ["🤜 Спорим 🤛", "🫀FAQ", "👍Отзывы"]
 menu_keyboard = createKeyboard(buttons_menu, [1, 2])
 

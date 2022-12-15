@@ -47,8 +47,12 @@ class Reviews:
                         nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_day
                     except:
                         nds = "0"
-                    nd = await User.objects.filter(user_id=sup.user_id).afirst()
-                    await message.answer(getQuestions(Nums.num_review, nd.number_dispute, nds, sup.problem))
+                    try:
+                        nd = await User.objects.filter(user_id=message.from_user.id).afirst()
+                        n = nd.number_dispute
+                    except:
+                        n = 0
+                    await message.answer(getQuestions(Nums.num_review, n, nds, sup.problem))
             else:
                 await message.answer("Диспут не найден. Скопируй номер диспута и введи (#D****):")
         except:
@@ -62,8 +66,12 @@ async def write_quest(num_review, message: types.Message):
             nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_days
         except:
             nds = "0"
-        nd = await User.objects.filter(user_id=sup.user_id).afirst()
-        await message.answer(getQuestions(num_review, nd.number_dispute, nds, sup.problem),
+        try:
+            nd = await User.objects.filter(user_id=message.from_user.id).afirst()
+            n = nd.number_dispute
+        except:
+            n = 0
+        await message.answer(getQuestions(num_review, n, nds, sup.problem),
                              reply_markup=keyboards.review_keyboard)
     except:
         await message.answer("Упс... Новых обращений в поддержку нет")
@@ -77,8 +85,12 @@ async def write_pass_quest(num_review, num_pass, message: types.Message):
             nds = RoundVideo.objects.filter(user_tg_id=sup.user_id).last().n_days
         except:
             nds = "0"
-        nd = await User.objects.filter(user_id=sup.user_id).afirst()
-        await message.answer(getQuestions(num_review, nd.number_dispute, nds, sup.problem),
+        try:
+            nd = await User.objects.filter(user_id=message.from_user.id).afirst()
+            n = nd.number_dispute
+        except:
+            n = 0
+        await message.answer(getQuestions(num_review, n, nds, sup.problem),
                              reply_markup=keyboards.review_pass_keyboard)
     except:
         await message.answer("Упс... Отложенных обращений в поддержку нет")
