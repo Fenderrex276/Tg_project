@@ -14,12 +14,12 @@ from aiogram.types import InputFile
 
 
 async def test_videos(call: types.CallbackQuery, state: FSMContext):
-    new_video = RoundVideo.objects.filter(status="", type_video="test").first()
+    new_video = await RoundVideo.objects.filter(status="", type_video="test").afirst()
 
     if new_video is None or new_video.tg_id == "":
         await call.message.answer("Нет новых видео")
     else:
-        user = User.objects.filter(user_id=new_video.user_tg_id).first()
+        user = await User.objects.filter(user_id=new_video.user_tg_id).afirst()
         id_dispute = str(new_video.id_video)
         purpose = current_dispute(user.action, user.additional_action)
 
@@ -43,13 +43,13 @@ async def test_videos(call: types.CallbackQuery, state: FSMContext):
 
 async def access_video(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    RoundVideo.objects.filter(tg_id=data['video_user_id']).update(status="good",
+    await RoundVideo.objects.filter(tg_id=data['video_user_id']).aupdate(status="good",
                                                                   type_video=RoundVideo.TypeVideo.archive)
 
     await call.message.answer(text="Готово!")
 
-    round_video_info = RoundVideo.objects.get(tg_id=data['video_user_id'])
-    current_user = User.objects.filter(user_id=round_video_info.user_tg_id).first()
+    round_video_info = await RoundVideo.objects.aget(tg_id=data['video_user_id'])
+    current_user = await User.objects.filter(user_id=round_video_info.user_tg_id).afirst()
     start = ""
 
     if current_user.start_disput == "tomorrow":
@@ -65,7 +65,7 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     # TODO Вставить сюда функцию init отправки кода
     data = await state.get_data()
     try:
-        user = User.objects.get(user_id=round_video_info.user_tg_id)
+        user = await User.objects.aget(user_id=round_video_info.user_tg_id)
     except User.DoesNotExist:
         print("Пользователь не найден")
         return
@@ -73,7 +73,6 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     await init_send_code(round_video_info.user_tg_id, round_video_info.chat_tg_id, start, data['id_video'],
                          user.timezone)
     """date_now = call.message.date.utcnow() + datetime.timedelta(seconds=30)
-
     scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
     scheduler.print_jobs()"""
     await test_videos(call, state)
@@ -84,11 +83,12 @@ async def refused_video(call: types.CallbackQuery, state: FSMContext):
 
 
 async def new_code(chat_id: int, user_id, id_video):
+
     new_code = str(randint(1000, 9999))
     code = " ".join(list(new_code))
     msg = f"Твой новый код: {code}"
 
-    user = User.objects.filter(user_id=user_id).last()
+    user = await User.objects.filter(user_id=user_id).alast()
     user.count_days = user.count_days - 1
     print("USER AFTER CODE : ", user.count_days)
     user.save()
@@ -102,7 +102,7 @@ async def new_code(chat_id: int, user_id, id_video):
                                      n_day=(30 - user.count_days))
 
     await mainbot.send_message(text=msg, chat_id=chat_id, reply_markup=types.InlineKeyboardMarkup().add(
-        types.InlineKeyboardButton(text="Отправить репорт", callback_data="send_dispute_report")))
+        types.InlineKeyboardButton(text="Отправить репорт", callback_data="send_dispute_report")), disable_notification=True)
 
 
 async def thirty_days_videos(call: types.CallbackQuery):
@@ -128,14 +128,10 @@ async def confirm_video(call: types.CallbackQuery):
 
 async def refused1_video(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
-    RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad",
+    await RoundVideo.objects.filter(tg_id=v['video_user_id']).aupdate(status="bad",
                                                                type_video=RoundVideo.TypeVideo.archive)
 
     user = await RoundVideo.objects.aget(tg_id=v['video_user_id'])
-    tmp = User.objects.filter(user_id=user.user_tg_id).last()
-
-    tmp.count_mistakes = tmp.count_mistakes - 1
-    tmp.save()
 
     await mainbot.send_message(text=" Не видно лица / результатов. Пожалуйста, попробуй ещё раз",
                                chat_id=user.chat_tg_id,
@@ -149,12 +145,9 @@ async def refused1_video(call: types.CallbackQuery, state: FSMContext):
 
 async def refused2_video(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
-    RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad", type_video=RoundVideo.TypeVideo.archive)
+    await RoundVideo.objects.filter(tg_id=v['video_user_id']).aupdate(status="bad", type_video=RoundVideo.TypeVideo.archive)
     user = await RoundVideo.objects.aget(tg_id=v['video_user_id'])
-    tmp = User.objects.filter(user_id=user.user_tg_id).last()
 
-    tmp.count_mistakes = tmp.count_mistakes - 1
-    tmp.save()
     await mainbot.send_message(text="На видео не слышно кода. Пожалуйста, попробуй ещё раз",
                                chat_id=user.chat_tg_id,
                                reply_markup=types.InlineKeyboardMarkup().add(
@@ -180,12 +173,12 @@ async def archive_button(call: types.CallbackQuery, state: FSMContext):
 
 
 async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
-    new_dispute = RoundVideo.objects.filter(status="", type_video=RoundVideo.TypeVideo.dispute).first()
+    new_dispute = await RoundVideo.objects.filter(status="", type_video=RoundVideo.TypeVideo.dispute).afirst()
 
     if new_dispute is None or new_dispute.tg_id == "":
         await call.message.answer("Нет новых видео")
     else:
-        user = User.objects.filter(user_id=new_dispute.user_tg_id).first()
+        user = await User.objects.filter(user_id=new_dispute.user_tg_id).afirst()
         id_dispute = str(new_dispute.id_video)
         purpose = current_dispute(user.action, user.additional_action)
 
@@ -215,12 +208,12 @@ async def accept_current_dispute(call: types.CallbackQuery, state: FSMContext):
 
 async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    RoundVideo.objects.filter(tg_id=data['video_user_id']).update(status="good",
+    await RoundVideo.objects.filter(tg_id=data['video_user_id']).aupdate(status="good",
                                                                   type_video=RoundVideo.TypeVideo.archive)
 
     await call.message.answer(text="Готово!")
 
-    user = RoundVideo.objects.filter(tg_id=data['video_user_id']).last()
+    user = await RoundVideo.objects.filter(tg_id=data['video_user_id']).alast()
 
     await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=user.chat_tg_id)
     await mainbot.send_message(text="Твой новый код придёт сюда завтра.", chat_id=user.chat_tg_id,
@@ -238,12 +231,12 @@ async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
 
 async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
-    RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad",
+    await RoundVideo.objects.filter(tg_id=v['video_user_id']).aupdate(status="bad",
                                                                type_video=RoundVideo.TypeVideo.archive)
 
-    user = RoundVideo.objects.get(tg_id=v['video_user_id'])
+    user = await RoundVideo.objects.aget(tg_id=v['video_user_id'])
     id_user = user.user_tg_id
-    tmp = User.objects.filter(user_id=user.user_tg_id).last()
+    tmp = await User.objects.filter(user_id=user.user_tg_id).alast()
 
     tmp.count_mistakes = tmp.count_mistakes - 1
     tmp.save()

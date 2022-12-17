@@ -23,14 +23,12 @@ class Reports:
         self.dp.register_message_handler(self.input_number_of_day, state=ReportStates.input_number_day)
 
     async def input_message(self, message: types.Message, state: FSMContext):
-        v = await state.get_data()
-        RoundVideo.objects.filter(tg_id=v['video_user_id']).update(status="bad",
-                                                                   type_video=RoundVideo.TypeVideo.archive)
-        user = RoundVideo.objects.get(tg_id=v['video_user_id'])
-        tmp = User.objects.filter(user_id=user.user_tg_id).last()
 
-        tmp.count_mistakes = tmp.count_mistakes - 1
-        tmp.save()
+        v = await state.get_data()
+        await RoundVideo.objects.filter(tg_id=v['video_user_id']).aupdate(status="bad",
+                                                                   type_video=RoundVideo.TypeVideo.archive)
+        user = await RoundVideo.objects.aget(tg_id=v['video_user_id'])
+
         await mainbot.send_message(text=message.text,
                                    chat_id=user.chat_tg_id,
                                    reply_markup=types.InlineKeyboardMarkup().add(

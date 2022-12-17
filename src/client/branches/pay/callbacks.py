@@ -17,8 +17,10 @@ async def choose_sum_to_pay(call: types.CallbackQuery, state: FSMContext):
 
     del_scheduler(f'{call.from_user.id}_reminder', 'client')
     redis_data = await state.get_data()
+
     await reminder_scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 2, notification_hour=10,
                                      notification_min=0)
+
     await call.message.answer(text=deposit_msg, reply_markup=types.ReplyKeyboardRemove())
     await call.message.answer(text="*Выбери комфортную сумму*", parse_mode=ParseMode.MARKDOWN_V2,
                               reply_markup=choose_sum_keyboard)
@@ -56,7 +58,7 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
     redis_data = await state.get_data()
     await reminder_scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 4, notification_hour=10,
                                      notification_min=0)
-    # TODO Куда улетает запрос после жмяка на Подтвердить
+    # TODO Куда улетает запрос после жмяка на Подтвердить ??? всмысле?
 
 
 async def successful_payment(call: types.CallbackQuery, state: FSMContext):
@@ -190,11 +192,16 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(choose_sum_to_pay, text='make_deposit', state=Promo.none)
+    dp.register_callback_query_handler(choose_sum_to_pay, text='start_pay_state', state=Promo.none)
+    dp.register_callback_query_handler(choose_sum_to_pay, text='choose_current_sum', state=PayStates.all_states)
     dp.register_callback_query_handler(other_sum_to_pay, text='other_sum', state=PayStates.pay)
     dp.register_callback_query_handler(check_sum, text='15 000', state=PayStates.pay)
     dp.register_callback_query_handler(check_sum, text='30 000', state=PayStates.pay)
     dp.register_callback_query_handler(check_sum, text='50 000', state=PayStates.pay)
     dp.register_callback_query_handler(check_sum, text='100 000', state=PayStates.pay)
+    dp.register_callback_query_handler(get_bank_details, text='get_pay_details', state=PayStates.all_states)
     dp.register_callback_query_handler(get_bank_details, text='get_details', state=PayStates.none)
     dp.register_callback_query_handler(successful_payment, text='access', state=PayStates.none)
+    dp.register_callback_query_handler(successful_payment, text='confirm_deposit', state=PayStates.none)
     dp.register_callback_query_handler(start_current_disput, text='go_disput', state=PayStates.none)
+    dp.register_callback_query_handler(start_current_disput, text='start_current_dispute', state=PayStates.none)

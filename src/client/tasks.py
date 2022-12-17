@@ -1,7 +1,7 @@
 from datetime import date
 from datetime import datetime
 
-from aiogram import Dispatcher
+from aiogram import Dispatcher, types
 from pytz import utc
 
 from admin.initialize import scheduler as admin_scheduler
@@ -78,27 +78,33 @@ async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user
     if fun == "reminder":  # TODO RUS Нужно добавить кнопки после уведомлений и порешать вопрос с удалением уведомления
         if flag == 1:
             kwargs = {"dp": dp, "user_id": user_id,
-                      "msg": "Вы остановились на внесении депозита. Может продолжим?"}
+                      "msg": "Вы остановились на внесении депозита. Может продолжим?",
+                      "callback_data": "start_pay_state"}
 
         elif flag == 2:
             kwargs = {"dp": dp, "user_id": user_id,
-                      "msg": "Вы так и не выбрали сумму депозита. Хотите продолжить?"}
+                      "msg": "Вы так и не выбрали сумму депозита. Хотите продолжить?",
+                      "callback_data": "choose_current_sum"}
 
         elif flag == 3:
             kwargs = {"dp": dp, "user_id": user_id,
-                      "msg": "Вы так и не завершили внесение депозита. Хотите получить реквизиты?"}
+                      "msg": "Вы так и не завершили внесение депозита. Хотите получить реквизиты?",
+                      "callback_data": "get_pay_details"}
 
         elif flag == 4:
             kwargs = {"dp": dp, "user_id": user_id,
-                      "msg": "Вы так и не подтвердили желание внести депозит. Хотите продолжить?"}
+                      "msg": "Вы так и не подтвердили желание внести депозит. Хотите продолжить?",
+                      "callback_data": "confirm_deposit"}
 
         elif flag == 5:
             kwargs = {"dp": dp, "user_id": user_id,
-                      "msg": "Вы внесли депозит, пора начать вашу первый этап диспута. Хотите продолжить?"}
+                      "msg": "Вы внесли депозит, пора начать вашу первый этап диспута. Хотите продолжить?",
+                      "callback_data": "start_current_dispute"}
 
         elif flag == 6:
             kwargs = {"dp": dp, "user_id": user_id,
-                      "msg": "Начните свою первую тренировку уже сейчас. Хотите продолжить?"}
+                      "msg": "Начните свою первую тренировку уже сейчас. Хотите продолжить?",
+                      "callback_data": "lets_start_training"}
         else:
             print(f'Ошибка вызова функции reminder_scheduler_add_job для создания напоминаний. Неверный flag')
             return
@@ -200,8 +206,10 @@ def load_periodic_tasks():
         #                       minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
 
 
-async def send_reminder(dp: Dispatcher, user_id: int, msg: str):
-    await dp.bot.send_message(user_id, msg)
+async def send_reminder(dp: Dispatcher, user_id: int, msg: str, callback_data: str):
+    continue_keyboard = types.InlineKeyboardMarkup()
+    continue_keyboard.add(types.InlineKeyboardButton(text="Продолжить", callback_data=callback_data))
+    await dp.bot.send_message(user_id, msg, reply_markup=continue_keyboard)
     # TODO Добавляем кнопку "Продолжить"
     # TODO Новые состояния
 

@@ -131,6 +131,7 @@ async def end_test_dispute(call: types.CallbackQuery, state: FSMContext):
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(preparation_for_dispute, text='step_to_test_video_note', state="*")
     dp.register_callback_query_handler(send_video_note, text='next_one', state=Video.none)
+    dp.register_callback_query_handler(send_video_note, text='lets_start_training', state=Video.states)
     dp.register_callback_query_handler(send_video_to_admin, text='send_video', state=Video.recv_video)
     dp.register_callback_query_handler(send_video_to_admin, text='send_video', state=Video.recv_video_note)
     dp.register_callback_query_handler(send_new_video, text='send_new_video', state=Video.recv_video)

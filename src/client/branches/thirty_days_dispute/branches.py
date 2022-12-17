@@ -63,7 +63,7 @@ class CurrentDispute:
         else:
             return
 
-        user = User.objects.filter(user_id=message.from_user.id).last()
+        """user = await User.objects.filter(user_id=message.from_user.id).alast()
         await state.update_data(action=user.action,
                                 additional_action=user.additional_action,
                                 start_disput=user.start_disput,
@@ -72,6 +72,7 @@ class CurrentDispute:
                                 name=user.user_name,
                                 deposit=user.deposit,
                                 id_dispute=user.number_dispute)
+        """
         data = await state.get_data()
         print(data)
 
@@ -106,7 +107,7 @@ class CurrentDispute:
         # print(loc)
         tmp = get_timezone(loc)
         await state.update_data(timezone=tmp[:len(tmp) - 4])
-        user = User.objects.filter(user_id=message.from_user.id).last()
+        user = await User.objects.filter(user_id=message.from_user.id).alast()
         user.timezone = tmp[:len(tmp) - 4]
         user.save()
         msg = f"Установлен часовой пояс {tmp}"
@@ -116,7 +117,7 @@ class CurrentDispute:
     async def input_name(self, message: types.Message, state: FSMContext):
         await StatesDispute.account.set()
         await state.update_data(name=message.text)
-        user = User.objects.filter(user_id=message.from_user.id).last()
+        user = await User.objects.filter(user_id=message.from_user.id).alast()
         user.user_name = message.text
         user.save()
         await message.answer(text='Готово!')
