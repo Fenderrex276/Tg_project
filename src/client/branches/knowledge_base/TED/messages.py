@@ -1,10 +1,11 @@
 teds = []
 
-teds.append("https://t.me/tedarchive/580")
-teds.append("https://t.me/tedarchive/574")
-teds.append("https://t.me/tedarchive/570")
-teds.append("https://t.me/tedarchive/566")
-teds.append("https://t.me/tedarchive/568")
-teds.append("https://t.me/tedarchive/560")
-teds.append("https://t.me/tedarchive/562")
-teds.append("https://t.me/tedarchive/558")
+teds.append(["Чтобы преодолеть проблемы, перестань сравнивать себя с другими - Дин Фёрнесс 720p",
+                 "https://t.me/tedarchive/580"])
+teds.append(["Для родителей счастье — это трудная цель - Дженнифер Сениор 720p", "https://t.me/tedarchive/574"])
+teds.append(["Четыре признака эмоционального насилия — Вианн Нгуен-Фенг 720p", "https://t.me/tedarchive/570"])
+teds.append(["Как купить счастье - Майкл Нортон 720p", "https://t.me/tedarchive/566"])
+teds.append(["Помогая другим, мы становимся счастливее, но важно, как именно это делать - Элизабет Данн 720p", "https://t.me/tedarchive/568"])
+teds.append(["Установка олимпийской чемпионки для преодоления страха - Эллисон Феликс 720p", "https://t.me/tedarchive/560"])
+teds.append(["Как правительства делают деньги «из воздуха» — Джонатан Смит 720p", "https://t.me/tedarchive/562"])
+teds.append(["Почему пассажирские самолёты летают медленнее, чем раньше - Алекс Гендлер 360p","https://t.me/tedarchive/558"])

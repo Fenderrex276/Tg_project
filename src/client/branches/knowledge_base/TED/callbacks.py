@@ -13,8 +13,8 @@ from client.branches.thirty_days_dispute.states import StatesDispute
 async def dislike_ted(call: types.CallbackQuery):
     rand = random.randrange(len(messages.teds))
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    await call.bot.send_video(call.message.chat.id, messages.teds[rand],
-                              reply_markup=keyboards.control_ted_keyboard)
+    await call.bot.send_video(call.message.chat.id, messages.teds[rand][1],
+                              reply_markup=keyboards.control_ted_keyboard, caption=messages.teds[rand][0])
     await call.answer()
 #TODO сделать словарь где название теда ключ, значение - сам видос
 
@@ -22,16 +22,16 @@ async def like_ted(call: types.CallbackQuery):
     rand = random.randrange(len(messages.teds))
     await call.bot.edit_message_reply_markup(chat_id=call.message.chat.id,
                                              message_id=call.message.message_id)
-    await call.bot.send_video(call.message.chat.id, messages.teds[rand],
-                              reply_markup=keyboards.control_ted_keyboard)
+    await call.bot.send_video(call.message.chat.id, messages.teds[rand][1],
+                              reply_markup=keyboards.control_ted_keyboard, caption=messages.teds[rand][0])
     await call.answer()
 
 
 async def ted(call: types.CallbackQuery):
     rand = random.randrange(len(messages.teds))
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    await call.bot.send_video(call.message.chat.id, messages.teds[rand],
-                              reply_markup=keyboards.control_ted_keyboard)
+    await call.bot.send_video(call.message.chat.id, messages.teds[rand][1],
+                              reply_markup=keyboards.control_ted_keyboard, caption=messages.teds[rand][0])
     await call.answer()
 
 

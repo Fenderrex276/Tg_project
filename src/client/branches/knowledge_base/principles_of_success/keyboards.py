@@ -2,7 +2,7 @@ from aiogram import types
 
 start_ps_keyboard = types.InlineKeyboardMarkup(row_width=2)
 start_ps_keyboard.add(types.InlineKeyboardButton(text='👍 Начнём', callback_data='start_ps'),
-                      types.InlineKeyboardButton(text='Выкл 🔕', callback_data='mute'))
+                      types.InlineKeyboardButton(text='🔔 Вкл', callback_data='mute'))
 
 
 control_ps_keyboard = types.InlineKeyboardMarkup(row_width=2)
