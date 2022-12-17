@@ -94,3 +94,5 @@ async def write_pass_quest(num_review, num_pass, message: types.Message):
                              reply_markup=keyboards.review_pass_keyboard)
     except:
         await message.answer("Упс... Отложенных обращений в поддержку нет")
+
+

@@ -72,3 +72,19 @@ class Supt(models.Model):
     chat_id = models.BigIntegerField()
     problem = models.CharField(max_length=256)
     solved = models.CharField('статус вопроса', choices=TypeSolve.choices, max_length=10)
+
+
+class Reviews(models.Model):
+
+    class StateReview(models.TextChoices):
+        done = "done"
+        bad_review = "bad_review"
+        new = "new"
+    user_id = models.BigIntegerField()
+    chat_id = models.BigIntegerField()
+    user_name = models.CharField(max_length=20, verbose_name="Имя игрока")
+    id_dispute = models.IntegerField(verbose_name="Уникальный идентификатор диспута")
+    city = models.CharField(max_length=30, verbose_name="Город игрока")
+    mark = models.CharField(max_length=10, verbose_name="кол-во звёзд")
+    coment = models.CharField(max_length=256, verbose_name="комментарий")
+    state_t = models.CharField(max_length=10, verbose_name="статус отзыва", choices=StateReview.choices)

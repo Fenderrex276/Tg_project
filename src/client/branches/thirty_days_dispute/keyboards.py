@@ -69,3 +69,14 @@ end_game_keyboard.add(types.InlineKeyboardButton(text='Поделиться', ca
                       types.InlineKeyboardButton(text='Оставить ✌️ отзыв', callback_data='new_review'))
 end_game_keyboard.add(types.InlineKeyboardButton(text='Спорим 🤝 ещё', callback_data='new_dispute'))
 
+buttons_menu1 = ["🤜 Спорим 🤛", "💚 База знаний", "🟢 Аккаунт"]
+new_menu_keyboard = createKeyboard(buttons_menu1, [1, 2])
+
+
+
+mark_keyboard = types.InlineKeyboardMarkup()
+mark_keyboard.add(types.InlineKeyboardButton(text="️⭐️", callback_data="one"))
+mark_keyboard.add(types.InlineKeyboardButton(text="⭐️⭐️", callback_data="two"))
+mark_keyboard.add(types.InlineKeyboardButton(text="️⭐️⭐️⭐️", callback_data="three"))
+mark_keyboard.add(types.InlineKeyboardButton(text="⭐️⭐️⭐️⭐️", callback_data="four"))
+mark_keyboard.add(types.InlineKeyboardButton(text="⭐️⭐️⭐️⭐️⭐️", callback_data="five"))

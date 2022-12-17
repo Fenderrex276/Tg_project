@@ -3,7 +3,8 @@ from aiogram.dispatcher import FSMContext
 
 from admin.keyboards import support_menu_keyboard
 from admin.support_reviews import keyboards, messages, branches, states
-from db.models import Supt
+from admin.сallbacks import current_dispute, get_stars
+from db.models import Supt, Reviews, User
 
 
 class Nums:
@@ -100,16 +101,42 @@ async def archive_back(call: types.CallbackQuery, state: FSMContext):
                                 text="💚 Поддержка и отзывы", reply_markup=keyboards.support_review_keyboard)
     await call.answer()
 
+
 async def feedback(call: types.CallbackQuery, state: FSMContext):
     await call.bot.edit_message_reply_markup(reply_markup=keyboards.feedback_keyboard,
                                              message_id=call.message.message_id,
                                              chat_id=call.message.chat.id)
     await call.answer()
 
+
 async def f(call: types.CallbackQuery, state: FSMContext):
     await call.bot.delete_message(message_id=call.message.message_id, chat_id=call.message.chat.id)
-    await call.message.answer(text="нет отзывов")
+
+    new_review = await Reviews.objects.filter(state_t="new").afirst()
+
+    if new_review is None:
+        await call.message.answer(text="нет отзывов")
+    else:
+        user = await User.objects.filter(user_id=new_review.user_id).alast()
+        id_dispute = new_review.id_dispute
+        action = current_dispute(user.action, user.additional_action)
+        mark = get_stars(new_review.mark)
+
+        tmp_msg = (f"Новый отзыв\n"
+                   f"🧊Диспут #D{id_dispute}\n"
+                   f"Имя: {new_review.user_name}\n"
+                   f"Город: {new_review.city}\n"
+                   f"Цель: {action}\n"
+                   f"В игре: {30 - user.count_days}\n"
+                   f"Оценка: {mark}\n"
+                   f"Отзыв: {new_review.coment}\n")
+
+
+        await call.message.answer(text=tmp_msg)
+
+
     await call.answer()
+
 
 def register_callback(dp: Dispatcher, bot):
     dp.register_callback_query_handler(start_review_menu, text='supp',
@@ -146,5 +173,3 @@ def register_callback(dp: Dispatcher, bot):
                                        state="*")
     dp.register_callback_query_handler(f, text='not_public',
                                        state="*")
-
-

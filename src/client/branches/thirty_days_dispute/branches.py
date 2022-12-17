@@ -10,9 +10,9 @@ from asgiref.sync import sync_to_async
 from utils import get_timezone
 from .diary import questions
 from .keyboards import *
-from .states import StatesDispute
+from .states import StatesDispute, NewReview
 from .callbacks import video_text
-from db.models import Supt, User
+from db.models import Supt, User, Reviews, RoundVideo
 import pytz
 from .callbacks import random_question
 
@@ -29,11 +29,11 @@ class CurrentDispute:
 
     def register_handlers(self):
         self.dp.register_message_handler(self.the_hero_path, text=[menu_keyboard, "✅ Путь героя"],
-                                         state="*")
+                                         state=StatesDispute.all_states)
         self.dp.register_message_handler(self.knowledge_base, text=[menu_keyboard, "💚 База знаний"],
-                                         state=StatesDispute.all_states)
+                                         state="*")
         self.dp.register_message_handler(self.account, text=[menu_keyboard, "🟢 Аккаунт"],
-                                         state=StatesDispute.all_states)
+                                         state="*")
 
         self.dp.register_message_handler(self.process_name_invalid, lambda message: len(message.text) > 20,
                                          state=StatesDispute.change_name)
@@ -52,6 +52,8 @@ class CurrentDispute:
         self.dp.register_message_handler(self.input_support, state=StatesDispute.new_question)
         self.dp.register_message_handler(self.new_timezone, content_types=['location'],
                                          state=StatesDispute.new_timezone)
+        self.dp.register_message_handler(self.input_city, state=NewReview.input_city)
+        self.dp.register_message_handler(self.get_coment, state=NewReview.input_review)
 
     async def the_hero_path(self, message: types.Message, state: FSMContext):
         current_state = await state.get_state()
@@ -170,3 +172,29 @@ class CurrentDispute:
                                    solved=Supt.TypeSolve.new)
         await StatesDispute.none.set()
         await message.answer(text='Готово! 🤗 Спасибо')
+
+    async def input_city(self, message: types.Message, state: FSMContext):
+
+        await NewReview.none.set()
+        await state.update_data(city_for_review=message.text)
+        await message.answer(text="🎲 Оцени игру и твой личный опыт взаимодействия с ботом:", reply_markup=mark_keyboard)
+
+    async def get_coment(self, message: types.Message, state: FSMContext):
+        user = await User.objects.filter(user_id=message.from_user.id).alast()
+        current_video = await RoundVideo.objects.filter(user_tg_id=message.from_user.id,
+                                                        type_video=RoundVideo.TypeVideo.archive).alast()
+        data = await state.get_data()
+        await NewReview.none.set()
+        await Reviews.objects.acreate(user_id=message.from_user.id,
+                                      chat_id=message.chat.id,
+                                      user_name=user.user_name,
+                                      id_dispute=current_video.id_video,
+                                      city=data['city_for_review'],
+                                      mark=data['stars'],
+                                      coment=message.text,
+                                      state_t=Reviews.StateReview.new
+                                      )
+
+        await message.answer(text="Готово! Спасибо за отзыв ❤️", reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(text='Спорим 🤝 ещё', callback_data='new_dispute')))
+

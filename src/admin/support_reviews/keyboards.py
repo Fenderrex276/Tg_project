@@ -31,3 +31,8 @@ feedback_keyboard = InlineKeyboardMarkup()
 feedback_keyboard.add(InlineKeyboardButton(text="Новые отзывы", callback_data="new_feedback"))
 feedback_keyboard.add(InlineKeyboardButton(text="Неопубликованные", callback_data="not_public"))
 feedback_keyboard.add(InlineKeyboardButton(text="🔙 Назад", callback_data="back_sup"))
+
+
+publish_or_not_keyboard = InlineKeyboardMarkup()
+publish_or_not_keyboard.add(InlineKeyboardButton(text="Не принимать", callback_data="bad_review"))
+publish_or_not_keyboard.add(InlineKeyboardButton(text="Опубликовать", callback_data="good_review"))

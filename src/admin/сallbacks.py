@@ -55,3 +55,18 @@ def current_dispute(dispute, additional_dispute):
         cur_msg = "Научусь рисовать"
 
     return cur_msg
+
+
+def get_stars(count_stars):
+    stars = ""
+    if count_stars == "one":
+        stars = "⭐️"
+    elif count_stars == "two":
+        stars = "⭐️⭐️"
+    elif count_stars == "three":
+        stars = "⭐️⭐️⭐️"
+    elif count_stars == "four":
+        stars = "⭐️⭐️⭐️⭐️"
+    elif count_stars == "five":
+        stars = "⭐️⭐️⭐️⭐️⭐️"
+    return stars

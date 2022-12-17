@@ -16,3 +16,9 @@ class StatesDispute(StatesGroup):
     reports = State()
     bonuses = State()
     new_report = State()
+
+
+class NewReview(StatesGroup):
+    none = State()
+    input_review = State()
+    input_city = State()
