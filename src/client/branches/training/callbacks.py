@@ -1,16 +1,15 @@
 import uuid
 
 from aiogram import Dispatcher
-from aiogram import types
 from aiogram.dispatcher import FSMContext
-from aiogram.types import ParseMode, InputFile
-from client.branches.training.messages import *
+from aiogram.types import InputFile
+
 from client.branches.training.keyboards import *
+from client.branches.training.messages import *
 from client.branches.training.states import Video
 from client.initialize import dp
-from client.tasks import del_scheduler, scheduler_add_job
+from client.tasks import del_scheduler, reminder_scheduler_add_job
 from db.models import RoundVideo
-import asyncio
 
 
 async def preparation_for_dispute(call: types.CallbackQuery, state: FSMContext):
@@ -72,10 +71,11 @@ async def send_video_note(call: types.CallbackQuery, state: FSMContext):
         await Video.recv_video_note.set()
         await call.bot.send_video_note(call.message.chat.id, video, reply_markup=None)
     await call.answer()
-    del_scheduler(f'{call.from_user.id}_reminder')
+    del_scheduler(f'{call.from_user.id}_reminder', 'client')
 
     redis_data = await state.get_data()
-    await scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 6)
+    await reminder_scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 6, notification_hour=10,
+                                     notification_min=0)
 
 
 async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
@@ -95,10 +95,10 @@ async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
     print("CHAT_ID", call.message.chat.id)
     await Video.next_step.set()
     await call.message.answer(text=tmp_msg, reply_markup=types.ReplyKeyboardRemove())
-    await call.bot.send_video_note(video_note=v['video_id'], chat_id=-1001845655881)
+    await call.bot.send_video_note(video_note=v['video_id'], chat_id=-1001845655881)  # TODO Вынести бы это в env файл
     await call.answer()
 
-    del_scheduler(f'{call.from_user.id}_reminder')
+    del_scheduler(f'{call.from_user.id}_reminder', 'client')
 
     # scheduler_add_job(dp, 'reminder', call.from_user.id, 7)
 
