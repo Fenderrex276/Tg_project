@@ -12,6 +12,7 @@ from client.tasks import init_send_code
 from db.models import RoundVideo, User
 from aiogram.types import InputFile
 
+
 async def test_videos(call: types.CallbackQuery, state: FSMContext):
     new_video = RoundVideo.objects.filter(status="", type_video="test").first()
 
@@ -47,8 +48,8 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer(text="Готово!")
 
-    user = RoundVideo.objects.get(tg_id=data['video_user_id'])
-    current_user = User.objects.filter(user_id=user.user_tg_id).first()
+    round_video_info = RoundVideo.objects.get(tg_id=data['video_user_id'])
+    current_user = User.objects.filter(user_id=round_video_info.user_tg_id).first()
     start = ""
 
     if current_user.start_disput == "tomorrow":
@@ -58,12 +59,19 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     success_keyboard = types.InlineKeyboardMarkup()
     success_keyboard.add(types.InlineKeyboardButton(text='👍 Хорошо', callback_data='good'))
 
-    await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=user.chat_tg_id)
-    await mainbot.send_message(text=f"Твой новый код придёт сюда {start}.", chat_id=user.chat_tg_id,
+    await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=round_video_info.chat_tg_id)
+    await mainbot.send_message(text=f"Твой новый код придёт сюда {start}.", chat_id=round_video_info.chat_tg_id,
                                reply_markup=success_keyboard)
     # TODO Вставить сюда функцию init отправки кода
     data = await state.get_data()
-    await init_send_code(user.user_tg_id, user.chat_tg_id, start, data['id_video'])
+    try:
+        user = User.objects.get(user_id=round_video_info.user_tg_id)
+    except User.DoesNotExist:
+        print("Пользователь не найден")
+        return
+
+    await init_send_code(round_video_info.user_tg_id, round_video_info.chat_tg_id, start, data['id_video'],
+                         user.timezone)
     """date_now = call.message.date.utcnow() + datetime.timedelta(seconds=30)
 
     scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
@@ -208,7 +216,7 @@ async def accept_current_dispute(call: types.CallbackQuery, state: FSMContext):
 async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     RoundVideo.objects.filter(tg_id=data['video_user_id']).update(status="good",
-                                                                         type_video=RoundVideo.TypeVideo.archive)
+                                                                  type_video=RoundVideo.TypeVideo.archive)
 
     await call.message.answer(text="Готово!")
 
@@ -218,7 +226,6 @@ async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
     await mainbot.send_message(text="Твой новый код придёт сюда завтра.", chat_id=user.chat_tg_id,
                                reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(
                                    text='Отлично!', callback_data="nice_god_job")))
-
 
     """reply_markup = types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='Отлично!', callback_data='nice_go_next')
