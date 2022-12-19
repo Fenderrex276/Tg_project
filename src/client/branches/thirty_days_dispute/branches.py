@@ -58,7 +58,7 @@ class CurrentDispute:
     async def the_hero_path(self, message: types.Message, state: FSMContext):
         current_state = await state.get_state()
         print(current_state)
-        await StatesDispute.none.set()
+#        await StatesDispute.none.set()
         if current_state in StatesDispute.states_names:
             await StatesDispute.none.set()
             print(current_state)
@@ -77,8 +77,10 @@ class CurrentDispute:
         """
         data = await state.get_data()
         print(data)
+        user = await User.objects.filter(user_id=message.from_user.id).alast()
+        count_days = user.count_days
 
-        recieve_message = video_text(data)
+        recieve_message = video_text(data, count_days)
         print('HEROPATH, ', message.message_id)
         await message.answer_photo(photo=InputFile(recieve_message[0]),
                                    caption=recieve_message[1],
@@ -161,7 +163,7 @@ class CurrentDispute:
 
     async def input_support(self, message: types.Message, state: FSMContext):
         try:
-            nd = await User.objects.filter(user_id=message.from_user.id).afirst()
+            nd = await User.objects.filter(user_id=message.from_user.id).alast()
             n = nd.number_dispute
         except:
             n = 0

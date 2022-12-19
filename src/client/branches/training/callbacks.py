@@ -9,12 +9,13 @@ from client.branches.training.messages import *
 from client.branches.training.states import Video
 from client.initialize import dp
 from client.tasks import del_scheduler, reminder_scheduler_add_job
-from db.models import RoundVideo
+from db.models import RoundVideo, User
 
 
 async def preparation_for_dispute(call: types.CallbackQuery, state: FSMContext):
     await Video.none.set()
-    redis_data = await state.update_data(id_dispute=uuid.uuid4().time_mid)
+    await state.update_data(id_dispute=uuid.uuid4().time_mid)
+
     photo = InputFile("client/media/training/algorithm.jpg")
     await call.message.answer_photo(photo=photo, caption=algorithm_msg)
     await call.message.answer(text=algorithm_msg2, reply_markup=test_confirm_keyboard)
@@ -51,7 +52,7 @@ async def send_video_note(call: types.CallbackQuery, state: FSMContext):
         video = InputFile("client/media/videos/bank.mp4")
     elif data['action'] == 'food':
         tmp_msg = send_video_food_msg
-        video = InputFile("client//videos/food.mp4")
+        video = InputFile("client/media/videos/food.mp4")
     elif data['action'] == 'programming':
         tmp_msg = send_video_programming_msg
         video = InputFile("client/media/videos/programming.mp4")
@@ -127,11 +128,16 @@ async def end_test_dispute(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer_photo(photo=photo, caption=msg, reply_markup=go_to_dispute_keyboard)
     await call.answer()
 
+async def new_support_question(call: types.CallbackQuery, state: FSMContext):
+    await Video.new_question.set()
+
+    await call.message.answer(text='💬 Введи сообщение:')
+    await call.answer()
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(preparation_for_dispute, text='step_to_test_video_note', state="*")
     dp.register_callback_query_handler(send_video_note, text='next_one', state=Video.none)
-    dp.register_callback_query_handler(send_video_note, text='lets_start_training', state=Video.states)
+    dp.register_callback_query_handler(send_video_note, text='lets_start_training', state=Video.all_states)
     dp.register_callback_query_handler(send_video_to_admin, text='send_video', state=Video.recv_video)
     dp.register_callback_query_handler(send_video_to_admin, text='send_video', state=Video.recv_video_note)
     dp.register_callback_query_handler(send_new_video, text='send_new_video', state=Video.recv_video)
@@ -142,3 +148,5 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(end_test_dispute, text='end_test', state=Video.next_step)
     dp.register_callback_query_handler(send_new_video, text='next_one1', state=Video.recv_video)
     dp.register_callback_query_handler(send_new_video, text='next_one1', state=Video.recv_video_note)
+    dp.register_callback_query_handler(new_support_question, text='podderzka', state=Video.recv_video)
+    dp.register_callback_query_handler(new_support_question, text='podderzka', state=Video.recv_video_note)

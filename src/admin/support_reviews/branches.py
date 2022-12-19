@@ -25,7 +25,10 @@ class Reviews:
     async def input_review(self, message: types.Message):
         await states.ReviewStates.none.set()
         sup = await Supt.objects.filter(solved="new").afirst()
-        await mainbot.send_message(text="Ваша заявка расмотрена:\n\n" + message.text, chat_id=sup.chat_id)
+        await mainbot.send_message(text="Ваша заявка расмотрена:\n\n" + message.text, chat_id=sup.chat_id,
+                                   reply_markup=types.InlineKeyboardMarkup().add(
+                                       types.InlineKeyboardButton(text='Ответить', callback_data='send_new_support')
+                                   ))
         sup.solved = "done"
         sup.save()
         await message.answer("Готово!")
@@ -33,7 +36,10 @@ class Reviews:
     async def input_pass_review(self, message: types.Message):
         await states.ReviewStates.none.set()
         sup = await Supt.objects.filter(solved="in_process").afirst()
-        await mainbot.send_message(text="Ваша заявка расмотрена:\n\n" + message.text, chat_id=sup.chat_id)
+        await mainbot.send_message(text="Ваша заявка расмотрена:\n\n" + message.text, chat_id=sup.chat_id,
+                                   reply_markup=types.InlineKeyboardMarkup().add(
+                                       types.InlineKeyboardButton(text='Ответить', callback_data='send_new_support')
+                                   ))
         sup.solved = "done"
         sup.save()
         await message.answer("Готово!")
@@ -57,6 +63,9 @@ class Reviews:
                 await message.answer("Диспут не найден. Скопируй номер диспута и введи (#D****):")
         except:
             await message.answer("Диспут не найден. Скопируй номер диспута и введи (#D****):")
+
+    
+
 
 
 async def write_quest(num_review, message: types.Message):

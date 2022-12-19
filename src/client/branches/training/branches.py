@@ -3,6 +3,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from client.branches.training.states import Video
 from client.branches.training.keyboards import *
+from db.models import User, Supt
 
 
 class Training:
@@ -27,6 +28,9 @@ class Training:
                                          content_types=['text', 'audio', 'photo', 'sticker', 'voice', 'video'],
                                          state=Video.recv_video_note)
 
+        self.dp.register_message_handler(self.input_support, state=Video.new_question)
+
+
     async def recieve_video_note(self, message: types.Message, state: FSMContext):
         file_id = message.video_note.file_id
         await state.update_data(video_id=file_id)
@@ -46,3 +50,23 @@ class Training:
         error_message = "Ошибка. Мы принимаем репорт только в видео-формате."
         await message.answer(text=error_message, reply_markup=send_help_keyboard)
 
+    async def input_support(self, message: types.Message, state: FSMContext):
+
+        try:
+            nd = await User.objects.filter(user_id=message.from_user.id).alast()
+            n = nd.number_dispute
+        except:
+            n = 0
+        await Supt.objects.acreate(user_id=message.from_user.id,
+                                   number_dispute=n,
+                                   chat_id=message.chat.id,
+                                   problem=message.text,
+                                   solved=Supt.TypeSolve.new)
+
+        data = await state.get_data()
+        if data['action'] == 'money':
+            await Video.recv_video.set()
+        else:
+            await Video.recv_video_note.set()
+
+        await message.answer(text='Готово! 🤗 Спасибо')

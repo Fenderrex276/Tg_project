@@ -28,7 +28,7 @@ class ConfirmDispute:
 
     async def input_promo_code_handler(self, message: types.Message, state: FSMContext):
         promocodes = ['HUI', 'ZALUPA', 'CHLEN', 'PIDARAS', 'SOBCHAK']
-
+        blogers_promo = []
         print(message.text)
         # TODO проходимся по базе и ищем промокоды среди зарегистрированных пользоватей
         #  ищем по полю promocode_user если находим то добавляем этот промокод в поле

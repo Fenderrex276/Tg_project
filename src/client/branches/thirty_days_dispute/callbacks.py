@@ -14,8 +14,10 @@ from django.db.models import Q
 async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
     await StatesDispute.none.set()
     await state.update_data(is_deleted=-1)
+
     data = await state.get_data()
-    recieve_message = video_text(data)
+
+    recieve_message = video_text(data, 30)
 
     await call.message.answer_photo(photo=InputFile(recieve_message[0]), caption=recieve_message[1],
                                     reply_markup=menu_keyboard,
@@ -23,7 +25,7 @@ async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-def video_text(data: dict):
+def video_text(data: dict, count_days: int):
     purpose = ""
     video_with_code = ""
     time_before = "22:30"
@@ -95,7 +97,7 @@ def video_text(data: dict):
         purpose = "client/media/disputs_images/painting.jpg"
         video_with_code = "🤳 Видео с кодом и процессом"
 
-    start_current_disput_msg = ("*До победы осталось 30 дней*\n\n"
+    start_current_disput_msg = (f"*До победы осталось {count_days} дней*\n\n"
                                 "Условия на 30 дней\n"
                                 f"{video_with_code}\n"
                                 f"⏳ Отправлять в бот до {time_before}\n\n"
@@ -143,6 +145,8 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{1}.png")
         elif (user.count_mistakes == 2 or (user.count_mistakes == 1 and user.promocode_from_friend == '0')) and current_video.n_day != 0:
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
+        elif user.count_days == 0 and user.count_mistakes != 0:
+            main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
 
     elif current_video.status == "bad" and user.count_days != 30:
         if user.count_mistakes == 2 and user.promocode_from_friend != '0':
@@ -559,7 +563,9 @@ async def return_to_account(call: types.CallbackQuery, state: FSMContext):
 
 
 async def withdraw_deposit(call: types.CallbackQuery, state: FSMContext):
-    tmp_msg = ("🚩*До победы осталось 30 дней\.*\n\n"
+    user = await User.objects.filter(user_id=call.from_user.id).alast()
+
+    tmp_msg = (f"🚩*До победы осталось {user.count_days} дней\.*\n\n"
 
                "Пройди свой Путь Героя и вывод твоего депозита на банковскую "
                "карту или в BTC станет доступен в этом окне")
@@ -698,6 +704,7 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(new_time_zone, text='+11', state=StatesDispute.new_timezone)
     dp.register_callback_query_handler(support_button, text='support', state=StatesDispute.account)
     dp.register_callback_query_handler(new_support_question, text='send_new_support', state=StatesDispute.account)
+    dp.register_callback_query_handler(new_support_question, text='send_new_support', state=StatesDispute.states)
     dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video)
     dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video_note)
     # dp.register_callback_query_handler(my_promocode, text='user_promocode', state=StatesDispute.promo_code)

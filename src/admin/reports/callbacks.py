@@ -66,7 +66,7 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     # TODO Вставить сюда функцию init отправки кода
     data = await state.get_data()
     try:
-        user = await User.objects.aget(user_id=round_video_info.user_tg_id)
+        user = await User.objects.filter(user_id=round_video_info.user_tg_id).alast()
     except User.DoesNotExist:
         print("Пользователь не найден")
         return
