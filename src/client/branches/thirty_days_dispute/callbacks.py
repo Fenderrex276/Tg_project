@@ -421,6 +421,9 @@ async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
             start_time_dispute = "7:00–7:30 утра."
         elif data['additional_action'] == 'eight_am':
             start_time_dispute = "8:00–8:30 утра."
+    promocode = '0'
+    if data['promocode'] != '0':
+        promocode = '1'
 
     tmp_msg = ("😇 Правила диспута\n\n"
                f"Мы принимаем твой репорт в этом диспуте в период с {start_time_dispute}\n\n"
@@ -430,7 +433,7 @@ async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
                "вы сохраните свой депозит"
                "👎 Если правила спора нарушены, вы проиграете сначала "
                "20% депозита, а если это повторится — остальные 80%.\n\n"
-               f"Право на ошибку: {data['promocode']}")
+               f"Право на ошибку: {promocode}")
 
     await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='👍 Спасибо', callback_data='Thanks1')))
