@@ -149,12 +149,13 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
 
     elif current_video.status == "bad" and user.count_days != 30:
-        if user.count_mistakes == 2 and user.promocode_from_friend != '0':
-            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{3}.png")
-        elif user.count_mistakes == 2 and current_video.n_day == 1 and user.promocode_from_friend != '0':
+        if user.count_mistakes == 2 and current_video.n_day == 1 and user.promocode_from_friend != '0':
             main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{2}.png")
         elif user.count_mistakes == 1 and current_video.n_day == 1 and user.promocode_from_friend == '0':
             main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{1}.png")
+        elif user.count_mistakes == 2 and user.promocode_from_friend != '0':
+            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{3}.png")
+
         elif user.count_mistakes == 1:
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{2}.png")
         elif user.count_mistakes == 0:

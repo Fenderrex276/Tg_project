@@ -25,4 +25,5 @@ class AdminDisputeBot:
 
     def start(self):
         scheduler.start()
+        scheduler.print_jobs()
         executor.start_polling(self.dp, skip_updates=True)

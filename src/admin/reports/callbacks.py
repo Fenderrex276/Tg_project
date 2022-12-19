@@ -72,7 +72,7 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
         return
 
     await init_send_code(round_video_info.user_tg_id, round_video_info.chat_tg_id, start, data['id_video'],
-                         user.timezone)
+                         user.timezone, 4, 30)
     """date_now = call.message.date.utcnow() + datetime.timedelta(seconds=30)
     scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
     scheduler.print_jobs()"""
