@@ -121,6 +121,8 @@ def get_time_to_send_dispute(data):
             time_t = 8
     return (f"⌛️ Время для отправки репорта истекло. По правилам Диспута, "
                          f"мы ждём твой репорт каждый день до {time_t}:30 утра.")
+
+
 async def reports(call: types.CallbackQuery, state: FSMContext):
     main_photo = InputFile("client/media/Disput Bot-2/Default.png")
 
@@ -172,6 +174,10 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(is_deleted=-1)
 
     if user.count_mistakes == 0:
+        await state.update_data(deposit=0)
+        user.count_days = 0
+        user.save()
+
         await call.message.answer_photo(InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png"),
                                         reply_markup=new_menu_keyboard)
         await call.message.answer(text="Выберите следующее действие:", reply_markup=end_game_keyboard)
