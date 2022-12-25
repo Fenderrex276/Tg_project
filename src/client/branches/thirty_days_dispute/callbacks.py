@@ -162,7 +162,6 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{2}.png")
         elif user.count_mistakes == 0:
             main_photo = InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png")
-           # del_scheduler(f'{call.from_user.id}_send_code', 'admin')
             # TODO Вот здесь нахуй удаляем уведомления по кодам, как только появляется эта картинка с проигрышем
 
     cur_state = await state.get_state()
@@ -177,6 +176,8 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
         await state.update_data(deposit=0)
         user.count_days = 0
         user.save()
+
+        del_scheduler(f'{call.from_user.id}_send_code', 'admin')
 
         await call.message.answer_photo(InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png"),
                                         reply_markup=new_menu_keyboard)
