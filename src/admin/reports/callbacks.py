@@ -15,7 +15,10 @@ from aiogram.types import InputFile
 
 
 async def test_videos(call: types.CallbackQuery, state: FSMContext):
-    new_video = await RoundVideo.objects.filter(status="", type_video="test").afirst()
+    new_video = await RoundVideo.objects.exclude(tg_id__isnull=True).filter(
+        status="",
+        type_video=RoundVideo.TypeVideo.test,
+    ).afirst()
 
     if new_video is None or new_video.tg_id == "":
         await call.message.answer("Нет новых видео")
