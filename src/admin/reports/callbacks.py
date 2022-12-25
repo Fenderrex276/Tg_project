@@ -198,7 +198,10 @@ async def archive_button(call: types.CallbackQuery, state: FSMContext):
 
 
 async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
-    new_dispute = await RoundVideo.objects.exclude(tg_id__isnull=True).filter(status="", type_video=RoundVideo.TypeVideo.dispute).afirst()
+    new_dispute = await RoundVideo.objects.exclude(tg_id__isnull=True).filter(
+        status="",
+        type_video=RoundVideo.TypeVideo.dispute,
+    ).afirst()
 
     if new_dispute is None or new_dispute.tg_id == "":
         await call.message.answer("Нет новых видео")
@@ -228,6 +231,16 @@ async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
 
 async def accept_current_dispute(call: types.CallbackQuery, state: FSMContext):
     tmp_msg = "На видео один и тот же человек по голосу?"
+
+    data = await state.get_data()
+    current_video = await RoundVideo.objects.filter(tg_id=data['video_user_id']).afirst()
+    start_video = await RoundVideo.objects.filter(
+        user_tg_id=current_video.user_tg_id,
+        n_day=0,
+        status="good",
+    ).afirst()
+
+    await call.message.answer_video_note(video_note=start_video.tg_id)
     await call.message.answer(text=tmp_msg, reply_markup=access_volya_keyboard)
 
 
