@@ -7,11 +7,9 @@ from aiogram.types import ParseMode
 from admin.keyboards import *
 from admin.reports.states import ReportStates
 from admin.сallbacks import current_dispute
-from client.branches.thirty_days_dispute.callbacks import get_time_to_send_dispute
 from client.initialize import bot as mainbot
 from client.tasks import init_send_code
 from db.models import RoundVideo, User
-from aiogram.types import InputFile
 
 
 async def test_videos(call: types.CallbackQuery, state: FSMContext):
@@ -66,7 +64,7 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=round_video_info.chat_tg_id)
     await mainbot.send_message(text=f"Твой новый код придёт сюда {start}.", chat_id=round_video_info.chat_tg_id,
                                reply_markup=success_keyboard)
-    # TODO Вставить сюда функцию init отправки кода
+    # ??? TODO Вставить сюда функцию init отправки кода
     data = await state.get_data()
     try:
         user = await User.objects.filter(user_id=round_video_info.user_tg_id).alast()
@@ -265,7 +263,7 @@ async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
         types.InlineKeyboardButton(text='Отлично!', callback_data='nice_go_next')
     )"""
 
-    # TODO Вставить сюда функцию init отправки кода
+    # ??? TODO Вставить сюда функцию init отправки кода
     data = await state.get_data()
     await thirty_day_dispute(call, state)
 
