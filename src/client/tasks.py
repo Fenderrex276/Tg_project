@@ -5,6 +5,7 @@ from aiogram import Dispatcher, types
 from pytz import utc
 
 from admin.initialize import scheduler as admin_scheduler
+from admin.reports.callbacks import new_code
 from client.initialize import scheduler as client_scheduler, dp
 from db.models import PeriodicTask
 from settings.settings import TEST
@@ -69,13 +70,13 @@ def add_job(scheduler, call_fun, str_name: str, user_id, day_of_week: str, hour:
 #                                 kwargs=kwargs)
 
 
-# TODO Добавить возможность периодичного вызова
+# SIMA TODO Добавить возможность периодичного вызова
 async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user_id: int, flag: int = -1,
                                      notification_hour=None,
                                      notification_min=None):
     hour, minute, second = time_calculated(t_zone, notification_hour, notification_min)
 
-    if fun == "reminder":  # TODO RUS Нужно добавить кнопки после уведомлений и порешать вопрос с удалением уведомления
+    if fun == "reminder":  # RUS TODO  Нужно добавить кнопки после уведомлений и порешать вопрос с удалением уведомления
         if flag == 1:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы остановились на внесении депозита. Может продолжим?",
@@ -117,24 +118,6 @@ async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user
                     hour=hour,
                     minute=minute, second=second, kwargs=kwargs)
 
-        # elif flag == 7:
-        #     scheduler.add_job(send_reminder, 'cron', misnute="*", id=f'{user_id}_reminder',
-        #                       kwargs={"call": user_id, "msg": "Вы так и не выбрали сумму депозита. Хотите продолжить?"})
-        # elif flag == 8:
-        #     scheduler.add_job(send_reminder, 'cron', misnute="*", id=f'{user_id}_reminder',
-        #                       kwargs={"call": user_id, "msg": "Вы так и не выбрали сумму депозита. Хотите продолжить?"})
-
-    # elif fun == "code":
-    #     scheduler.add_job(send_code, replace_existing=True, trigger='cron', id=f'{user_id}_code', minute="*",
-    #                       kwargs={"dp": dp, "user_id": user_id,
-    #                               "msg": "Начните свою первую тренировку уже сейчас. Хотите продолжить?"})
-    # elif fun == "content":
-    #     scheduler.add_job(send_content, replace_existing=True, trigger='cron', id=f'{user_id}_content', minute="*",
-    #                       kwargs={"dp": dp, "user_id": user_id,
-    #                               "msg": "Начните свою первую тренировку уже сейчас. Хотите продолжить?"})
-    # elif fun == "":
-    #     scheduler.add_job(send_content, 'cron', minute="*")
-
 
 async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str, notification_hour: int = None,
                          notification_min: int = None):
@@ -165,20 +148,13 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
     admin_scheduler.print_jobs()
 
 
-# TODO Адаптировать под новые периодические функции
-def load_periodic_tasks():
+# SIMA TODO Адаптировать под новые периодические функции
+def load_periodic_task_for_admin():
     periodic_tasks_list = PeriodicTask.objects.all()
 
     for task in periodic_tasks_list:
         kwargs = task.kwargs
-        if task.fun == "reminder":
-
-            kwargs['dp'] = dp
-            client_scheduler.add_job(send_reminder, replace_existing=True, trigger='cron', id=f'{task.job_id}',
-                                     day_of_week=task.day_of_week,
-                                     hour=f'{task.hour}',
-                                     minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
-        elif task.fun == "send_code":
+        if task.fun == "send_code":
             print('Task send_code')
             admin_scheduler.add_job(send_code, replace_existing=True, trigger='cron',
                                     day_of_week=task.day_of_week,
@@ -196,46 +172,75 @@ def load_periodic_tasks():
                                     second=task.second,
                                     id=task.job_id,
                                     kwargs=kwargs)
-        print(f'CLIENT_SCHEDULER\n{client_scheduler.print_jobs()}')
         print(f'ADMIN_SCHEDULER\n{admin_scheduler.print_jobs()}')
-        # elif task.fun == "code":
-        #     scheduler.add_job(send_code, 'cron', id=f'{task.job_id}', hour=f'{task.hour}',
-        #                       minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
-        # elif task.fun == "content":
-        #     scheduler.add_job(send_content(), 'cron', id=f'{task.job_id}', hour=f'{task.hour}',
-        #                       minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
+
+
+def load_periodic_task_for_client():
+    periodic_tasks_list = PeriodicTask.objects.all()
+
+    for task in periodic_tasks_list:
+        kwargs = task.kwargs
+        if task.fun == "reminder":
+            kwargs['dp'] = dp
+            client_scheduler.add_job(send_reminder, replace_existing=True, trigger='cron', id=f'{task.job_id}',
+                                     day_of_week=task.day_of_week,
+                                     hour=f'{task.hour}',
+                                     minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
+
+        print(f'CLIENT_SCHEDULER\n{client_scheduler.print_jobs()}')
 
 
 async def send_reminder(dp: Dispatcher, user_id: int, msg: str, callback_data: str):
     continue_keyboard = types.InlineKeyboardMarkup()
     continue_keyboard.add(types.InlineKeyboardButton(text="Продолжить", callback_data=callback_data))
     await dp.bot.send_message(user_id, msg, reply_markup=continue_keyboard)
-    # TODO Добавляем кнопку "Продолжить"
-    # TODO Новые состояния
+    # RUS TODO Добавляем кнопку "Продолжить"
+    # RUS TODO Новые состояния
 
 
 async def send_first_code(user_id: int, chat_id: int, id_video: int):
-    from admin.reports.callbacks import new_code
     print("Was FIRST_SEND")
 
-    await new_code(chat_id, user_id, id_video)
+    await new_code(chat_id, user_id, id_video)  # SIMA/RUS TODO Отправка без уведомления
     scheduler = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
     del_scheduler(f'{user_id}_send_first_code', 'admin')
-    add_job(admin_scheduler, call_fun=send_code, str_name='send_code', user_id=user_id,
-            day_of_week=scheduler.day_of_week,
-            hour=scheduler.hour,
-            minute=scheduler.minute,
-            second=scheduler.second, kwargs=scheduler.kwargs)
-
+    if TEST:
+        add_job(admin_scheduler, call_fun=send_code, str_name='send_code', user_id=user_id,
+                day_of_week='*',
+                hour='4',
+                minute='30',
+                second='0', kwargs=scheduler.kwargs)
+    else:
+        add_job(admin_scheduler, call_fun=send_code, str_name='send_code', user_id=user_id,
+                day_of_week='*',
+                hour=scheduler.hour,
+                minute=scheduler.minute,
+                second=scheduler.second, kwargs=scheduler.kwargs)
+    # SIMA TODO Добавляем функцию напоминания в 22/00 о кружочках
     print(f'ADMIN_SCHEDULER\n{admin_scheduler.print_jobs()}')
 
 
-async def send_content():  # Скипнуть
-    # Когда нужно присылать уведомления и откуда их брать
-    print("Если ты это читаешь в консольке, то периодический таск работает")
+# SIMA TODO Функция проверки отправил человек видос до дедлайна или нет. Вроде RUS так уже делает где-то
+
+def add_deadline(user_id, day_of_week, hour, minute, second, kwargs):
+    # SIMA TODO Сюда проверку по времени. Когда высылать напоминание
+    add_job(admin_scheduler, call_fun=deadline_reminder, str_name='send_code', user_id=user_id,
+            day_of_week=day_of_week,
+            hour=hour,
+            minute=minute,
+            second=second, kwargs=kwargs)
 
 
-async def send_code(user_id: int, chat_id: int, id_video: int):
+def deadline_reminder(user_id):
+    pass
+
+
+# async def send_content():  # Скипнуть
+#     # Когда нужно присылать уведомления и откуда их брать
+#     print("Если ты это читаешь в консольке, то периодический таск работает")
+
+
+async def send_code(user_id: int, chat_id: int, id_video: int):  # SIMA TODO Отправка без уведомления
     from admin.reports.callbacks import new_code
     await new_code(chat_id, user_id, id_video)
 
