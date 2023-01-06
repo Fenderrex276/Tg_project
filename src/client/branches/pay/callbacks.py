@@ -58,7 +58,7 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
     redis_data = await state.get_data()
     await reminder_scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 4, notification_hour=10,
                                      notification_min=0)
-    # TODO Куда улетает запрос после жмяка на Подтвердить ??? всмысле?
+
 
 
 async def successful_payment(call: types.CallbackQuery, state: FSMContext):

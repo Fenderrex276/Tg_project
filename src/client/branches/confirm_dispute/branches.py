@@ -53,7 +53,7 @@ class ConfirmDispute:
         msg = f"Установлен часовой пояс {tmp}"
 
         if User.objects.filter(user_id=message.from_user.id).exists():
-            print("TYTYTYTYTYTYYTYTYTYTYT")  # TODO Сделать логику смены TZ из настроек профиля игрока
+            print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
         else:
             await reminder_scheduler_add_job(self.dp, tmp[:len(tmp) - 4], "reminder", message.from_user.id, 1, notification_hour=10,
                                              notification_min=0)

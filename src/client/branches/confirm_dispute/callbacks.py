@@ -156,7 +156,7 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
 
     if User.objects.filter(user_id=call.from_user.id).exists():
-        print("TYTYTYTYTYTYYTYTYTYTYT")  # TODO Сделать логику смены TZ из настроек профиля игрока
+        print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
     else:
         await reminder_scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1, notification_hour=10,
                                          notification_min=0)
