@@ -22,4 +22,4 @@ SECRET_KEY = 'ogew78f887fho273f1o3f(&*^&%Y(&*^G&fr46'
 
 TOKEN_CLIENT = os.getenv('TOKEN_CLIENT')
 TOKEN_ADMIN = os.getenv('TOKEN_ADMIN')
-TEST = os.getenv('TEST')
+TEST = True if  os.getenv('TEST') == 'True' else False
