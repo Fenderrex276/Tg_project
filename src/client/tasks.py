@@ -5,7 +5,6 @@ from aiogram import Dispatcher, types
 from pytz import utc
 
 from admin.initialize import scheduler as admin_scheduler
-from admin.reports.callbacks import new_code
 from client.initialize import scheduler as client_scheduler, dp
 from db.models import PeriodicTask
 from settings.settings import TEST
@@ -200,6 +199,7 @@ async def send_reminder(dp: Dispatcher, user_id: int, msg: str, callback_data: s
 
 
 async def send_first_code(user_id: int, chat_id: int, id_video: int):
+    from admin.reports.callbacks import new_code
     print("Was FIRST_SEND")
 
     await new_code(chat_id, user_id, id_video)  # SIMA/RUS TODO Отправка без уведомления
