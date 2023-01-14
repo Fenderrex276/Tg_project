@@ -64,7 +64,7 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=round_video_info.chat_tg_id)
     await mainbot.send_message(text=f"Твой новый код придёт сюда {start}.", chat_id=round_video_info.chat_tg_id,
                                reply_markup=success_keyboard)
-    # ??? TODO Вставить сюда функцию init отправки кода
+
     data = await state.get_data()
     try:
         user = await User.objects.filter(user_id=round_video_info.user_tg_id).alast()
@@ -94,29 +94,6 @@ async def new_code(chat_id: int, user_id, id_video):
     print("USER AFTER CODE : ", user.count_days)
     user.save()
     print("USER DAY IN VIDEO CODE : ", 30 - user.count_days)
-
-    # try:
-    #     user_videos = RoundVideo.objects.filter(user_tg_id=user_id,
-    #                                             chat_tg_id=chat_id,
-    #                                             type_video=RoundVideo.TypeVideo.dispute,
-    #                                             tg_id="").alast()
-    #
-    #     print("ADMIN COUNT VIDEOS WITHOUT ID FILE", len(user_videos))
-    #
-    #     if user_videos is not None:
-    #         user_videos.tg_id = "0"
-    #         user_videos.save()
-    #
-    #         user = await User.objects.filter(user_id=user_id).alast()
-    #         user.count_mistakes = user.count_mistakes - 1
-    #         user.save()
-    #         error_dispute_msg = get_time_to_send_dispute(
-    #             {"action": user.action, "additional_action": user.additional_action})
-    #         await mainbot.message.answer(error_dispute_msg, reply_markup=types.InlineKeyboardMarkup().add(
-    #             types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')))
-    #         # return
-    # except:
-    #     pass
 
     await RoundVideo.objects.acreate(user_tg_id=user_id,
                                      chat_tg_id=chat_id,
@@ -263,7 +240,6 @@ async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
         types.InlineKeyboardButton(text='Отлично!', callback_data='nice_go_next')
     )"""
 
-    # ??? TODO Вставить сюда функцию init отправки кода
     data = await state.get_data()
     await thirty_day_dispute(call, state)
 
