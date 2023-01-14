@@ -12,7 +12,7 @@ class RoundVideo(models.Model):
         dispute = "dispute"
         archive = "archive"
 
-    tg_id = models.CharField(max_length=90)
+    tg_id = models.CharField(max_length=90, null=True, blank=True)
     user_tg_id = models.BigIntegerField()
     chat_tg_id = models.BigIntegerField()
     code_in_video = models.CharField(max_length=4)
@@ -25,8 +25,8 @@ class RoundVideo(models.Model):
 class User(models.Model):
     user_id = models.BigIntegerField(verbose_name="ID пользователя в Телеграмм")
     user_name = models.CharField(max_length=20, verbose_name="Имя пользователя")
-    action = models.CharField(max_length=20, verbose_name="?")
-    additional_action = models.CharField(max_length=20, verbose_name="?")
+    action = models.CharField(max_length=20, verbose_name="Тип диспута")
+    additional_action = models.CharField(max_length=20, verbose_name="Дополнительное условие диспута")
     start_disput = models.CharField(max_length=10, verbose_name="Когда начинается диспут")
     deposit = models.IntegerField(verbose_name="Сумма депозита")
     promocode_user = models.CharField(max_length=10, verbose_name="Промокод пользователя")
@@ -75,11 +75,11 @@ class Supt(models.Model):
 
 
 class Reviews(models.Model):
-
     class StateReview(models.TextChoices):
         done = "done"
         bad_review = "bad_review"
         new = "new"
+
     user_id = models.BigIntegerField()
     chat_id = models.BigIntegerField()
     user_name = models.CharField(max_length=20, verbose_name="Имя игрока")
