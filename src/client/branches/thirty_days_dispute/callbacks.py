@@ -162,7 +162,6 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{2}.png")
         elif user.count_mistakes == 0:
             main_photo = InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png")
-            # TODO Вот здесь нахуй удаляем уведомления по кодам, как только появляется эта картинка с проигрышем
 
     cur_state = await state.get_state()
     if cur_state not in StatesDispute.states_names:
