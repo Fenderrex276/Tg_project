@@ -144,6 +144,7 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
             day_of_week=str(day_of_week),
             hour=hour,
             minute=minute, second=second, kwargs=kwargs)
+    # todo Создаётся задача на дедлайн
 
     admin_scheduler.print_jobs()
 
