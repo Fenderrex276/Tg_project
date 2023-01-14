@@ -6,7 +6,7 @@ from pytz import utc
 
 from admin.initialize import scheduler as admin_scheduler
 from client.initialize import scheduler as client_scheduler, dp
-from db.models import PeriodicTask
+from db.models import PeriodicTask, RoundVideo, User
 from settings.settings import TEST
 from utils import get_current_timezone
 
@@ -143,7 +143,6 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
             day_of_week=str(day_of_week),
             hour=hour,
             minute=minute, second=second, kwargs=kwargs)
-    # todo Создаётся задача на дедлайн
 
     admin_scheduler.print_jobs()
 
@@ -172,7 +171,8 @@ def load_periodic_task_for_admin():
                                     second=task.second,
                                     id=task.job_id,
                                     kwargs=kwargs)
-        print(f'ADMIN_SCHEDULER\n{admin_scheduler.print_jobs()}')
+        # print(f'ADMIN_SCHEDULER\n{admin_scheduler.print_jobs()}')
+        print(f'ADMIN_SCHEDULER\n{admin_scheduler.get_jobs()}')
 
 
 def load_periodic_task_for_client():
@@ -202,48 +202,125 @@ async def send_first_code(user_id: int, chat_id: int, id_video: int):
     from admin.reports.callbacks import new_code
     print("Was FIRST_SEND")
 
-    await new_code(chat_id, user_id, id_video)  # SIMA/RUS TODO Отправка без уведомления
-    scheduler = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
+    await new_code(chat_id, user_id, id_video)
+    # scheduler = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
     del_scheduler(f'{user_id}_send_first_code', 'admin')
-    if TEST:
-        add_job(admin_scheduler, call_fun=send_code, str_name='send_code', user_id=user_id,
-                day_of_week='*',
-                hour='4',
-                minute='30',
-                second='0', kwargs=scheduler.kwargs)
-    else:
-        add_job(admin_scheduler, call_fun=send_code, str_name='send_code', user_id=user_id,
-                day_of_week='*',
-                hour=scheduler.hour,
-                minute=scheduler.minute,
-                second=scheduler.second, kwargs=scheduler.kwargs)
-    # SIMA TODO Добавляем функцию напоминания в 22/00 о кружочках
+    add_job(admin_scheduler, call_fun=send_code, str_name='send_code', user_id=user_id,
+            day_of_week='*',
+            hour='4',
+            minute='30',
+            second='0', kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
+
+    add_soft_deadline(user_id)
     print(f'ADMIN_SCHEDULER\n{admin_scheduler.print_jobs()}')
 
 
-# SIMA TODO Функция проверки отправил человек видос до дедлайна или нет. Вроде RUS так уже делает где-то
+def add_soft_deadline(user_id):
+    try:
+        user = User.objects.get(user_id=user_id)
+    except User.DoesNotExist:
+        return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
+    if user.action == 'morning':
+        if user.additional_action == 'five_am':
+            hour, minute, second = time_calculated(user.timezone, 5, 0)
+        elif user.additional_action == 'six_am':
+            hour, minute, second = time_calculated(user.timezone, 6, 0)
+        elif user.additional_action == 'seven_am':
+            hour, minute, second = time_calculated(user.timezone, 7, 0)
+        elif user.additional_action == 'eight_am':
+            hour, minute, second = time_calculated(user.timezone, 8, 0)
+        else:
+            return f'Ошибка: неверное указано утреннее время для пользователя с id {user_id}'
+    else:
+        hour, minute, second = time_calculated(user.timezone, 22, 0)
+    add_job(admin_scheduler, call_fun=soft_deadline_reminder, str_name='soft_deadline_reminder', user_id=user_id,
+            day_of_week='*',
+            hour=hour,
+            minute=minute,
+            second=second, kwargs={'user_id': user_id})
 
-def add_deadline(user_id, day_of_week, hour, minute, second, kwargs):
-    # SIMA TODO Сюда проверку по времени. Когда высылать напоминание
-    add_job(admin_scheduler, call_fun=deadline_reminder, str_name='send_code', user_id=user_id,
-            day_of_week=day_of_week,
+
+def soft_deadline_reminder(user_id):
+    instance = RoundVideo.objects.filter(user_tg_id=user_id).last()
+    if instance is None:
+        return f'Ошибка: Отсутствует запись для пользователя с id {user_id}'
+    if instance.tg_id is None:
+        # НЕ отправил
+        # отправить пользователю сообщение с напоминанием
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
+        dp.bot.send_message(user_id, f'{user.user_name}, ты всё ещё можешь отправить репорт')
+
+        # создать задачу на проверку в жёсткий дедлайн и передать туда id записи RoundVideo
+        del_scheduler(job_id=f'{user_id}_soft_deadline_reminder', where='admin')
+        add_hard_deadline(user_id, kwargs={'user_id': user_id, 'id_round_video': instance.id})
+
+    else:
+        del_scheduler(job_id=f'{user_id}_soft_deadline_reminder', where='admin')
+
+
+def add_hard_deadline(user_id, kwargs):
+    try:
+        user = User.objects.get(user_id=user_id)
+    except User.DoesNotExist:
+        return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
+    if user.action == 'morning':
+        if user.additional_action == 'five_am':
+            hour, minute, second = time_calculated(user.timezone, 5, 30)
+            time = '5:30'
+        elif user.additional_action == 'six_am':
+            hour, minute, second = time_calculated(user.timezone, 6, 30)
+            time = '6:30'
+        elif user.additional_action == 'seven_am':
+            hour, minute, second = time_calculated(user.timezone, 7, 30)
+            time = '7:30'
+        elif user.additional_action == 'eight_am':
+            hour, minute, second = time_calculated(user.timezone, 8, 30)
+            time = '8:30'
+        else:
+            return f'Ошибка: неверное указано утреннее время для пользователя с id {user_id}'
+    else:
+        hour, minute, second = time_calculated(user.timezone, 22, 30)
+        time = '22:30'
+    kwargs['time'] = time
+    add_job(admin_scheduler, call_fun=hard_deadline_reminder, str_name='hard_deadline_reminder', user_id=user_id,
+            day_of_week='*',
             hour=hour,
             minute=minute,
             second=second, kwargs=kwargs)
 
 
-def deadline_reminder(user_id):
-    pass
+def hard_deadline_reminder(user_id, id_round_video, time):
+    # Говорим пользователю, что он даун
+    try:
+        video = RoundVideo.objects.get(id=id_round_video)
+    except RoundVideo.DoesNotExist:
+        return f'Ошибка: Из бд была удалена запись с id {id_round_video} для пользователя {user_id}'
+
+    if video.tg_id is None:
+        dp.bot.send_message(user_id,
+                            f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}')
+
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
+        if user.count_mistakes - 1 <= 0:
+            # TODO RUS Прикуртить картинку
+            del_scheduler(job_id=f'{user_id}_send_code', where='admin')
+        user.count_mistakes -= 1
+        user.save()
+        del_scheduler(job_id=f'{user_id}_hard_deadline_reminder', where='admin')
+    else:
+        del_scheduler(job_id=f'{user_id}_hard_deadline_reminder', where='admin')
 
 
-# async def send_content():  # Скипнуть
-#     # Когда нужно присылать уведомления и откуда их брать
-#     print("Если ты это читаешь в консольке, то периодический таск работает")
-
-
-async def send_code(user_id: int, chat_id: int, id_video: int):  # SIMA TODO Отправка без уведомления
+async def send_code(user_id: int, chat_id: int, id_video: int):
     from admin.reports.callbacks import new_code
     await new_code(chat_id, user_id, id_video)
+    add_soft_deadline(user_id)
 
 
 def del_scheduler(job_id: str, where: str):
@@ -252,5 +329,6 @@ def del_scheduler(job_id: str, where: str):
         client_scheduler.remove_job(job_id=job_id)
     elif where == 'admin':
         admin_scheduler.remove_job(job_id=job_id)
+
     else:
         print(f'ERROR: Неверный параметр where')
