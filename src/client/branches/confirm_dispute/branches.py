@@ -8,7 +8,7 @@ from client.branches.start.keyboards import menu_keyboard
 from client.branches.confirm_dispute.states import Promo
 from client.branches.confirm_dispute.keyboards import *
 from client.branches.confirm_dispute.mesages import *
-from client.tasks import reminder_scheduler_add_job
+from client.tasks import reminder_scheduler_add_job, change_periodic_tasks
 from utils import get_timezone, get_date_to_start_dispute
 from db.models import User
 
@@ -53,7 +53,8 @@ class ConfirmDispute:
         msg = f"Установлен часовой пояс {tmp}"
 
         if User.objects.filter(user_id=message.from_user.id).exists():
-            print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
+            #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
+            await change_periodic_tasks(message.from_user.id, tmp)
         else:
             await reminder_scheduler_add_job(self.dp, tmp[:len(tmp) - 4], "reminder", message.from_user.id, 1, notification_hour=10,
                                              notification_min=0)

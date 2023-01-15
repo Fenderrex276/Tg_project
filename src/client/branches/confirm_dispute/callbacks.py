@@ -10,7 +10,7 @@ from client.branches.confirm_dispute.states import Promo
 from client.branches.dispute_with_friend.states import Form
 from db.models import User
 from utils import get_date_to_start_dispute
-from client.tasks import reminder_scheduler_add_job
+from client.tasks import reminder_scheduler_add_job, change_periodic_tasks
 
 
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
@@ -156,7 +156,8 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
 
     if User.objects.filter(user_id=call.from_user.id).exists():
-        print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
+        #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
+        await change_periodic_tasks(call.from_user.id, call.data)
     else:
         await reminder_scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1, notification_hour=10,
                                          notification_min=0)

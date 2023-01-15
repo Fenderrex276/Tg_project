@@ -8,8 +8,9 @@ from .states import StatesDispute, NewReview
 from db.models import RoundVideo, User
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
 from ..dispute_with_friend.messages import personal_goals_msg
-from client.tasks import del_scheduler
+from client.tasks import del_scheduler, change_periodic_tasks
 from django.db.models import Q
+
 
 async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
     await StatesDispute.none.set()
@@ -120,7 +121,7 @@ def get_time_to_send_dispute(data):
         elif data['additional_action'] == 'eight_am':
             time_t = 8
     return (f"⌛️ Время для отправки репорта истекло. По правилам Диспута, "
-                         f"мы ждём твой репорт каждый день до {time_t}:30 утра.")
+            f"мы ждём твой репорт каждый день до {time_t}:30 утра.")
 
 
 async def reports(call: types.CallbackQuery, state: FSMContext):
@@ -143,9 +144,11 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
         if (user.count_mistakes == 3 or (
                 user.count_mistakes == 2 and user.promocode_from_friend == '0')) and current_video.n_day == 1:
             main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
-        elif user.count_mistakes == 3 or (user.count_mistakes == 2 and user.promocode_from_friend == '0') and current_video.n_day != 0:
+        elif user.count_mistakes == 3 or (
+                user.count_mistakes == 2 and user.promocode_from_friend == '0') and current_video.n_day != 0:
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{1}.png")
-        elif (user.count_mistakes == 2 or (user.count_mistakes == 1 and user.promocode_from_friend == '0')) and current_video.n_day != 0:
+        elif (user.count_mistakes == 2 or (
+                user.count_mistakes == 1 and user.promocode_from_friend == '0')) and current_video.n_day != 0:
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
         elif user.count_days == 0 and user.count_mistakes != 0:
             main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
@@ -211,9 +214,9 @@ async def check_report(call: types.CallbackQuery, state: FSMContext):
 
     try:
         user_videos = RoundVideo.objects.filter(user_tg_id=call.from_user.id,
-                                                      chat_tg_id=call.message.chat.id,
-                                                      type_video=RoundVideo.TypeVideo.dispute,
-                                                      tg_id="")
+                                                chat_tg_id=call.message.chat.id,
+                                                type_video=RoundVideo.TypeVideo.dispute,
+                                                tg_id="")
         data = await state.get_data()
         print("COUNT VIDEOS WITHOUT ID FILE", len(user_videos))
         if len(user_videos) > 1:
@@ -258,8 +261,8 @@ async def recieved_video(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await StatesDispute.none.set()
     current_video = await RoundVideo.objects.filter(chat_tg_id=call.message.chat.id,
-                                    type_video=RoundVideo.TypeVideo.dispute,
-                                    id_video=data['id_video_code']).alast()
+                                                    type_video=RoundVideo.TypeVideo.dispute,
+                                                    id_video=data['id_video_code']).alast()
     current_video.tg_id = data['video_id']
     current_video.save()
 
@@ -616,6 +619,7 @@ async def new_time_zone(call: types.CallbackQuery, state: FSMContext):
     user.timezone = call.data
     user.save()
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
+    await change_periodic_tasks(user.user_id, call.data)
     await StatesDispute.none.set()
     await call.message.answer(text=tmp_msg, reply_markup=menu_keyboard)
     await call.answer()
@@ -642,6 +646,7 @@ async def new_support_question(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer(text='💬 Введи сообщение:')
     await call.answer()
 
+
 async def new_review(call: types.CallbackQuery, state: FSMContext):
     await NewReview.input_city.set()
     await call.message.answer(text="🌇 Напиши свой город:")
@@ -652,7 +657,6 @@ async def new_coment(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(stars=call.data)
 
     await call.message.answer(text="💬 Напиши текст отзыва:")
-
 
 
 def register_callback(bot, dp: Dispatcher):

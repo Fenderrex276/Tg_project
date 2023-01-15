@@ -172,7 +172,12 @@ def load_periodic_task_for_admin():
                                     id=task.job_id,
                                     kwargs=kwargs)
         # print(f'ADMIN_SCHEDULER\n{admin_scheduler.print_jobs()}')
-        print(f'ADMIN_SCHEDULER\n{admin_scheduler.get_jobs()}')
+        print('-------------------------------------')
+        print(f'ADMIN_GET_JOBS\n{admin_scheduler.get_job(job_id="254wdwd173575_send_first_code")}')
+        print('-------------------------------------\n')
+        print('-------------------------------------')
+        print(f'ADMIN_PRINT_JOBS\n{admin_scheduler.print_jobs()}')
+        print('-------------------------------------')
 
 
 def load_periodic_task_for_client():
@@ -332,3 +337,82 @@ def del_scheduler(job_id: str, where: str):
 
     else:
         print(f'ERROR: Неверный параметр where')
+
+
+async def change_periodic_tasks(user_id, time_zone):
+    print(f"CHANGE_PERIODIC_TASK TZ: {time_zone}")
+    admin_scheduler.print_jobs()
+    print(f'JOBS {admin_scheduler.get_jobs()}')
+    print(f'INFO {admin_scheduler.get_job(job_id=f"{user_id}_send_first_code")}')
+    if admin_scheduler.get_job(job_id=f'{user_id}_send_first_code'):
+        print(f"_send_first_code")
+        hour, minute, second = time_calculated(time_zone, 4, 30)
+        admin_scheduler.reschedule_job(f'{user_id}_send_first_code', trigger='cron', hour=hour, minute=minute,
+                                       second=second)
+        task = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
+        task.hour = hour
+        task.minute = minute
+        task.second = second
+        task.save()
+
+    if admin_scheduler.get_job(job_id=f'{user_id}_send_code'):
+        hour, minute, second = time_calculated(time_zone, 4, 30)
+        admin_scheduler.reschedule_job(f'{user_id}_send_code', trigger='cron', hour=hour, minute=minute,
+                                       second=second)
+    if admin_scheduler.get_job(job_id=f'{user_id}_soft_deadline_reminder'):
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
+        if user.action == 'morning':
+            if user.additional_action == 'five_am':
+                hour, minute, second = time_calculated(user.timezone, 5, 0)
+            elif user.additional_action == 'six_am':
+                hour, minute, second = time_calculated(user.timezone, 6, 0)
+            elif user.additional_action == 'seven_am':
+                hour, minute, second = time_calculated(user.timezone, 7, 0)
+            elif user.additional_action == 'eight_am':
+                hour, minute, second = time_calculated(user.timezone, 8, 0)
+            else:
+                return f'Ошибка: неверное указано утреннее время для пользователя с id {user_id}'
+            admin_scheduler.reschedule_job(f'{user_id}_soft_deadline_reminder', trigger='cron', hour=hour,
+                                           minute=minute,
+                                           second=second)
+        else:
+            hour, minute, second = time_calculated(user.timezone, 22, 0)
+            admin_scheduler.reschedule_job(f'{user_id}_soft_deadline_reminder', trigger='cron', hour=hour,
+                                           minute=minute,
+                                           second=second)
+    if admin_scheduler.get_job(job_id=f'{user_id}_hard_deadline_reminder'):
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
+        if user.action == 'morning':
+            if user.additional_action == 'five_am':
+                hour, minute, second = time_calculated(user.timezone, 5, 30)
+
+            elif user.additional_action == 'six_am':
+                hour, minute, second = time_calculated(user.timezone, 6, 30)
+
+            elif user.additional_action == 'seven_am':
+                hour, minute, second = time_calculated(user.timezone, 7, 30)
+
+            elif user.additional_action == 'eight_am':
+                hour, minute, second = time_calculated(user.timezone, 8, 30)
+
+            else:
+                return f'Ошибка: неверное указано утреннее время для пользователя с id {user_id}'
+            admin_scheduler.reschedule_job(f'{user_id}_hard_deadline_reminder', trigger='cron', hour=hour,
+                                           minute=minute,
+                                           second=second)
+        else:
+            hour, minute, second = time_calculated(user.timezone, 22, 30)
+            admin_scheduler.reschedule_job(f'{user_id}_hard_deadline_reminder', trigger='cron', hour=hour,
+                                           minute=minute,
+                                           second=second)
+    if client_scheduler.get_job(job_id=f'{user_id}_reminder'):
+        hour, minute, second = time_calculated(time_zone, 10, 0)
+        client_scheduler.reschedule_job(f'{user_id}_reminder', trigger='cron', hour=hour, minute=minute,
+                                        second=second)
+    # TODO Менять уведомления с полезным материалом когда сделаю
