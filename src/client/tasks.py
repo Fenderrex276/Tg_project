@@ -118,6 +118,15 @@ async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user
                     minute=minute, second=second, kwargs=kwargs)
 
 
+def date_calculated(notification_hour, utc_hour, date):
+    if notification_hour < utc_hour:
+        date -= 1
+    if date == -1:
+        date = 6
+
+    return date
+
+
 async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str, notification_hour: int = None,
                          notification_min: int = None):
     hour, minute, second = time_calculated(t_zone, notification_hour, notification_min)
@@ -133,10 +142,11 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
     elif when == "послезавтра":
         print("Was послезавтра")
         my_date = date.today()
-        day_of_week = (my_date.weekday() + 2) % 7
+        day_of_week = date_calculated(notification_hour, hour, (my_date.weekday() + 2) % 7)
+
     else:
         print("Was Понедельник")
-        day_of_week = '0'
+        day_of_week = date_calculated(notification_hour, hour, 0)
 
     kwargs = {'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video}
     add_job(admin_scheduler, call_fun=send_first_code, str_name='send_first_code', user_id=user_id,
