@@ -119,7 +119,7 @@ async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user
 
 
 def date_calculated(notification_hour, utc_hour, date):
-    if notification_hour < utc_hour:
+    if notification_hour < int(utc_hour):
         date -= 1
     if date == -1:
         date = 6
