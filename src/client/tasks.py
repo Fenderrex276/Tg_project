@@ -236,13 +236,13 @@ async def send_first_code(user_id: int, chat_id: int, id_video: int):
     print("Was FIRST_SEND")
 
     await new_code(chat_id, user_id, id_video)
-    # scheduler = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
+    scheduler = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
     del_scheduler(f'{user_id}_send_first_code', 'admin')
     add_job(admin_scheduler, call_fun=send_code, str_name='send_code', user_id=user_id,
             day_of_week='*',
-            hour='4',
-            minute='30',
-            second='0', kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
+            hour=scheduler.hour,
+            minute=scheduler.minute,
+            second=scheduler.second, kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
 
     add_soft_deadline(user_id)
     print(f'ADMIN_SCHEDULER\n{admin_scheduler.print_jobs()}')
