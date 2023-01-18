@@ -181,6 +181,24 @@ def load_periodic_task_for_admin():
                                     second=task.second,
                                     id=task.job_id,
                                     kwargs=kwargs)
+        elif task.fun == "soft_deadline_reminder":
+            print('Task soft_deadline_reminder')
+            admin_scheduler.add_job(soft_deadline_reminder, replace_existing=True, trigger='cron',
+                                    day_of_week=task.day_of_week,
+                                    hour=task.hour,
+                                    minute=task.minute,
+                                    second=task.second,
+                                    id=task.job_id,
+                                    kwargs=kwargs)
+        elif task.fun == "hard_deadline_reminder":
+            print('Task send_first_code')
+            admin_scheduler.add_job(hard_deadline_reminder, replace_existing=True, trigger='cron',
+                                    day_of_week=task.day_of_week,
+                                    hour=task.hour,
+                                    minute=task.minute,
+                                    second=task.second,
+                                    id=task.job_id,
+                                    kwargs=kwargs)
         # print(f'ADMIN_SCHEDULER\n{admin_scheduler.print_jobs()}')
         print('-------------------------------------')
         print(f'ADMIN_GET_JOBS\n{admin_scheduler.get_job(job_id="254wdwd173575_send_first_code")}')
