@@ -284,7 +284,7 @@ def soft_deadline_reminder(user_id):
             user = User.objects.get(user_id=user_id)
         except User.DoesNotExist:
             return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
-        dp.bot.send_message(user_id, f'{user.user_name}, ты всё ещё можешь отправить репорт')
+        await dp.bot.send_message(user_id, f'{user.user_name}, ты всё ещё можешь отправить репорт')
 
         # создать задачу на проверку в жёсткий дедлайн и передать туда id записи RoundVideo
         del_scheduler(job_id=f'{user_id}_soft_deadline_reminder', where='admin')
@@ -325,7 +325,7 @@ def add_hard_deadline(user_id, kwargs):
             second=second, kwargs=kwargs)
 
 
-def hard_deadline_reminder(user_id, id_round_video, time):
+async def hard_deadline_reminder(user_id, id_round_video, time):
     # Говорим пользователю, что он даун
     try:
         video = RoundVideo.objects.get(id=id_round_video)
@@ -333,13 +333,14 @@ def hard_deadline_reminder(user_id, id_round_video, time):
         return f'Ошибка: Из бд была удалена запись с id {id_round_video} для пользователя {user_id}'
 
     if video.tg_id is None:
-        dp.bot.send_message(user_id,
+        await dp.bot.send_message(user_id,
                             f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}')
 
         try:
             user = User.objects.get(user_id=user_id)
         except User.DoesNotExist:
             return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
+        # TODO Выводит полный депозит после проигрыша. Я не понимаю на чьей стороне косяк
         if user.count_mistakes - 1 <= 0:
             # TODO RUS Прикуртить картинку
             del_scheduler(job_id=f'{user_id}_send_code', where='admin')
