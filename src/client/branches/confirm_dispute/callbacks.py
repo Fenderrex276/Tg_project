@@ -1,16 +1,13 @@
 from aiogram import Dispatcher
-from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode, InputFile
-from client.branches.confirm_dispute.mesages import *
-from client.branches.dispute_with_friend.keyboards import *
+
 from client.branches.confirm_dispute.keyboards import *
-from aiogram.dispatcher.filters.state import State, StatesGroup
+from client.branches.confirm_dispute.mesages import *
 from client.branches.confirm_dispute.states import Promo
 from client.branches.dispute_with_friend.states import Form
-from db.models import User
+from client.tasks import reminder_scheduler_add_job
 from utils import get_date_to_start_dispute
-from client.tasks import reminder_scheduler_add_job, change_periodic_tasks
 
 
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
@@ -154,15 +151,21 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(timezone=call.data, name=call.from_user.first_name)
 
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
+    await call.message.answer(text=tmp_msg)
+    variant = await state.get_data()
 
-    if User.objects.filter(user_id=call.from_user.id).exists():
-        #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
-        await change_periodic_tasks(call.from_user.id, call.data)
+    is_change_timezone = variant.get('is_change_timezone', None)
+
+    if is_change_timezone:
+        pass
+        # await change_periodic_tasks(message.from_user.id, tmp)
+    # if User.objects.filter(user_id=call.from_user.id).exists():
+    #     #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
+    #     await change_periodic_tasks(call.from_user.id, call.data)
     else:
         await reminder_scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1, notification_hour=10,
                                          notification_min=0)
-    await call.message.answer(text=tmp_msg)
-    variant = await state.get_data()
+
     future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
     date_to_start = str(future_date.day) + " " + str(future_date.strftime('%B')) + " " + str(future_date.year)
 

@@ -1,16 +1,14 @@
 from aiogram import Bot, Dispatcher
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
 from aiogram.types import ParseMode, InputFile
 
-from client.branches.confirm_dispute.keyboards import instruments_deposit_keyboard, painting_deposit_keyboard
-from client.branches.start.keyboards import menu_keyboard
-from client.branches.confirm_dispute.states import Promo
 from client.branches.confirm_dispute.keyboards import *
 from client.branches.confirm_dispute.mesages import *
-from client.tasks import reminder_scheduler_add_job, change_periodic_tasks
-from utils import get_timezone, get_date_to_start_dispute
+from client.branches.confirm_dispute.states import Promo
+from client.tasks import reminder_scheduler_add_job
 from db.models import User
+from utils import get_timezone, get_date_to_start_dispute
+
 
 class ConfirmDispute:
     def __init__(self, bot: Bot, dp: Dispatcher):
@@ -59,16 +57,25 @@ class ConfirmDispute:
         #2) Если флаг есть то значит пользователь хочет сменить TZ
         #3) Если его нет, то это регистрация
 
-        if User.objects.filter(user_id=message.from_user.id).exists(): # TODO ПРоверять ещё и по депозиту
-            #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
-            await change_periodic_tasks(message.from_user.id, tmp)
+        await message.answer(text=msg)
+
+        variant = await state.get_data()
+
+        is_change_timezone = variant.get('is_change_timezone', None)
+
+        if is_change_timezone:
+            pass
+            # await change_periodic_tasks(message.from_user.id, tmp)
+
+        # if User.objects.filter(user_id=message.from_user.id).exists(): # TODO ПРоверять ещё и по депозиту
+        #     #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
+        #     await change_periodic_tasks(message.from_user.id, tmp)
+        # else:
         else:
             await reminder_scheduler_add_job(self.dp, tmp[:len(tmp) - 4], "reminder", message.from_user.id, 1, notification_hour=10,
                                              notification_min=0)
 
-        await message.answer(text=msg)
 
-        variant = await state.get_data()
 
         print(message.date)
         future_date = get_date_to_start_dispute(message.date, variant['start_disput'], tmp[:len(tmp) - 4])
