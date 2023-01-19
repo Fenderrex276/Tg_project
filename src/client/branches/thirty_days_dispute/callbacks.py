@@ -182,7 +182,7 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
         user.count_days = 0
         user.save()
 
-        del_scheduler(f'{call.from_user.id}_send_code', 'admin')
+
 
         await call.message.answer_photo(InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png"),
                                         reply_markup=new_menu_keyboard)
