@@ -57,6 +57,7 @@ class Reports:
             n_day = int(message.text)
             data = await state.get_data()
             dispute_video = RoundVideo.objects.filter(id_video=data['id_archive'], n_day=n_day).first()
+
             if dispute_video is None:
                 tmp_msg = "Такого видео нет, попробуйте выбрать другой день"
                 await message.answer(text=tmp_msg)
@@ -77,12 +78,16 @@ class Reports:
                            f"🔒 {code_in_video}\n"
                            f"{description_dispute}\n\n"
                            f"{answer_admin}")
-                print(user.action)
-                print(dispute_video.tg_id)
-                if user.action == "money":
-                    await message.answer_video(video=dispute_video.tg_id)
+
+                # print(user.action)
+                # print(dispute_video.tg_id)
+                if dispute_video.tg_id is None:
+                    await message.answer(text='Пользователь не отправлял в этот день видео')
                 else:
-                    await message.answer_video_note(video_note=dispute_video.tg_id)
+                    if user.action == "money":
+                        await message.answer_video(video=dispute_video.tg_id)
+                    else:
+                        await message.answer_video_note(video_note=dispute_video.tg_id)
                 await message.answer(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
                     types.InlineKeyboardButton(text='Ещё', callback_data='more_video')
                 ))

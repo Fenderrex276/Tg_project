@@ -60,7 +60,6 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
                                      notification_min=0)
 
 
-
 async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
 
@@ -172,17 +171,32 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
     mistake = 0
     if data['promocode'] != '0':
         mistake = 1
-    await User.objects.acreate(user_id=call.from_user.id,
-                               user_name=call.from_user.first_name,
-                               action=data['action'],
-                               additional_action=data['additional_action'],
-                               start_disput=start_d,
-                               deposit=deposit,
-                               promocode_user=secrets.token_hex(nbytes=5),
-                               promocode_from_friend=data['promocode'],
-                               count_days=30,
-                               timezone=data['timezone'],
-                               count_mistakes=(2 + mistake))
+    try:
+        user = await User.objects.aget(user_id=call.from_user.id)
+        user.user_name = call.from_user.first_name
+        user.action = data['action']
+        user.additional_action = data['additional_action']
+        user.start_disput = start_d
+        user.promocode_user = secrets.token_hex(nbytes=5)
+        user.promocode_from_friend = data['promocode']
+        user.count_days = 30
+        user.timezone = data['timezone']
+        user.deposit = deposit
+        user.count_mistakes = (2 + mistake)
+        user.save()
+    except Exception:
+        await User.objects.acreate(user_id=call.from_user.id,
+                                   user_name=call.from_user.first_name,
+                                   action=data['action'],
+                                   additional_action=data['additional_action'],
+                                   start_disput=start_d,
+                                   deposit=deposit,
+                                   promocode_user=secrets.token_hex(nbytes=5),
+                                   promocode_from_friend=data['promocode'],
+                                   count_days=30,
+                                   timezone=data['timezone'],
+                                   count_mistakes=(2 + mistake))
+
 
     await state.update_data(name=call.from_user.first_name)
     await call.message.edit_text(text=start_current_disput_msg, reply_markup=next_step_keyboard,

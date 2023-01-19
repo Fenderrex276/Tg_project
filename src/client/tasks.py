@@ -307,6 +307,9 @@ def hard_deadline_reminder(user_id, id_round_video, time):
     if video.tg_id is None:
         dp.bot.send_message(user_id,
                             f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}')
+        video.status = RoundVideo.VideoStatus.bad
+        video.type_video = RoundVideo.TypeVideo.archive
+        video.save()
 
         try:
             user = User.objects.get(user_id=user_id)

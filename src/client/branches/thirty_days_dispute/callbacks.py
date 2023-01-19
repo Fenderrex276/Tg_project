@@ -126,16 +126,19 @@ def get_time_to_send_dispute(data):
 
 async def reports(call: types.CallbackQuery, state: FSMContext):
     main_photo = InputFile("client/media/Disput Bot-2/Default.png")
+    try:
+        user = User.objects.get(user_id=call.from_user.id)
+    except User.DoesNotExist:
+        print(f'Такого пользователя с id:{call.from_user.id} не существует')
 
-    user = await User.objects.filter(user_id=call.from_user.id).alast()
-    current_video = await RoundVideo.objects.filter(user_tg_id=call.from_user.id,
-                                                    type_video=RoundVideo.TypeVideo.archive).alast()
+    current_video = RoundVideo.objects.filter(user_tg_id=call.from_user.id,
+                                              type_video=RoundVideo.TypeVideo.archive).last()
 
-    videos = RoundVideo.objects.filter(user_tg_id=call.from_user.id, type_video=RoundVideo.TypeVideo.dispute, tg_id="")
+    # videos = RoundVideo.objects.filter(user_tg_id=call.from_user.id, type_video=RoundVideo.TypeVideo.dispute, tg_id="")
 
-    if len(videos) > 1:
-        user.count_mistakes = user.count_mistakes - 1
-        user.save()
+    # if len(videos) > 1:
+    #     user.count_mistakes = user.count_mistakes - 1
+    #     user.save()
 
     print(user.count_mistakes, ":USER MISTAKES, ", user.promocode_from_friend, "promocode", user.count_days,
           current_video.tg_id, "THIS TG_ID")
@@ -219,16 +222,16 @@ async def check_report(call: types.CallbackQuery, state: FSMContext):
                                                 tg_id="")
         data = await state.get_data()
         print("COUNT VIDEOS WITHOUT ID FILE", len(user_videos))
-        if len(user_videos) > 1:
-            user_videos[0].tg_id = "0"
-            user_videos[0].save()
-
-            user = await User.objects.filter(user_id=call.from_user.id).alast()
-            user.count_mistakes = user.count_mistakes - 1
-            user.save()
-            error_dispute_msg = get_time_to_send_dispute(data)
-            await call.message.answer(error_dispute_msg)
-            return
+        # if len(user_videos) > 1:
+        #     user_videos[0].tg_id = "0"
+        #     user_videos[0].save()
+        #
+        #     user = await User.objects.filter(user_id=call.from_user.id).alast()
+        #     user.count_mistakes = user.count_mistakes - 1
+        #     user.save()
+        #     error_dispute_msg = get_time_to_send_dispute(data)
+        #     await call.message.answer(error_dispute_msg)
+        #     return
 
         user_video = await RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                                      chat_tg_id=call.message.chat.id,
