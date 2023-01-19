@@ -273,7 +273,7 @@ def add_soft_deadline(user_id):
             second=second, kwargs={'user_id': user_id})
 
 
-def soft_deadline_reminder(user_id):
+async def soft_deadline_reminder(user_id):
     instance = RoundVideo.objects.filter(user_tg_id=user_id).last()
     if instance is None:
         return f'Ошибка: Отсутствует запись для пользователя с id {user_id}'
@@ -359,6 +359,7 @@ async def send_code(user_id: int, chat_id: int, id_video: int):
     await new_code(chat_id, user_id, id_video)
     add_soft_deadline(user_id)
 
+    #Todo Сделать время вызова изменяемым
 
 def del_scheduler(job_id: str, where: str):
     PeriodicTask.objects.filter(job_id=job_id).delete()
