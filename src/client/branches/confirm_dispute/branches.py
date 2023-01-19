@@ -51,8 +51,13 @@ class ConfirmDispute:
         tmp = get_timezone(loc)
         await state.update_data(timezone=tmp[:len(tmp) - 4])
         msg = f"Установлен часовой пояс {tmp}"
+        # TODO Добавить в redis data ключ time_zone ну или что-то такое
 
-        if User.objects.filter(user_id=message.from_user.id).exists():
+        #1) Смотреть флаг time_zone в redis_data
+        #2) Если флаг есть то значит пользователь хочет сменить TZ
+        #3) Если его нет, то это регистрация
+
+        if User.objects.filter(user_id=message.from_user.id).exists(): # TODO ПРоверять ещё и по депозиту
             #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
             await change_periodic_tasks(message.from_user.id, tmp)
         else:
