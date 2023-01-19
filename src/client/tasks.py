@@ -449,3 +449,5 @@ async def change_periodic_tasks(user_id, time_zone):
         client_scheduler.reschedule_job(f'{user_id}_reminder', trigger='cron', hour=hour, minute=minute,
                                         second=second)
     # TODO Менять уведомления с полезным материалом когда сделаю
+
+# TODO Обработать удаление всех напоминалок если пользователь жмёт "Спорить" когда периодическая задача уже создана
