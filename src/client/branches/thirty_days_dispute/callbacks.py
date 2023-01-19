@@ -616,7 +616,7 @@ async def return_account(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def new_time_zone(call: types.CallbackQuery, state: FSMContext):
+async def new_time_zone(call: types.CallbackQuery, state: FSMContext): # RUS TODO перенести на сторону админа
     await state.update_data(timezone=call.data)
     user = User.objects.filter(user_id=call.from_user.id).last()
     user.timezone = call.data

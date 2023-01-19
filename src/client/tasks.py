@@ -118,6 +118,15 @@ async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user
                     minute=minute, second=second, kwargs=kwargs)
 
 
+def date_calculated(notification_hour, utc_hour, date):
+    if notification_hour < int(utc_hour):
+        date -= 1
+    if date == -1:
+        date = 6
+
+    return date
+
+
 async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str, notification_hour: int = None,
                          notification_min: int = None):
     hour, minute, second = time_calculated(t_zone, notification_hour, notification_min)
@@ -133,10 +142,11 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
     elif when == "послезавтра":
         print("Was послезавтра")
         my_date = date.today()
-        day_of_week = (my_date.weekday() + 2) % 7
+        day_of_week = date_calculated(notification_hour, hour, (my_date.weekday() + 2) % 7)
+
     else:
         print("Was Понедельник")
-        day_of_week = '0'
+        day_of_week = date_calculated(notification_hour, hour, 0)
 
     kwargs = {'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video}
     add_job(admin_scheduler, call_fun=send_first_code, str_name='send_first_code', user_id=user_id,
@@ -165,6 +175,24 @@ def load_periodic_task_for_admin():
         elif task.fun == "send_first_code":
             print('Task send_first_code')
             admin_scheduler.add_job(send_first_code, replace_existing=True, trigger='cron',
+                                    day_of_week=task.day_of_week,
+                                    hour=task.hour,
+                                    minute=task.minute,
+                                    second=task.second,
+                                    id=task.job_id,
+                                    kwargs=kwargs)
+        elif task.fun == "soft_deadline_reminder":
+            print('Task soft_deadline_reminder')
+            admin_scheduler.add_job(soft_deadline_reminder, replace_existing=True, trigger='cron',
+                                    day_of_week=task.day_of_week,
+                                    hour=task.hour,
+                                    minute=task.minute,
+                                    second=task.second,
+                                    id=task.job_id,
+                                    kwargs=kwargs)
+        elif task.fun == "hard_deadline_reminder":
+            print('Task send_first_code')
+            admin_scheduler.add_job(hard_deadline_reminder, replace_existing=True, trigger='cron',
                                     day_of_week=task.day_of_week,
                                     hour=task.hour,
                                     minute=task.minute,
@@ -208,13 +236,13 @@ async def send_first_code(user_id: int, chat_id: int, id_video: int):
     print("Was FIRST_SEND")
 
     await new_code(chat_id, user_id, id_video)
-    # scheduler = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
+    scheduler = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
     del_scheduler(f'{user_id}_send_first_code', 'admin')
     add_job(admin_scheduler, call_fun=send_code, str_name='send_code', user_id=user_id,
             day_of_week='*',
-            hour='4',
-            minute='30',
-            second='0', kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
+            hour=scheduler.hour,
+            minute=scheduler.minute,
+            second=scheduler.second, kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
 
     add_soft_deadline(user_id)
     print(f'ADMIN_SCHEDULER\n{admin_scheduler.print_jobs()}')
@@ -256,7 +284,7 @@ def soft_deadline_reminder(user_id):
             user = User.objects.get(user_id=user_id)
         except User.DoesNotExist:
             return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
-        dp.bot.send_message(user_id, f'{user.user_name}, ты всё ещё можешь отправить репорт')
+        await dp.bot.send_message(user_id, f'{user.user_name}, ты всё ещё можешь отправить репорт')
 
         # создать задачу на проверку в жёсткий дедлайн и передать туда id записи RoundVideo
         del_scheduler(job_id=f'{user_id}_soft_deadline_reminder', where='admin')
@@ -297,7 +325,7 @@ def add_hard_deadline(user_id, kwargs):
             second=second, kwargs=kwargs)
 
 
-def hard_deadline_reminder(user_id, id_round_video, time):
+async def hard_deadline_reminder(user_id, id_round_video, time):
     # Говорим пользователю, что он даун
     try:
         video = RoundVideo.objects.get(id=id_round_video)
@@ -305,7 +333,7 @@ def hard_deadline_reminder(user_id, id_round_video, time):
         return f'Ошибка: Из бд была удалена запись с id {id_round_video} для пользователя {user_id}'
 
     if video.tg_id is None:
-        dp.bot.send_message(user_id,
+        await dp.bot.send_message(user_id,
                             f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}')
         video.status = RoundVideo.VideoStatus.bad
         video.type_video = RoundVideo.TypeVideo.archive
@@ -315,6 +343,7 @@ def hard_deadline_reminder(user_id, id_round_video, time):
             user = User.objects.get(user_id=user_id)
         except User.DoesNotExist:
             return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
+        # TODO Выводит полный депозит после проигрыша. Я не понимаю на чьей стороне косяк
         if user.count_mistakes - 1 <= 0:
             # TODO RUS Прикуртить картинку
             del_scheduler(job_id=f'{user_id}_send_code', where='admin')
