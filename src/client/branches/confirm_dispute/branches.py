@@ -51,7 +51,9 @@ class ConfirmDispute:
         tmp = get_timezone(loc)
         await state.update_data(timezone=tmp[:len(tmp) - 4])
         msg = f"Установлен часовой пояс {tmp}"
-        # TODO Добавить в redis data ключ time_zone ну или что-то такое
+        # TODO Добавил новый ключ is_change_timezone, в нём храниться значение boolean.
+        #  Если True - значит таймзону поменяли в кнопке аккаунт, иначе False.
+        #  Проверку лучше осуществить по двум пунктам, на None и на False.
 
         #1) Смотреть флаг time_zone в redis_data
         #2) Если флаг есть то значит пользователь хочет сменить TZ
