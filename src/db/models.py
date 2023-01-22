@@ -46,6 +46,7 @@ class PeriodicTask(models.Model):
     minute = models.CharField(max_length=20, default="*", verbose_name="В какую минуту вызвать")
     second = models.CharField(max_length=20, default="*", verbose_name="В какую секунду вызвать")
     kwargs = models.JSONField(verbose_name="Переменные, которые передаются в функцию")
+    is_change = models.BooleanField(verbose_name="Поменялось ли", default=False)
 
 
 class Support(models.Model):

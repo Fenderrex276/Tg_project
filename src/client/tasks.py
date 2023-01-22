@@ -45,6 +45,7 @@ def add_job(scheduler, call_fun, str_name: str, user_id, day_of_week: str, hour:
                       day_of_week=day_of_week, hour=hour, minute=minute,
                       second=second,
                       kwargs=kwargs)
+
     if str_name == "reminder":
         kwargs.pop('dp')
     PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_{str_name}', fun=str_name,
@@ -52,6 +53,7 @@ def add_job(scheduler, call_fun, str_name: str, user_id, day_of_week: str, hour:
                                 hour=hour,
                                 minute=minute, second=second,
                                 kwargs=kwargs)
+    scheduler.print_jobs()
 
 
 #
@@ -232,6 +234,9 @@ async def send_reminder(dp: Dispatcher, user_id: int, msg: str, callback_data: s
 
 
 async def send_first_code(user_id: int, chat_id: int, id_video: int):
+    # if deprecated:
+    #     schedulers = PeriodicTask.objects.filter(job_id=f'{user_id}_send_first_code')
+    #     for scheduler
     from admin.reports.callbacks import new_code
     print("Was FIRST_SEND")
 
@@ -334,7 +339,7 @@ async def hard_deadline_reminder(user_id, id_round_video, time):
 
     if video.tg_id is None:
         await dp.bot.send_message(user_id,
-                            f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}')
+                                  f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}')
         video.status = RoundVideo.VideoStatus.bad
         video.type_video = RoundVideo.TypeVideo.archive
         video.save()
@@ -359,7 +364,8 @@ async def send_code(user_id: int, chat_id: int, id_video: int):
     await new_code(chat_id, user_id, id_video)
     add_soft_deadline(user_id)
 
-    #Todo Сделать время вызова изменяемым
+    # Todo Сделать время вызова изменяемым
+
 
 def del_scheduler(job_id: str, where: str):
     PeriodicTask.objects.filter(job_id=job_id).delete()
@@ -371,22 +377,23 @@ def del_scheduler(job_id: str, where: str):
     else:
         print(f'ERROR: Неверный параметр where')
 
-
-async def change_periodic_tasks(user_id, time_zone):
+async def change_period_task_info(user_id, time_zone):
     print(f"CHANGE_PERIODIC_TASK TZ: {time_zone}")
-    admin_scheduler.print_jobs()
-    print(f'JOBS {admin_scheduler.get_jobs()}')
-    print(f'INFO {admin_scheduler.get_job(job_id=f"{user_id}_send_first_code")}')
-    if admin_scheduler.get_job(job_id=f'{user_id}_send_first_code'):
-        print(f"_send_first_code")
-        hour, minute, second = time_calculated(time_zone, 4, 30)
-        admin_scheduler.reschedule_job(f'{user_id}_send_first_code', trigger='cron', hour=hour, minute=minute,
-                                       second=second)
-        task = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
-        task.hour = hour
-        task.minute = minute
-        task.second = second
-        task.save()
+
+    tasks = PeriodicTask.objects.filter(user_id=user_id)
+
+    for task in tasks:
+
+        if task.fun == 'send_first_code':
+            print(f"_send_first_code")
+            hour, minute, second = time_calculated(time_zone, 4, 30)
+            admin_scheduler.reschedule_job(f'{user_id}_send_first_code', trigger='cron', hour=hour, minute=minute,
+                                           second=second)
+            task = PeriodicTask.objects.get(job_id=f'{user_id}_send_first_code')
+            task.hour = hour
+            task.minute = minute
+            task.second = second
+            task.save()
 
     if admin_scheduler.get_job(job_id=f'{user_id}_send_code'):
         hour, minute, second = time_calculated(time_zone, 4, 30)
@@ -448,6 +455,47 @@ async def change_periodic_tasks(user_id, time_zone):
         hour, minute, second = time_calculated(time_zone, 10, 0)
         client_scheduler.reschedule_job(f'{user_id}_reminder', trigger='cron', hour=hour, minute=minute,
                                         second=second)
+async def reload_tasks():
+    tasks = PeriodicTask.objects.filter(is_change=True)
+    for task in tasks:
+        del_scheduler(task.job_id, admin_scheduler)
+        kwargs = task.kwargs
+        if task.fun == "send_code":
+            print('Task send_code')
+            admin_scheduler.add_job(send_code, replace_existing=True, trigger='cron',
+                                    day_of_week=task.day_of_week,
+                                    hour=task.hour,
+                                    minute=task.minute,
+                                    second=task.second,
+                                    id=task.job_id,
+                                    kwargs=kwargs)
+        elif task.fun == "send_first_code":
+            print('Task send_first_code')
+            admin_scheduler.add_job(send_first_code, replace_existing=True, trigger='cron',
+                                    day_of_week=task.day_of_week,
+                                    hour=task.hour,
+                                    minute=task.minute,
+                                    second=task.second,
+                                    id=task.job_id,
+                                    kwargs=kwargs)
+        elif task.fun == "soft_deadline_reminder":
+            print('Task soft_deadline_reminder')
+            admin_scheduler.add_job(soft_deadline_reminder, replace_existing=True, trigger='cron',
+                                    day_of_week=task.day_of_week,
+                                    hour=task.hour,
+                                    minute=task.minute,
+                                    second=task.second,
+                                    id=task.job_id,
+                                    kwargs=kwargs)
+        elif task.fun == "hard_deadline_reminder":
+            print('Task send_first_code')
+            admin_scheduler.add_job(hard_deadline_reminder, replace_existing=True, trigger='cron',
+                                    day_of_week=task.day_of_week,
+                                    hour=task.hour,
+                                    minute=task.minute,
+                                    second=task.second,
+                                    id=task.job_id,
+                                    kwargs=kwargs)
     # TODO Менять уведомления с полезным материалом когда сделаю
 
 # TODO Обработать удаление всех напоминалок если пользователь жмёт "Спорить" когда периодическая задача уже создана

@@ -5,7 +5,7 @@ from aiogram.types import ParseMode, InputFile
 from client.branches.confirm_dispute.keyboards import *
 from client.branches.confirm_dispute.mesages import *
 from client.branches.confirm_dispute.states import Promo
-from client.tasks import reminder_scheduler_add_job
+from client.tasks import reminder_scheduler_add_job, change_period_task_info
 from db.models import User
 from utils import get_timezone, get_date_to_start_dispute
 
@@ -64,8 +64,7 @@ class ConfirmDispute:
         is_change_timezone = variant.get('is_change_timezone', None)
 
         if is_change_timezone:
-            pass
-            # await change_periodic_tasks(message.from_user.id, tmp)
+            await change_period_task_info(message.from_user.id, tmp)
 
         # if User.objects.filter(user_id=message.from_user.id).exists(): # TODO ПРоверять ещё и по депозиту
         #     #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
