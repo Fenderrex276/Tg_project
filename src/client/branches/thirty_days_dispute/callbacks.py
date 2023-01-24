@@ -8,7 +8,7 @@ from .states import StatesDispute, NewReview
 from db.models import RoundVideo, User
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
 from ..dispute_with_friend.messages import personal_goals_msg
-from client.tasks import del_scheduler, change_periodic_tasks
+from client.tasks import del_scheduler, change_period_task_info
 from django.db.models import Q
 
 
@@ -622,7 +622,7 @@ async def new_time_zone(call: types.CallbackQuery, state: FSMContext): # RUS TOD
     user.timezone = call.data
     user.save()
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
-    await change_periodic_tasks(user.user_id, call.data)
+    await change_period_task_info(user.user_id, call.data)
     await StatesDispute.none.set()
     await call.message.answer(text=tmp_msg, reply_markup=menu_keyboard)
     await call.answer()

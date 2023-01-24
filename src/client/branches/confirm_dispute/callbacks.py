@@ -6,7 +6,7 @@ from client.branches.confirm_dispute.keyboards import *
 from client.branches.confirm_dispute.mesages import *
 from client.branches.confirm_dispute.states import Promo
 from client.branches.dispute_with_friend.states import Form
-from client.tasks import reminder_scheduler_add_job
+from client.tasks import reminder_scheduler_add_job, change_period_task_info
 from utils import get_date_to_start_dispute
 
 
@@ -157,8 +157,7 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     is_change_timezone = variant.get('is_change_timezone', None)
 
     if is_change_timezone:
-        pass
-        # await change_periodic_tasks(message.from_user.id, tmp)
+        await change_period_task_info(call.from_user.id, call.data)
     # if User.objects.filter(user_id=call.from_user.id).exists():
     #     #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
     #     await change_periodic_tasks(call.from_user.id, call.data)

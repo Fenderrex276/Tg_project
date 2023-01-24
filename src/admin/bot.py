@@ -6,7 +6,7 @@ from admin.support_reviews.branches import Reviews
 from admin.support_reviews.callbacks import register_callback as rc2
 from .branches import Admin
 from .initialize import scheduler
-from client.tasks import load_periodic_task_for_admin
+from client.tasks import load_periodic_task_for_admin, reload_tasks
 
 branches = [Admin, Reports, Reviews]
 callbacks = [rc1, rc2]
@@ -27,5 +27,8 @@ class AdminDisputeBot:
     def start(self):
         scheduler.start()
         load_periodic_task_for_admin()
+
+        scheduler.add_job(reload_tasks, replace_existing=True, trigger='cron', id=f'reload_tasks',
+                          minute="*")
         scheduler.print_jobs()
         executor.start_polling(self.dp, skip_updates=True)
