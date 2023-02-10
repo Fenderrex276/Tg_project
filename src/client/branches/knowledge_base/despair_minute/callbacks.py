@@ -26,7 +26,6 @@ def getTips(call: types.CallbackQuery):
 async def choose_ps(call: types.CallbackQuery):
     photo = InputFile("client/media/kb_md/start_mb.jpg")
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    await call.message.answer_photo(photo=photo)
     await call.message.answer(text=messages.start_msg, reply_markup=keyboards.start_md_keyboard,
                               parse_mode=ParseMode.MARKDOWN)
     await call.answer()
