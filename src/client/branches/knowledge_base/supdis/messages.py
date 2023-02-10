@@ -1,0 +1,1 @@
+supdis_link = "https://t.me/supdis/"
