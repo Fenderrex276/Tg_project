@@ -12,5 +12,5 @@ for line in f:
         message = line.replace('1.', "")
         message = message.replace('**', "*")
     else:
-        message += line.replace('1.', "")
+        message += line
     i +=1
