@@ -9,6 +9,19 @@ from client.branches.thirty_days_dispute.states import StatesDispute
 
 # principle_of_success
 
+UserPos = {}
+def getPOS(call: types.CallbackQuery): #POS = Principle of success
+    try:
+        pos_number = UserPos[call.message.chat.id]
+        UserPos[call.message.chat.id] += 1
+        if pos_number == len(messages.tips):
+            UserPos[call.message.chat.id] = 0
+    except:
+        UserPos[call.message.chat.id] = 0
+        pos_number = 0
+    return pos_number
+
+
 async def choose_ps(call: types.CallbackQuery):
     await call.message.edit_text(text=messages.principles_of_success_msg, reply_markup=keyboards.start_ps_keyboard,
                                  parse_mode=ParseMode.MARKDOWN)
@@ -17,16 +30,16 @@ async def choose_ps(call: types.CallbackQuery):
 
 async def read_ps(call: types.CallbackQuery):
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    rand = random.randrange(len(messages.tips))
-    await call.message.answer(text=messages.tips[rand], reply_markup=keyboards.control_ps_keyboard,
+    tip = getPOS(call)
+    await call.message.answer(text=messages.tips[tip], reply_markup=keyboards.control_ps_keyboard,
                               parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 
 
 async def dislike_ps(call: types.CallbackQuery):
     try:
-        rand = random.randrange(len(messages.tips))
-        await call.message.edit_text(text=messages.tips[rand], reply_markup=keyboards.control_ps_keyboard,
+        tip = getPOS(call)
+        await call.message.edit_text(text=messages.tips[tip], reply_markup=keyboards.control_ps_keyboard,
                                      parse_mode=ParseMode.MARKDOWN)
         await call.answer()
     except:
@@ -34,10 +47,10 @@ async def dislike_ps(call: types.CallbackQuery):
 
 
 async def like_ps(call: types.CallbackQuery):
-    rand = random.randrange(len(messages.tips))
+    tip = getPOS(call)
     await call.bot.edit_message_reply_markup(chat_id=call.message.chat.id,
                                              message_id=call.message.message_id)
-    await call.message.answer(text=messages.tips[rand], reply_markup=keyboards.control_ps_keyboard,
+    await call.message.answer(text=messages.tips[tip], reply_markup=keyboards.control_ps_keyboard,
                               parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 

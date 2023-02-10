@@ -9,29 +9,40 @@ from aiogram.types import InputFile, ParseMode
 from client.branches.knowledge_base.TED import messages, states, keyboards
 from client.branches.thirty_days_dispute.states import StatesDispute
 
+UserTED = {}
+def getTED(call: types.CallbackQuery):
+    try:
+        ted_number = UserTED[call.message.chat.id]
+        UserTED[call.message.chat.id] += 1
+        if ted_number == len(messages.teds):
+            UserTED[call.message.chat.id] = 0
+    except:
+        UserTED[call.message.chat.id] = 0
+        ted_number = 0
+    return ted_number
 
 async def dislike_ted(call: types.CallbackQuery):
-    rand = random.randrange(len(messages.teds))
+    ted = getTED(call)
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    await call.bot.send_video(call.message.chat.id, messages.teds[rand][1],
-                              reply_markup=keyboards.control_ted_keyboard, caption=messages.teds[rand][0])
+    await call.bot.send_video(call.message.chat.id, messages.teds[ted][1],
+                              reply_markup=keyboards.control_ted_keyboard, caption=messages.teds[ted][0])
     await call.answer()
-#TODO сделать словарь где название теда ключ, значение - сам видос
+
 
 async def like_ted(call: types.CallbackQuery):
-    rand = random.randrange(len(messages.teds))
+    ted = getTED(call)
     await call.bot.edit_message_reply_markup(chat_id=call.message.chat.id,
                                              message_id=call.message.message_id)
-    await call.bot.send_video(call.message.chat.id, messages.teds[rand][1],
-                              reply_markup=keyboards.control_ted_keyboard, caption=messages.teds[rand][0])
+    await call.bot.send_video(call.message.chat.id, messages.teds[ted][1],
+                              reply_markup=keyboards.control_ted_keyboard, caption=messages.teds[ted][0])
     await call.answer()
 
 
 async def ted(call: types.CallbackQuery):
-    rand = random.randrange(len(messages.teds))
+    ted = getTED(call)
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    await call.bot.send_video(call.message.chat.id, messages.teds[rand][1],
-                              reply_markup=keyboards.control_ted_keyboard, caption=messages.teds[rand][0])
+    await call.bot.send_video(call.message.chat.id, messages.teds[ted][1],
+                              reply_markup=keyboards.control_ted_keyboard, caption=messages.teds[ted][0])
     await call.answer()
 
 

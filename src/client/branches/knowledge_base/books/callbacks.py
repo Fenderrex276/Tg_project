@@ -8,12 +8,23 @@ from client.branches.thirty_days_dispute.states import StatesDispute
 
 
 # books
+UserBooks = {}
+
+def getBook(call: types.CallbackQuery):
+    try:
+        book_number = UserBooks[call.message.chat.id]
+        UserBooks[call.message.chat.id] += 1
+        if book_number == len(messages.books):
+            UserBooks[call.message.chat.id] = 0
+    except:
+        UserBooks[call.message.chat.id] = 0
+        book_number = 0
+    return book_number
 
 async def books(call: types.CallbackQuery):
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    rand = random.randrange(len(messages.books))
-
-    await call.message.answer(text=messages.books[rand], reply_markup=keyboards.control_bk_keyboard,
+    bn = getBook(call)
+    await call.message.answer(text=messages.books[bn], reply_markup=keyboards.control_bk_keyboard,
                                      parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 
@@ -21,8 +32,8 @@ async def books(call: types.CallbackQuery):
 async def dislike_bk(call: types.CallbackQuery):
     try:
         await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-        rand = random.randrange(len(messages.books))
-        await call.message.answer(text=messages.books[rand], reply_markup=keyboards.control_bk_keyboard,
+        bn = getBook(call)
+        await call.message.answer(text=messages.books[bn], reply_markup=keyboards.control_bk_keyboard,
                                      parse_mode=ParseMode.MARKDOWN)
         await call.answer()
     except:
@@ -30,10 +41,10 @@ async def dislike_bk(call: types.CallbackQuery):
 
 
 async def like_bk(call: types.CallbackQuery):
-    rand = random.randrange(len(messages.books))
+    bn = getBook(call)
     await call.bot.edit_message_reply_markup(chat_id=call.message.chat.id,
                                              message_id=call.message.message_id)
-    await call.message.answer(text=messages.books[rand], reply_markup=keyboards.control_bk_keyboard,
+    await call.message.answer(text=messages.books[bn], reply_markup=keyboards.control_bk_keyboard,
                               parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 
