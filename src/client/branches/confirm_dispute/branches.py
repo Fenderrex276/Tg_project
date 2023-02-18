@@ -8,7 +8,7 @@ from client.branches.confirm_dispute.states import Promo
 from client.tasks import reminder_scheduler_add_job, change_period_task_info
 from db.models import User
 from utils import get_timezone, get_date_to_start_dispute
-
+from .callbacks import months
 
 class ConfirmDispute:
     def __init__(self, bot: Bot, dp: Dispatcher):
@@ -78,7 +78,7 @@ class ConfirmDispute:
 
         print(message.date)
         future_date = get_date_to_start_dispute(message.date, variant['start_disput'], tmp[:len(tmp) - 4])
-        date_start = str(future_date.day) + " " + str(future_date.strftime('%B')) + " " + str(future_date.year)
+        date_start = str(future_date.day) + " " + months[str(future_date.strftime('%B'))] + " " + str(future_date.year)
 
         choice_msg = ""
         tmp_keyboard = types.InlineKeyboardMarkup

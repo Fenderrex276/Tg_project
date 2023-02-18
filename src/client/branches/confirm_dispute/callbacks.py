@@ -9,7 +9,9 @@ from client.branches.dispute_with_friend.states import Form
 from client.tasks import reminder_scheduler_add_job, change_period_task_info
 from utils import get_date_to_start_dispute
 
-
+months = {"January": "Января", "February": "Февраля", "March": "Марта", "April": "Апреля", "May": "Мая", "June": "Июня",
+          "July": "Июля", "August": "Августа", "September": "Сентября", "October": "Октября",
+          "November": "Ноября", "December": "Декабря"}
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
     await state.update_data(action='alcohol')
@@ -166,7 +168,7 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
                                          notification_min=0)
 
     future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
-    date_to_start = str(future_date.day) + " " + str(future_date.strftime('%B')) + " " + str(future_date.year)
+    date_to_start = str(future_date.day) + " " + months[str(future_date.strftime('%B'))] + " " + str(future_date.year)
 
     choice_msg = ""
     tmp_keyboard = types.InlineKeyboardMarkup

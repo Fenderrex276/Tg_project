@@ -110,7 +110,7 @@ class CurrentDispute:
         loc = message.location
         # print(loc)
         tmp = get_timezone(loc)
-        await state.update_data(timezone=tmp[:len(tmp) - 4], is_change_timezone=True)
+        await state.update_data(timezone=tmp[:len(tmp) - 4])
         user = await User.objects.filter(user_id=message.from_user.id).alast()
         user.timezone = tmp[:len(tmp) - 4]
         user.save()
