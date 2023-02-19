@@ -130,6 +130,7 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
         user = User.objects.get(user_id=call.from_user.id)
     except User.DoesNotExist:
         print(f'Такого пользователя с id:{call.from_user.id} не существует')
+        return
 
     current_video = RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                               type_video=RoundVideo.TypeVideo.archive).last()
@@ -140,8 +141,9 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
     #     user.count_mistakes = user.count_mistakes - 1
     #     user.save()
 
-    print(user.count_mistakes, ":USER MISTAKES, ", user.promocode_from_friend, "promocode", user.count_days,
-          current_video.tg_id, "THIS TG_ID")
+    # print(user.count_mistakes, ":USER MISTAKES, ", user.promocode_from_friend, "promocode", user.count_days,
+    #       current_video.tg_id, "THIS TG_ID")
+
     if current_video.status == "good" and user.count_days != 30:
 
         if (user.count_mistakes == 3 or (
@@ -357,8 +359,10 @@ def get_message_video(data, new_code):
     elif data['action'] == 'instruments':
         tmp_msg = ("⏰ Отправь до 22:30 кружочек процесса занятий на муз."
                    f" инструменте, как на примере, произнеси код 🔒 {new_code}")
-
-        video = "client/media/videos/piano.mp4"
+        if data['additional_action'] == 'piano':
+            video = InputFile("client/media/videos/piano.mp4")
+        elif data['additional_action'] == 'guitar':
+            video = InputFile("client/media/videos/guitar.mp4")
     elif data['action'] == 'painting':
         tmp_msg = f"⏰ Отправь до 22:30 кружочек процесса рисования, как на примере, произнеси код 🔒 {new_code}"
         video = "client/media/videos/painting.mp4"
@@ -598,7 +602,7 @@ async def view_user_timezone(call: types.CallbackQuery, state: FSMContext):
 
 
 async def change_timezone(call: types.CallbackQuery, state: FSMContext):
-    data = await state.get_data()
+
 
     geo_position_msg = (
         "🌍 Укажи разницу во времени относительно UTC (Москва +3, Красноярск +7 и тд) или отправь в бот "
@@ -623,7 +627,7 @@ async def return_account(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def new_time_zone(call: types.CallbackQuery, state: FSMContext):  # RUS TODO перенести на сторону админа
+async def new_time_zone(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(timezone=call.data)
     user = User.objects.filter(user_id=call.from_user.id).last()
     user.timezone = call.data

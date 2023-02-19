@@ -10,7 +10,7 @@ from client.branches.pay.states import PayStates
 from db.models import User
 from client.tasks import del_scheduler, reminder_scheduler_add_job
 from client.initialize import dp
-
+from client.branches.thirty_days_dispute.keyboards import menu_keyboard
 
 async def choose_sum_to_pay(call: types.CallbackQuery, state: FSMContext):
     await PayStates.pay.set()
@@ -63,15 +63,56 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
 async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
 
-    success_payment_msg = ("Поздравляем 🎉 ты уже в шаге от цели. Заявка #TG2802 успешно оплачена.\n\n"
-                           f" 🔥 Твой депозит пополнен на {v['deposit']} ₽ и заморожен до конца пари — соблюдай "
+    await call.message.answer(text="Поздравляем 🎉 ты уже в шаге от цели. Заявка #TG2802 успешно оплачена.\n\n",
+                                 reply_markup=menu_keyboard)
+
+    success_payment_msg = (f" 🔥 Твой депозит пополнен на {v['deposit']} ₽ и заморожен до конца пари — соблюдай "
                            f"условия каждый"
                            " из 30 дней и сохрани депозит, всё зависит только от тебя")
-    await call.message.edit_text(text=success_payment_msg, reply_markup=go_keyboard)
+
+    await call.message.answer(text=success_payment_msg, reply_markup=go_keyboard)
     await call.answer()
-    del_scheduler(f'{call.from_user.id}_reminder', 'client')
 
     redis_data = await state.get_data()
+    del_scheduler(f'{call.from_user.id}_reminder', 'client')
+    start_d = ""
+    if redis_data['start_disput'] == "select_after_tomorrow":
+        start_d = "tomorrow"
+    elif redis_data['start_disput'] == "select_monday":
+        start_d = "monday"
+    deposit = int(redis_data['deposit'].replace(" ", ""))
+
+    mistake = 0
+    if redis_data['promocode'] != '0':
+        mistake = 1
+    try:
+        user = await User.objects.aget(user_id=call.from_user.id)
+        user.user_name = call.from_user.first_name
+        user.action = redis_data['action']
+        user.additional_action = redis_data['additional_action']
+        user.start_disput = start_d
+        user.promocode_user = secrets.token_hex(nbytes=5)
+        user.promocode_from_friend = redis_data['promocode']
+        user.count_days = 30
+        user.timezone = redis_data['timezone']
+        user.deposit = deposit
+        user.count_mistakes = (2 + mistake)
+        user.save()
+    except Exception:
+        await User.objects.acreate(user_id=call.from_user.id,
+                                   user_name=call.from_user.first_name,
+                                   action=redis_data['action'],
+                                   additional_action=redis_data['additional_action'],
+                                   start_disput=start_d,
+                                   deposit=deposit,
+                                   promocode_user=secrets.token_hex(nbytes=5),
+                                   promocode_from_friend=redis_data['promocode'],
+                                   count_days=30,
+                                   timezone=redis_data['timezone'],
+                                   count_mistakes=(2 + mistake))
+
+    await state.update_data(name=call.from_user.first_name)
+
     await reminder_scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 5, notification_hour=10,
                                      notification_min=0)
 
@@ -161,44 +202,7 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
                                 "До победы осталось 30 дней\n"
                                 f"Право на ошибку: {promo}")
 
-    start_d = ""
-    if data['start_disput'] == "select_after_tomorrow":
-        start_d = "tomorrow"
-    elif data['start_disput'] == "select_monday":
-        start_d = "monday"
-    deposit = int(data['deposit'].replace(" ", ""))
 
-    mistake = 0
-    if data['promocode'] != '0':
-        mistake = 1
-    try:
-        user = await User.objects.aget(user_id=call.from_user.id)
-        user.user_name = call.from_user.first_name
-        user.action = data['action']
-        user.additional_action = data['additional_action']
-        user.start_disput = start_d
-        user.promocode_user = secrets.token_hex(nbytes=5)
-        user.promocode_from_friend = data['promocode']
-        user.count_days = 30
-        user.timezone = data['timezone']
-        user.deposit = deposit
-        user.count_mistakes = (2 + mistake)
-        user.save()
-    except Exception:
-        await User.objects.acreate(user_id=call.from_user.id,
-                                   user_name=call.from_user.first_name,
-                                   action=data['action'],
-                                   additional_action=data['additional_action'],
-                                   start_disput=start_d,
-                                   deposit=deposit,
-                                   promocode_user=secrets.token_hex(nbytes=5),
-                                   promocode_from_friend=data['promocode'],
-                                   count_days=30,
-                                   timezone=data['timezone'],
-                                   count_mistakes=(2 + mistake))
-
-
-    await state.update_data(name=call.from_user.first_name)
     await call.message.edit_text(text=start_current_disput_msg, reply_markup=next_step_keyboard,
                                  parse_mode=ParseMode.MARKDOWN)
     await call.answer()

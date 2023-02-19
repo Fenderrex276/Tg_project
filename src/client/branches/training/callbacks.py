@@ -58,7 +58,10 @@ async def send_video_note(call: types.CallbackQuery, state: FSMContext):
         video = InputFile("client/media/videos/programming.mp4")
     elif data['action'] == 'instruments':
         tmp_msg = send_video_instrument_msg
-        video = InputFile("client/media/videos/piano.mp4")
+        if data['additional_action'] == 'piano':
+            video = InputFile("client/media/videos/piano.mp4")
+        elif data['additional_action'] == 'guitar':
+            video = InputFile("client/media/videos/guitar.mp4")
     elif data['action'] == 'painting':
         tmp_msg = send_video_painting_msg
         video = InputFile("client/media/videos/painting.mp4")
@@ -95,7 +98,7 @@ async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
     print("FROM USER_BOT", v['video_id'])
     print("CHAT_ID", call.message.chat.id)
     await Video.next_step.set()
-    await call.message.answer(text=tmp_msg, reply_markup=types.ReplyKeyboardRemove())
+    await call.message.answer(text=tmp_msg)
     await call.bot.send_video_note(video_note=v['video_id'], chat_id=-1001845655881)  # TODO Вынести бы это в env файл
     await call.answer()
 
