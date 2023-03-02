@@ -10,6 +10,7 @@ from db.models import User
 from utils import get_timezone, get_date_to_start_dispute
 from .callbacks import months
 
+
 class ConfirmDispute:
     def __init__(self, bot: Bot, dp: Dispatcher):
         self.bot = bot
@@ -28,9 +29,7 @@ class ConfirmDispute:
         promocodes = ['HUI', 'ZALUPA', 'CHLEN', 'PIDARAS', 'SOBCHAK']
         blogers_promo = []
         print(message.text)
-        # TODO проходимся по базе и ищем промокоды среди зарегистрированных пользоватей
-        #  ищем по полю promocode_user если находим то добавляем этот промокод в поле
-        #  promocode_from_user текущего пользователя, но сначала храним его в редисе
+
         if message.text in promocodes or User.objects.filter(promocode_user=message.text).exists():
             msg = 'Спасибо 🙏 Промо-код успешно принят.'
             await Promo.next()
@@ -49,13 +48,6 @@ class ConfirmDispute:
         tmp = get_timezone(loc)
         await state.update_data(timezone=tmp[:len(tmp) - 4])
         msg = f"Установлен часовой пояс {tmp}"
-        # TODO Добавил новый ключ is_change_timezone, в нём храниться значение boolean.
-        #  Если True - значит таймзону поменяли в кнопке аккаунт, иначе False.
-        #  Проверку лучше осуществить по двум пунктам, на None и на False.
-
-        #1) Смотреть флаг time_zone в redis_data
-        #2) Если флаг есть то значит пользователь хочет сменить TZ
-        #3) Если его нет, то это регистрация
 
         await message.answer(text=msg)
 
@@ -65,16 +57,10 @@ class ConfirmDispute:
 
         if is_change_timezone:
             await change_period_task_info(message.from_user.id, tmp)
-
-        # if User.objects.filter(user_id=message.from_user.id).exists(): # TODO ПРоверять ещё и по депозиту
-        #     #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
-        #     await change_periodic_tasks(message.from_user.id, tmp)
-        # else:
         else:
-            await reminder_scheduler_add_job(self.dp, tmp[:len(tmp) - 4], "reminder", message.from_user.id, 1, notification_hour=10,
+            await reminder_scheduler_add_job(self.dp, tmp[:len(tmp) - 4], "reminder", message.from_user.id, 1,
+                                             notification_hour=10,
                                              notification_min=0)
-
-
 
         print(message.date)
         future_date = get_date_to_start_dispute(message.date, variant['start_disput'], tmp[:len(tmp) - 4])
@@ -175,6 +161,6 @@ class ConfirmDispute:
 
         await message.answer_photo(photo=photo, caption=choice_msg, reply_markup=tmp_keyboard,
                                    parse_mode=ParseMode.MARKDOWN_V2)
-#        await message.answer(text=choice_msg, reply_markup=tmp_keyboard, parse_mode=ParseMode.MARKDOWN_V2)
-        await state.update_data({'id_to_delete': message.message_id + 1}) # ??????? пофиксить
+        #        await message.answer(text=choice_msg, reply_markup=tmp_keyboard, parse_mode=ParseMode.MARKDOWN_V2)
+        await state.update_data({'id_to_delete': message.message_id + 1})  # ??????? пофиксить
         await Promo.next()

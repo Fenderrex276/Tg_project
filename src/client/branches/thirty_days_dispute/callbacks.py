@@ -8,7 +8,7 @@ from .states import StatesDispute, NewReview
 from db.models import RoundVideo, User
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
 from ..dispute_with_friend.messages import personal_goals_msg
-from client.tasks import del_scheduler, change_period_task_info
+from client.tasks import del_scheduler, change_period_task_info, reminder_scheduler_add_job
 from django.db.models import Q
 
 
@@ -124,7 +124,7 @@ def get_time_to_send_dispute(data):
             f"мы ждём твой репорт каждый день до {time_t}:30 утра.")
 
 
-async def reports(call: types.CallbackQuery, state: FSMContext):
+async def reports(call: types.CallbackQuery, state: FSMContext, dp: Dispatcher):
     main_photo = InputFile("client/media/Disput Bot-2/Default.png")
     try:
         user = User.objects.get(user_id=call.from_user.id)
@@ -157,6 +157,11 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
         elif user.count_days == 0 and user.count_mistakes != 0:
             main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
+            # TODO Отправка уведомлений о повторной игре
+            # TODO RUS Предложить отзывы если он победил
+            await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
+                                             notification_hour=10,
+                                             notification_min=0)
 
     elif current_video.status == "bad" and user.count_days != 30:
         if user.count_mistakes == 2 and current_video.n_day == 1 and user.promocode_from_friend != '0':
@@ -180,6 +185,10 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(is_deleted=-1)
 
     if user.count_mistakes == 0:
+        # TODO Отправка уведомлений о повторной игре
+        await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
+                                         notification_hour=10,
+                                         notification_min=0)
         await state.update_data(deposit=0)
         user.count_days = 0
         user.save()
@@ -587,7 +596,7 @@ async def withdraw_deposit(call: types.CallbackQuery, state: FSMContext):
 
                "Пройди свой Путь Героя и вывод твоего депозита на банковскую "
                "карту или в BTC станет доступен в этом окне")
-
+    # TODO Доделать вывод депозита
     await call.message.answer(text=tmp_msg, parse_mode=ParseMode.MARKDOWN_V2)
     await call.answer()
 
@@ -602,8 +611,6 @@ async def view_user_timezone(call: types.CallbackQuery, state: FSMContext):
 
 
 async def change_timezone(call: types.CallbackQuery, state: FSMContext):
-
-
     geo_position_msg = (
         "🌍 Укажи разницу во времени относительно UTC (Москва +3, Красноярск +7 и тд) или отправь в бот "
         "геопозицию (возьмем только часовой пояс)")
@@ -675,7 +682,7 @@ async def new_coment(call: types.CallbackQuery, state: FSMContext):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(begin_dispute, text='go_dispute', state="*")
-    dp.register_callback_query_handler(reports, text='report', state=StatesDispute.none)
+    dp.register_callback_query_handler(reports, text='report', state=StatesDispute.none, kwargs={'dp': dp})
 
     dp.register_callback_query_handler(choose_name_button, text='change_name', state=StatesDispute.account)
     dp.register_callback_query_handler(change_name, text='change_name_access', state=StatesDispute.account)
@@ -704,7 +711,8 @@ def register_callback(bot, dp: Dispatcher):
 
     dp.register_callback_query_handler(dispute_awards, text='dispute_award', state=StatesDispute.bonuses)
     dp.register_callback_query_handler(dispute_awards, text='return_to_awards', state=StatesDispute.bonuses)
-    dp.register_callback_query_handler(choose_video_to_contest, text='choose_video_to_dispute_award', state=StatesDispute.bonuses)
+    dp.register_callback_query_handler(choose_video_to_contest, text='choose_video_to_dispute_award',
+                                       state=StatesDispute.bonuses)
 
     dp.register_callback_query_handler(deposit_button, text='deposit', state=StatesDispute.account)
     dp.register_callback_query_handler(withdraw_deposit, text='withdrawal_deposit', state=StatesDispute.account)
@@ -759,8 +767,8 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(personal_goals, text='personal_goals', state=StatesDispute.states)
     dp.register_callback_query_handler(return_to_account, text="back_account", state=StatesDispute.personal_goals)
 
-    dp.register_callback_query_handler(reports, text='nice_god_job', state="*")
-    dp.register_callback_query_handler(reports, text='try_again', state="*")
+    dp.register_callback_query_handler(reports, text='nice_god_job', state="*", kwargs={'dp': dp})
+    dp.register_callback_query_handler(reports, text='try_again', state="*", kwargs={'dp': dp})
     dp.register_callback_query_handler(send_new_report_from_admin, text="send_new_video", state=StatesDispute.video)
     dp.register_callback_query_handler(send_new_report_from_admin, text="send_new_video",
                                        state=StatesDispute.video_note)

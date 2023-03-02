@@ -12,6 +12,8 @@ from utils import get_date_to_start_dispute
 months = {"January": "Января", "February": "Февраля", "March": "Марта", "April": "Апреля", "May": "Мая", "June": "Июня",
           "July": "Июля", "August": "Августа", "September": "Сентября", "October": "Октября",
           "November": "Ноября", "December": "Декабря"}
+
+
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
     await state.update_data(action='alcohol')
@@ -160,9 +162,6 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
 
     if is_change_timezone:
         await change_period_task_info(call.from_user.id, call.data)
-    # if User.objects.filter(user_id=call.from_user.id).exists():
-    #     #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
-    #     await change_periodic_tasks(call.from_user.id, call.data)
     else:
         await reminder_scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1, notification_hour=10,
                                          notification_min=0)

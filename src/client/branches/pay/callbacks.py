@@ -113,8 +113,9 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
 
     await state.update_data(name=call.from_user.first_name)
 
-    await reminder_scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 5, notification_hour=10,
+    await reminder_scheduler_add_job(dp, redis_data['timezone'], 'send_test_period_reminder', call.from_user.id, notification_hour=10,
                                      notification_min=0)
+
 
 
 async def start_current_disput(call: types.CallbackQuery, state: FSMContext):

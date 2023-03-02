@@ -46,7 +46,7 @@ def add_job(scheduler, call_fun, str_name: str, user_id, day_of_week: str, hour:
                       second=second,
                       kwargs=kwargs)
 
-    if str_name == "reminder":
+    if str_name == "reminder" or str_name == "send_test_period_reminder":
         kwargs.pop('dp')
     PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_{str_name}', fun=str_name,
                                 day_of_week=day_of_week,
@@ -56,57 +56,32 @@ def add_job(scheduler, call_fun, str_name: str, user_id, day_of_week: str, hour:
     scheduler.print_jobs()
 
 
-#
-# def admin_add_job(call_fun, str_name: str, user_id, day_of_week: str, hour: str, minute: str, second: str, kwargs):
-#     admin_scheduler.add_job(call_fun, replace_existing=True, trigger='cron', id=f'{user_id}_{str_name}',
-#                             day_of_week=day_of_week, hour=hour, minute=minute,
-#                             second=second,
-#                             kwargs=kwargs)
-#     if str_name == "reminder":
-#         kwargs.pop('dp')
-#     PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_{str_name}', fun=str_name,
-#                                 day_of_week=day_of_week,
-#                                 hour=hour,
-#                                 minute=minute, second=second,
-#                                 kwargs=kwargs)
-
-
-# SIMA TODO Добавить возможность периодичного вызова
 async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user_id: int, flag: int = -1,
                                      notification_hour=None,
                                      notification_min=None):
     hour, minute, second = time_calculated(t_zone, notification_hour, notification_min)
 
-    if fun == "reminder":  # RUS TODO  Нужно добавить кнопки после уведомлений и порешать вопрос с удалением уведомления
+    if fun == "reminder":  # TODO RUS Проверить какую-то кнопку на удаление
+        # TODO Надо поглядеть чтобы пользователь не мог сменить игру иначе порешать с уведомлениями
         if flag == 1:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы остановились на внесении депозита. Может продолжим?",
-                      "callback_data": "start_pay_state"}
+                      "callback_data": "start_pay_state", "count": 0}
 
         elif flag == 2:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы так и не выбрали сумму депозита. Хотите продолжить?",
-                      "callback_data": "choose_current_sum"}
+                      "callback_data": "choose_current_sum", "count": 0}
 
         elif flag == 3:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы так и не завершили внесение депозита. Хотите получить реквизиты?",
-                      "callback_data": "get_pay_details"}
+                      "callback_data": "get_pay_details", "count": 0}
 
         elif flag == 4:
             kwargs = {"dp": dp, "user_id": user_id,
                       "msg": "Вы так и не подтвердили желание внести депозит. Хотите продолжить?",
-                      "callback_data": "confirm_deposit"}
-
-        elif flag == 5:
-            kwargs = {"dp": dp, "user_id": user_id,
-                      "msg": "Вы внесли депозит, пора начать вашу первый этап диспута. Хотите продолжить?",
-                      "callback_data": "start_current_dispute"}
-
-        elif flag == 6:
-            kwargs = {"dp": dp, "user_id": user_id,
-                      "msg": "Начните свою первую тренировку уже сейчас. Хотите продолжить?",
-                      "callback_data": "lets_start_training"}
+                      "callback_data": "confirm_deposit", "count": 0}
         else:
             print(f'Ошибка вызова функции reminder_scheduler_add_job для создания напоминаний. Неверный flag')
             return
@@ -118,6 +93,103 @@ async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user
             add_job(client_scheduler, call_fun=send_reminder, str_name='reminder', user_id=user_id, day_of_week='*',
                     hour=hour,
                     minute=minute, second=second, kwargs=kwargs)
+    #TODO RUS  Нужно добавить кнопки после уведомлений и порешать вопрос с удалением уведомления. Добавить callback_data
+    elif fun == "send_test_period_reminder":
+        kwargs = {"dp": dp, "user_id": user_id,
+                  "msg": "У вас есть ещё 6 дней, чтобы отправить тестовое видео. Не затягивайте с этим)", "count": 1}
+        add_job(client_scheduler, call_fun=send_test_period_reminder, str_name='send_test_period_reminder',
+                user_id=user_id, day_of_week='*',
+                hour=hour,
+                minute=minute, second=second, kwargs=kwargs)
+    elif fun == "send_reminder_after_end":
+        kwargs = {"dp": dp, "user_id": user_id,
+                  "msg": "Бросьте себе вызов! Проверьте себя на прочность!", "count": 0}
+        add_job(client_scheduler, call_fun=send_reminder_after_end, str_name='send_reminder_after_end',
+                user_id=user_id, day_of_week='*',
+                hour=hour,
+                minute=minute, second=second, kwargs=kwargs)
+
+
+async def send_reminder(dp: Dispatcher, user_id: int, msg: str, callback_data: str, count: int = 0):
+    continue_keyboard = types.InlineKeyboardMarkup()
+    continue_keyboard.add(types.InlineKeyboardButton(text="Продолжить", callback_data=callback_data))
+
+    try:
+        task = PeriodicTask.objects.get(job_id=f"{user_id}_reminder")
+    except PeriodicTask.DoesNotExist:
+        return f'Ошибка! Периодической задачи с id {user_id}_reminder не существует'
+
+    task.kwargs['count'] = count + 1
+    kwargs = task.kwargs
+    kwargs['dp'] = dp
+    client_scheduler.modify_job(job_id=f"{user_id}_reminder", kwargs=kwargs)
+    my_date = date.today()
+    if count == 0:
+
+        weak = my_date.weekday()
+        client_scheduler.reschedule_job(job_id=f"{user_id}_reminder", trigger='cron', day_of_week=str(weak),
+                                        hour=task.hour,
+                                        minute=task.minute, second=task.second)
+        task.kwargs.pop('dp')
+        task.day_of_week = weak
+        task.save()
+        client_scheduler.print_jobs()
+        await dp.bot.send_message(user_id, msg, reply_markup=continue_keyboard)
+        return
+    elif count == 1:
+        month = my_date.month + 1
+        client_scheduler.reschedule_job(job_id=f"{user_id}_reminder", trigger='cron', month=str(month),
+                                        day_of_week=str(my_date.weekday()),
+                                        hour=task.hour,
+                                        minute=task.minute, second=task.second)
+        task.kwargs.pop('dp')
+        task.month = month
+        task.save()
+        client_scheduler.print_jobs()
+        await dp.bot.send_message(user_id, msg, reply_markup=continue_keyboard)
+        return
+    else:
+        del_scheduler(job_id=f"{user_id}_reminder", where='client')
+
+    # RUS TODO Новые состояния
+
+
+async def send_test_period_reminder(dp: Dispatcher, user_id: int, msg: str, count: int = 0):
+    print('В функции')
+    if PeriodicTask.objects.filter(job_id=f"{user_id}_send_first_code").exists() or PeriodicTask.objects.filter(
+            job_id=f"{user_id}_send_code"):
+        del_scheduler(job_id=f"{user_id}_send_test_period_reminder", where='client')
+    try:
+        task = PeriodicTask.objects.get(job_id=f"{user_id}_send_test_period_reminder")
+    except PeriodicTask.DoesNotExist:
+        return f'Ошибка! Периодической задачи с id {user_id}_reminder не существует'
+    print('Перед if')
+    task.kwargs['count'] = count + 1
+    kwargs = task.kwargs
+    kwargs['dp'] = dp
+    if count == 1:
+        kwargs[
+            'msg'] = f"У вас есть ещё {7 - count - 1} дней, чтобы отправить тестовое видео. Не затягивайте с этим)"
+    elif count in [2, 3, 4]:
+        kwargs[
+            'msg'] = f"У вас есть ещё {7 - count - 1} дня, чтобы отправить тестовое видео. Не затягивайте с этим)"
+    elif count == 5:
+        kwargs[
+            'msg'] = f"У вас есть ещё {7 - count - 1} день, чтобы отправить тестовое видео. Не затягивайте с этим)"
+    elif count == 6:
+        kwargs[
+            'msg'] = f"У вас последние сутки на то, чтобы отправить тестовое видео. Не затягивайте с этим)"
+    if count == 7:
+        msg = f'Сожалеем, но вы не отправили нам тестовое видео, и мы вынуждены закрыть диспут. Не отчаивайтесь и попробуйте снова.'
+        await dp.bot.send_message(user_id, msg)
+        del_scheduler(job_id=f"{user_id}_send_test_period_reminder", where='client')
+        # TODO Нужно сменить статус пользователя потому что он проиграл. Обработать логику завершения игры
+    else:
+        await dp.bot.send_message(user_id, msg)
+
+        client_scheduler.modify_job(job_id=f"{user_id}_send_test_period_reminder", kwargs=kwargs)
+        task.kwargs.pop('dp')
+        task.save()
 
 
 def date_calculated(notification_hour, utc_hour, date):
@@ -159,7 +231,7 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
     admin_scheduler.print_jobs()
 
 
-# SIMA TODO Адаптировать под новые периодические функции
+
 def load_periodic_task_for_admin():
     periodic_tasks_list = PeriodicTask.objects.all()
 
@@ -218,6 +290,16 @@ def load_periodic_task_for_client():
         if task.fun == "reminder":
             kwargs['dp'] = dp
             client_scheduler.add_job(send_reminder, replace_existing=True, trigger='cron', id=f'{task.job_id}',
+                                     month=task.month,
+                                     day_of_week=task.day_of_week,
+                                     hour=f'{task.hour}',
+                                     minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
+        elif task.fun == "send_test_period_reminder":
+            print(task.fun)
+            kwargs['dp'] = dp
+            client_scheduler.add_job(send_test_period_reminder, replace_existing=True, trigger='cron',
+                                     id=f'{task.job_id}',
+                                     month=task.month,
                                      day_of_week=task.day_of_week,
                                      hour=f'{task.hour}',
                                      minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
@@ -225,18 +307,7 @@ def load_periodic_task_for_client():
         print(f'CLIENT_SCHEDULER\n{client_scheduler.print_jobs()}')
 
 
-async def send_reminder(dp: Dispatcher, user_id: int, msg: str, callback_data: str):
-    continue_keyboard = types.InlineKeyboardMarkup()
-    continue_keyboard.add(types.InlineKeyboardButton(text="Продолжить", callback_data=callback_data))
-    await dp.bot.send_message(user_id, msg, reply_markup=continue_keyboard)
-    # RUS TODO Добавляем кнопку "Продолжить"
-    # RUS TODO Новые состояния
-
-
 async def send_first_code(user_id: int, chat_id: int, id_video: int):
-    # if deprecated:
-    #     schedulers = PeriodicTask.objects.filter(job_id=f'{user_id}_send_first_code')
-    #     for scheduler
     from admin.reports.callbacks import new_code
     print("Was FIRST_SEND")
 
@@ -338,6 +409,7 @@ async def hard_deadline_reminder(user_id, id_round_video, time):
         return f'Ошибка: Из бд была удалена запись с id {id_round_video} для пользователя {user_id}'
 
     if video.tg_id is None:
+        # TODO Добавить кнопку "Больше не повторится"
         await dp.bot.send_message(user_id,
                                   f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}')
         video.status = RoundVideo.VideoStatus.bad
@@ -350,8 +422,11 @@ async def hard_deadline_reminder(user_id, id_round_video, time):
             return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
         # TODO Выводит полный депозит после проигрыша. Я не понимаю на чьей стороне косяк
         if user.count_mistakes - 1 <= 0:
-            # TODO RUS Прикуртить картинку
             del_scheduler(job_id=f'{user_id}_send_code', where='admin')
+            try:
+                user = User.objects.get(user_id=user_id)
+            except User.DoesNotExist:
+                print(f'Пользователь с user_id {user_id} не найден!')
         user.count_mistakes -= 1
         user.save()
         del_scheduler(job_id=f'{user_id}_hard_deadline_reminder', where='admin')
@@ -359,12 +434,51 @@ async def hard_deadline_reminder(user_id, id_round_video, time):
         del_scheduler(job_id=f'{user_id}_hard_deadline_reminder', where='admin')
 
 
+async def send_reminder_after_end(dp: Dispatcher, user_id: int, msg: str, count: int = 0):
+    try:
+        task = PeriodicTask.objects.get(job_id=f"{user_id}_send_reminder_after_end")
+    except PeriodicTask.DoesNotExist:
+        return f'Ошибка! Периодической задачи с id {user_id}_send_reminder_after_end не существует'
+
+    task.kwargs['count'] = count + 1
+    kwargs = task.kwargs
+    kwargs['dp'] = dp
+    client_scheduler.modify_job(job_id=f"{user_id}_send_reminder_after_end", kwargs=kwargs)
+    my_date = date.today()
+    if count == 0:
+
+        weak = my_date.weekday()
+        client_scheduler.reschedule_job(job_id=f"{user_id}_send_reminder_after_end", trigger='cron',
+                                        day_of_week=str(weak),
+                                        hour=task.hour,
+                                        minute=task.minute, second=task.second)
+        task.kwargs.pop('dp')
+        task.day_of_week = weak
+        task.save()
+        client_scheduler.print_jobs()
+        await dp.bot.send_message(user_id, msg)
+        return
+    elif count == 1:
+        month = my_date.month + 1
+        client_scheduler.reschedule_job(job_id=f"{user_id}_send_reminder_after_end", trigger='cron', month=str(month),
+                                        day_of_week=str(my_date.weekday()),
+                                        hour=task.hour,
+                                        minute=task.minute, second=task.second)
+        task.kwargs.pop('dp')
+        task.month = month
+        task.save()
+        client_scheduler.print_jobs()
+        await dp.bot.send_message(user_id, msg)
+        return
+    else:
+        del_scheduler(job_id=f"{user_id}_reminder", where='client')
+
+
 async def send_code(user_id: int, chat_id: int, id_video: int):
     from admin.reports.callbacks import new_code
     await new_code(chat_id, user_id, id_video)
     add_soft_deadline(user_id)
 
-    # Todo Сделать время вызова изменяемым
 
 
 def del_scheduler(job_id: str, where: str):
@@ -525,6 +639,5 @@ async def reload_tasks():
         task.is_change = False
         task.save()
     admin_scheduler.print_jobs()
-    # TODO Менять уведомления с полезным материалом когда сделаю
 
 # TODO Обработать удаление всех напоминалок если пользователь жмёт "Спорить" когда периодическая задача уже создана

@@ -80,6 +80,7 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     await test_videos(call, state)
 
 
+
 async def refused_video(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_reply_markup(reply_markup=refused_keyboard)
 
@@ -254,6 +255,7 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
     tmp = await User.objects.filter(user_id=user.user_tg_id).alast()
 
     tmp.count_mistakes = tmp.count_mistakes - 1
+    #TODO Разобраться с вычетом депозита
     tmp.save()
     key_b = types.InlineKeyboardMarkup().add(
             types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again'))
@@ -261,7 +263,7 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
                                chat_id=user.chat_tg_id, reply_markup=types.InlineKeyboardMarkup().add(
             types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')
         ))
-
+    # TODO Нужно добавить удаление дедлайнов
     await call.message.answer('Готово!')
     await test_videos(call, state)
 

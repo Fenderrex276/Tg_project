@@ -75,11 +75,9 @@ async def send_video_note(call: types.CallbackQuery, state: FSMContext):
         await Video.recv_video_note.set()
         await call.bot.send_video_note(call.message.chat.id, video, reply_markup=None)
     await call.answer()
-    del_scheduler(f'{call.from_user.id}_reminder', 'client')
 
-    redis_data = await state.get_data()
-    await reminder_scheduler_add_job(dp, redis_data['timezone'], 'reminder', call.from_user.id, 6, notification_hour=10,
-                                     notification_min=0)
+
+
 
 
 async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
@@ -102,7 +100,7 @@ async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
     await call.bot.send_video_note(video_note=v['video_id'], chat_id=-1001845655881)  # TODO Вынести бы это в env файл
     await call.answer()
 
-    del_scheduler(f'{call.from_user.id}_reminder', 'client')
+
 
     # scheduler_add_job(dp, 'reminder', call.from_user.id, 7)
 
