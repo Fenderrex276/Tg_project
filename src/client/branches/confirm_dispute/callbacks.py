@@ -1,17 +1,12 @@
-from aiogram import Dispatcher
+from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from aiogram.types import ParseMode, InputFile
+from aiogram.types import ParseMode
 
-from client.branches.confirm_dispute.keyboards import *
-from client.branches.confirm_dispute.mesages import *
+from client.branches.confirm_dispute.messages import *
 from client.branches.confirm_dispute.states import Promo
 from client.branches.dispute_with_friend.states import Form
 from client.tasks import reminder_scheduler_add_job, change_period_task_info
-from utils import get_date_to_start_dispute
-
-months = {"January": "Января", "February": "Февраля", "March": "Марта", "April": "Апреля", "May": "Мая", "June": "Июня",
-          "July": "Июля", "August": "Августа", "September": "Сентября", "October": "Октября",
-          "November": "Ноября", "December": "Декабря"}
+from utils import get_date_to_start_dispute, buttons_timezone
 
 
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
@@ -162,120 +157,15 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
 
     if is_change_timezone:
         await change_period_task_info(call.from_user.id, call.data)
+    # if User.objects.filter(user_id=call.from_user.id).exists():
+    #     #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
+    #     await change_periodic_tasks(call.from_user.id, call.data)
     else:
         await reminder_scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1, notification_hour=10,
                                          notification_min=0)
 
     future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
-    date_to_start = str(future_date.day) + " " + months[str(future_date.strftime('%B'))] + " " + str(future_date.year)
-
-    choice_msg = ""
-    tmp_keyboard = types.InlineKeyboardMarkup
-    photo = InputFile
-    promocode = variant['promocode']
-    if promocode != '0':
-        promocode = '1'
-
-    if variant['action'] == 'alcohol':
-        photo = InputFile("client/media/disputs_images/alcohol.jpg")
-        choice_msg = f'{confirm_alcohol_disput_msg} Начало 🚩{date_to_start} \n Право на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = alcohol_deposit_keyboard
-
-    elif variant['action'] == 'smoking':
-        photo = InputFile("client/media/disputs_images/smoking.jpg")
-        choice_msg = f'{confirm_smoking_disput_msg} Начало 🚩{date_to_start} \n Право на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = smoking_deposit_keyboard
-
-    elif variant['action'] == 'drugs':
-        photo = InputFile("client/media/disputs_images/drugs.jpg")
-        choice_msg = f'{confirm_drugs_disput_msg} Начало 🚩{date_to_start} \n Право на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = drugs_deposit_keyboard
-
-    elif variant['action'] == 'gym':
-        photo = InputFile("client/media/disputs_images/gym.jpg")
-        choice_msg = f'{confirm_gym_disput_msg} Начало 🚩{date_to_start} \n Право на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = gym_deposit_keyboard
-
-    elif variant['action'] == 'weight':
-        photo = InputFile("client/media/disputs_images/weight.jpg")
-        choice_msg = f'{confirm_weight_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = weight_deposit_keyboard
-
-    elif variant['action'] == 'morning':
-        tmp_start = ""
-        if variant['additional_action'] == 'five_am':
-            photo = InputFile("client/media/disputs_images/five_am.jpg")
-            tmp_start = "5:30"
-        elif variant['additional_action'] == 'six_am':
-            photo = InputFile("client/media/disputs_images/six_am.jpg")
-            tmp_start = "6:30"
-        elif variant['additional_action'] == 'seven_am':
-            photo = InputFile("client/media/disputs_images/seven_am.jpg")
-            tmp_start = "7:30"
-        elif variant['additional_action'] == 'eight_am':
-            photo = InputFile("client/media/disputs_images/eight_am.jpg")
-            tmp_start = "8:30"
-        choice_msg = f'{confirm_morning_disput_msg} ⌛ Отправлять в бот до {tmp_start}\n\nНачало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = morning_deposit_keyboard
-
-    elif variant['action'] == 'language':
-        if variant['additional_action'] == 'english':
-            photo = InputFile("client/media/disputs_images/english.jpg")
-        elif variant['additional_action'] == 'chinese':
-            photo = InputFile("client/media/disputs_images/chinese.jpg")
-        elif variant['additional_action'] == 'spanish':
-            photo = InputFile("client/media/disputs_images/spanish.jpg")
-        elif variant['additional_action'] == 'arabian':
-            photo = InputFile("client/media/disputs_images/arabian.jpg")
-        elif variant['additional_action'] == 'italian':
-            photo = InputFile("client/media/disputs_images/italian.jpg")
-        elif variant['additional_action'] == 'french':
-            photo = InputFile("client/media/disputs_images/french.jpg")
-        choice_msg = f'{confirm_language_disput_msg}Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = language_deposit_keyboard
-
-    elif variant['action'] == 'money':
-        if variant['additional_action'] == 'hundred':
-            photo = InputFile("client/media/disputs_images/hundred.jpg")
-        elif variant['additional_action'] == 'three_hundred':
-            photo = InputFile("client/media/disputs_images/three_hundred.jpg")
-        choice_msg = f'{confirm_money_disput_msg}Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = money_deposit_keyboard
-
-    elif variant['action'] == 'food':
-        photo = InputFile("client/media/disputs_images/food.jpg")
-        choice_msg = f'{confirm_food_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = food_deposit_keyboard
-
-    elif variant['action'] == 'programming':
-        photo = InputFile("client/media/disputs_images/programming.jpg")
-        choice_msg = f'{confirm_programming_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = programming_deposit_keyboard
-
-    elif variant['action'] == 'instruments':
-        if variant['additional_action'] == 'piano':
-            photo = InputFile("client/media/disputs_images/piano.jpg")
-        elif variant['additional_action'] == 'guitar':
-            photo = InputFile("client/media/disputs_images/guitar.jpg")
-        choice_msg = f'{confirm_programming_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                     f'{second_msg}'
-        tmp_keyboard = instruments_deposit_keyboard
-
-    elif variant['action'] == 'painting':
-        photo = InputFile("client/media/disputs_images/painting.jpg")
-        choice_msg = f'{confirm_programming_disput_msg} Начало 🚩{date_to_start} \nПраво на ошибку: {promocode}\n\n' \
-                     f'{second_msg} '
-        tmp_keyboard = painting_deposit_keyboard
+    photo, choice_msg, tmp_keyboard = get_timezone_msg(future_date, variant)
 
     await call.message.answer_photo(photo=photo, caption=choice_msg, reply_markup=tmp_keyboard,
                                     parse_mode=ParseMode.MARKDOWN_V2)
@@ -329,35 +219,4 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(recieved_date, text='select_after_tomorrow', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(geo_position, text='next_step_three', state=Promo.input_promo)
-    dp.register_callback_query_handler(set_geo_position, text='— 10', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 9:30', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 9', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 8', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 7', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 6', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 5', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 4', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 3:30', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 3', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 2', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='— 1', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+0', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+1', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+2', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+3', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+3:30', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+4', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+4:30', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+5', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+5:30', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+5:45', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+6', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+6:30', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+7', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+8', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+8:45', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+9', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+9:30', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+10', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+10:30', state=Promo.geo_position)
-    dp.register_callback_query_handler(set_geo_position, text='+11', state=Promo.geo_position)
+    buttons_timezone(dp=dp, func=set_geo_position, current_state=Promo.geo_position)

@@ -7,6 +7,7 @@ from admin.сallbacks import current_dispute, get_stars
 from db.models import Supt, Reviews, User
 from .keyboards import *
 
+
 class Nums:
     num_review = 0
     num_pass = 0
@@ -131,14 +132,14 @@ async def f(call: types.CallbackQuery, state: FSMContext):
                    f"Оценка: {mark}\n"
                    f"Отзыв: {new_review.coment}\n")
 
-        await state.update_data(user_id=new_review.user_id, id_dispute=new_review.id_dispute, chat_id=new_review.chat_id)
+        await state.update_data(user_id=new_review.user_id, id_dispute=new_review.id_dispute,
+                                chat_id=new_review.chat_id)
         await call.message.answer(text=tmp_msg, reply_markup=publish_or_not_keyboard)
-
 
     await call.answer()
 
-async def bad_review(call: types.CallbackQuery, state: FSMContext):
 
+async def bad_review(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     refuse = await Reviews.objects.filter(user_id=data['user_id'], id_dispute=data['id_dispute']).alast()
     refuse.state_t = Reviews.StateReview.bad_review

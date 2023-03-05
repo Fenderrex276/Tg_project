@@ -1,5 +1,5 @@
 import random
-from aiogram import types, Dispatcher
+from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile, ParseMode
 from .diary import questions
@@ -8,8 +8,9 @@ from .states import StatesDispute, NewReview
 from db.models import RoundVideo, User
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
 from ..dispute_with_friend.messages import personal_goals_msg
-from client.tasks import del_scheduler, change_period_task_info, reminder_scheduler_add_job
-from django.db.models import Q
+from client.tasks import change_period_task_info
+from utils import buttons_timezone
+from .messages import video_text, get_message_video
 
 
 async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
@@ -26,105 +27,7 @@ async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-def video_text(data: dict, count_days: int):
-    purpose = ""
-    video_with_code = ""
-    time_before = "22:30"
-
-    if data['action'] == 'alcohol':
-        purpose = "client/media/disputs_images/alcohol.jpg"
-        video_with_code = "🤳 Видео с кодом и отрицательным алкотестом"
-
-    elif data['action'] == 'smoking':
-        purpose = "client/media/disputs_images/smoking.jpg"
-        video_with_code = "🤳 Видео с кодом и экспресс-тестом"
-    elif data['action'] == 'drugs':
-        purpose = "client/media/disputs_images/drugs.jpg"
-        video_with_code = "🤳 Видео с кодом и экспресс-тестом на ПАВ"
-    elif data['action'] == "gym":
-        purpose = "client/media/disputs_images/gym.jpg"
-        video_with_code = "🤳 Видео с кодом в зеркале спорт-зала"
-    elif data['action'] == "weight":
-        purpose = "client/media/disputs_images/weight.jpg"
-        video_with_code = "🤳 Видео взвешивания с кодом"
-    elif data['action'] == "morning":
-        if data['additional_action'] == 'five_am':
-            time_before = "5:30"
-            purpose = "client/media/disputs_images/five_am.jpg"
-        elif data['additional_action'] == 'six_am':
-            time_before = "6:30"
-            purpose = "client/media/disputs_images/six_am.jpg"
-        elif data['additional_action'] == 'seven_am':
-            time_before = "7:30"
-            purpose = "client/media/disputs_images/seven_am.jpg"
-        elif data['additional_action'] == 'eight_am':
-            time_before = "8:30"
-            purpose = "client/media/disputs_images/eight_am.jpg"
-        video_with_code = "🤳 Видео с кодом в зеркале ванны"
-    elif data['action'] == "language":
-        if data['additional_action'] == 'english':
-            purpose = "client/media/disputs_images/english.jpg"
-        elif data['additional_action'] == 'chinese':
-            purpose = "client/media/disputs_images/chinese.jpg"
-        elif data['additional_action'] == 'spanish':
-            purpose = "client/media/disputs_images/spanish.jpg"
-        elif data['additional_action'] == 'arabian':
-            purpose = "client/media/disputs_images/arabian.jpg"
-        elif data['additional_action'] == 'italian':
-            purpose = "client/media/disputs_images/italian.jpg"
-        elif data['additional_action'] == 'french':
-            purpose = "client/media/disputs_images/french.jpg"
-        video_with_code = "🤳 Видео с кодом и конспектами"
-    elif data['action'] == 'money':
-
-        if data['additional_action'] == 'hundred':
-            purpose = "client/media/disputs_images/hundred.jpg"
-        elif data['additional_action'] == 'three_hundred':
-            purpose = "client/media/disputs_images/three_hundred.jpg"
-        video_with_code = "🤳 Запись экрана из банка с кодом"
-    elif data['action'] == 'food':
-        purpose = "client/media/disputs_images/food.jpg"
-        video_with_code = "🤳 Видео с кодом и процессом"
-    elif data['action'] == 'programming':
-        purpose = "client/media/disputs_images/programming.jpg"
-        video_with_code = "🤳 Видео с кодом и процессом"
-    elif data['action'] == 'instruments':
-        if data['additional_action'] == 'piano':
-            purpose = "client/media/disputs_images/piano.jpg"
-        elif data['additional_action'] == 'guitar':
-            purpose = "client/media/disputs_images/guitar.jpg"
-        video_with_code = "🤳 Видео с кодом и процессом"
-    elif data['action'] == 'painting':
-        purpose = "client/media/disputs_images/painting.jpg"
-        video_with_code = "🤳 Видео с кодом и процессом"
-
-    start_current_disput_msg = (f"*До победы осталось {count_days} дней*\n\n"
-                                "Условия на 30 дней\n"
-                                f"{video_with_code}\n"
-                                f"⏳ Отправлять в бот до {time_before}\n\n"
-
-                                f"🧊 Депозит: {data['deposit']} ₽ \n\n")
-
-    return [purpose, start_current_disput_msg]
-
-
-def get_time_to_send_dispute(data):
-    time_t = 22
-
-    if data['action'] == 'morning':
-        if data['additional_action'] == 'five_am':
-            time_t = 5
-        elif data['additional_action'] == 'six_am':
-            time_t = 6
-        elif data['additional_action'] == 'seven_am':
-            time_t = 7
-        elif data['additional_action'] == 'eight_am':
-            time_t = 8
-    return (f"⌛️ Время для отправки репорта истекло. По правилам Диспута, "
-            f"мы ждём твой репорт каждый день до {time_t}:30 утра.")
-
-
-async def reports(call: types.CallbackQuery, state: FSMContext, dp: Dispatcher):
+async def reports(call: types.CallbackQuery, state: FSMContext):
     main_photo = InputFile("client/media/Disput Bot-2/Default.png")
     try:
         user = User.objects.get(user_id=call.from_user.id)
@@ -134,15 +37,6 @@ async def reports(call: types.CallbackQuery, state: FSMContext, dp: Dispatcher):
 
     current_video = RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                               type_video=RoundVideo.TypeVideo.archive).last()
-
-    # videos = RoundVideo.objects.filter(user_tg_id=call.from_user.id, type_video=RoundVideo.TypeVideo.dispute, tg_id="")
-
-    # if len(videos) > 1:
-    #     user.count_mistakes = user.count_mistakes - 1
-    #     user.save()
-
-    # print(user.count_mistakes, ":USER MISTAKES, ", user.promocode_from_friend, "promocode", user.count_days,
-    #       current_video.tg_id, "THIS TG_ID")
 
     if current_video.status == "good" and user.count_days != 30:
 
@@ -157,13 +51,9 @@ async def reports(call: types.CallbackQuery, state: FSMContext, dp: Dispatcher):
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
         elif user.count_days == 0 and user.count_mistakes != 0:
             main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
-            # TODO Отправка уведомлений о повторной игре
-            # TODO RUS Предложить отзывы если он победил
-            await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
-                                             notification_hour=10,
-                                             notification_min=0)
 
     elif current_video.status == "bad" and user.count_days != 30:
+
         if user.count_mistakes == 2 and current_video.n_day == 1 and user.promocode_from_friend != '0':
             main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{2}.png")
         elif user.count_mistakes == 1 and current_video.n_day == 1 and user.promocode_from_friend == '0':
@@ -185,10 +75,6 @@ async def reports(call: types.CallbackQuery, state: FSMContext, dp: Dispatcher):
     await state.update_data(is_deleted=-1)
 
     if user.count_mistakes == 0:
-        # TODO Отправка уведомлений о повторной игре
-        await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
-                                         notification_hour=10,
-                                         notification_min=0)
         await state.update_data(deposit=0)
         user.count_days = 0
         user.save()
@@ -212,7 +98,7 @@ async def choose_name_button(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def change_name(call: types.CallbackQuery, state: FSMContext):
+async def change_name(call: types.CallbackQuery):
     await StatesDispute.change_name.set()
     msg = "💬 Введи своё новое имя:"
 
@@ -231,16 +117,6 @@ async def check_report(call: types.CallbackQuery, state: FSMContext):
                                                 tg_id="")
         data = await state.get_data()
         print("COUNT VIDEOS WITHOUT ID FILE", len(user_videos))
-        # if len(user_videos) > 1:
-        #     user_videos[0].tg_id = "0"
-        #     user_videos[0].save()
-        #
-        #     user = await User.objects.filter(user_id=call.from_user.id).alast()
-        #     user.count_mistakes = user.count_mistakes - 1
-        #     user.save()
-        #     error_dispute_msg = get_time_to_send_dispute(data)
-        #     await call.message.answer(error_dispute_msg)
-        #     return
 
         user_video = await RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                                      chat_tg_id=call.message.chat.id,
@@ -250,13 +126,17 @@ async def check_report(call: types.CallbackQuery, state: FSMContext):
         # user_video = await RoundVideo.objects.aget(id_video=data['id_video_code'])
         if user_video.status == "" and user_video.tg_id != "":
             tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
-            await call.message.edit_caption(caption=tmp_msg)
+            await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+                types.InlineKeyboardButton(text='Назад',
+                                           callback_data='Thanks1')))
+
             await state.update_data(id_video_code="")
         else:
             new_code = " ".join(list(user_video.code_in_video))
             temp_array = get_message_video(data, new_code)
             await call.message.answer(text=temp_array[0])
             await state.update_data(new_code=user_video.code_in_video, id_video_code=user_video.id_video)
+
             if data['action'] == 'money':
                 await StatesDispute.video.set()
                 await call.message.answer_video(video=InputFile(temp_array[1]))
@@ -265,7 +145,10 @@ async def check_report(call: types.CallbackQuery, state: FSMContext):
                 await call.message.answer_video_note(video_note=InputFile(temp_array[1]))
     except:
         # ?????????????
-        await call.message.edit_caption(caption='Твой новый код придёт в бот автоматически.')
+        await call.message.edit_caption(caption='Твой новый код придёт в бот автоматически.',
+                                        reply_markup=types.InlineKeyboardMarkup().add(
+                                            types.InlineKeyboardButton(text='Назад',
+                                                                       callback_data='Thanks1')))
     await call.answer()
 
 
@@ -313,72 +196,6 @@ async def send_new_report_from_admin(call: types.CallbackQuery, state: FSMContex
     await call.answer()
 
 
-def get_message_video(data, new_code):
-    tmp_msg = ""
-    video = ""
-    if data['action'] == 'alcohol':
-        tmp_msg = ("⏰ Отправь до 22:30 кружочек с тестом на алкоголь"
-                   f" как на примере, произнеси код 🔒 {new_code}")
-        video = "client/media/videos/alcohol.mp4"
-    elif data['action'] == 'drugs':
-        tmp_msg = ("⏰ Отправь до 00:00 кружочек с тестом на ПАВ "
-                   "(даже если он пока положительный), оторви полоску,"
-                   f" как на примере, произнеси код 🔒 {new_code}")
-        video = "client/media/videos/drugs.mp4"
-    elif data['action'] == 'smoking':
-        tmp_msg = ("⏰ Отправь до 22:30 кружочек с тестом на никотин "
-                   "(даже если он пока положительный), оторви полоску как на "
-                   f"примере, произнеси код 🔒 {new_code}")
-
-        video = "client/media/videos/smoke.mp4"
-    elif data['action'] == 'gym':
-        tmp_msg = ("⏰ Отправь до 22:30 кружочек в зеркале в спорт-зале, "
-                   f"как на примере, произнеси код 🔒 {new_code}")
-        video = "client/media/videos/gym.mp4"
-    elif data['action'] == 'weight':
-        tmp_msg = ("⏰ Отправь до 22:30 кружочек своего взвешивания,"
-                   f" как на примере, произнеси код 🔒 {new_code}")
-        video = "client/media/videos/weight.mp4"
-    elif data['action'] == 'morning':
-        if data['additional_action'] == 'five_am':
-            tmp_msg = f"⏰ Отправь до 5:30 кружочек в зеркале, как на примере, произнеси код 🔒 {new_code}"
-        elif data['additional_action'] == 'six_am':
-            tmp_msg = f"⏰ Отправь до 6:30 кружочек в зеркале, как на примере, произнеси код 🔒 {new_code}"
-        elif data['additional_action'] == 'seven_am':
-            tmp_msg = f"⏰ Отправь до 7:30 кружочек в зеркале, как на примере, произнеси код 🔒 {new_code}"
-        elif data['additional_action'] == 'eight_am':
-            tmp_msg = f"⏰ Отправь до 8:30 кружочек в зеркале, как на примере, произнеси код 🔒 {new_code}"
-        video = "client/media/videos/morning.mp4"
-    elif data['action'] == 'language':
-        tmp_msg = ("⏰ Отправь до 22:30 кружочек с конспектами своего занятия, "
-                   f"как на примере, произнеси код 🔒 {new_code}")
-        video = "client/media/videos/language.mp4"
-    elif data['action'] == 'money':
-        tmp_msg = ("⏰ Отправь до 22:30 видео-запись экрана со своего специального депозитного счета,"
-                   f" как на примере, на видео должен быть код 🔒 {new_code}")
-        video = "client/media/videos/bank.mp4"
-    elif data['action'] == 'food':
-        tmp_msg = ("⏰ Отправь до 22:30 кружочек процесса приготовления здоровой еды,"
-                   f" как на примере, произнеси код 🔒 {new_code}")
-        video = "client/media/videos/food.mp4"
-    elif data['action'] == 'programming':
-        tmp_msg = ("⏰ Отправь до 22:30 кружочек процесса программирования,"
-                   f" как на примере, произнеси код 🔒 {new_code}")
-        video = "client/media/videos/programming.mp4"
-    elif data['action'] == 'instruments':
-        tmp_msg = ("⏰ Отправь до 22:30 кружочек процесса занятий на муз."
-                   f" инструменте, как на примере, произнеси код 🔒 {new_code}")
-        if data['additional_action'] == 'piano':
-            video = InputFile("client/media/videos/piano.mp4")
-        elif data['additional_action'] == 'guitar':
-            video = InputFile("client/media/videos/guitar.mp4")
-    elif data['action'] == 'painting':
-        tmp_msg = f"⏰ Отправь до 22:30 кружочек процесса рисования, как на примере, произнеси код 🔒 {new_code}"
-        video = "client/media/videos/painting.mp4"
-
-    return [tmp_msg, video]
-
-
 async def diary_button(call: types.CallbackQuery, state: FSMContext):
     msg = ("📝 Дневник — это честный диалог "
            "с самим собой, со своим внутренним «Я» в интерактивной форме.\n\n"
@@ -407,7 +224,7 @@ async def random_question(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def admit_answer(call: types.CallbackQuery, state: FSMContext):
+async def admit_answer(call: types.CallbackQuery):
     await StatesDispute.diary.set()
     msg = "💬 Пиши всё, что придёт в голову:"
     await call.message.answer(text=msg)
@@ -416,14 +233,7 @@ async def admit_answer(call: types.CallbackQuery, state: FSMContext):
 
 async def next_question(call: types.CallbackQuery, state: FSMContext):
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    number = await state.get_data()
-    ind = number['number_question']
-    second_ind = random.randint(0, 29)
-    if second_ind == ind:
-        second_ind = random.randint(0, 29)
-    await state.update_data(number_question=second_ind)
-    await call.message.answer(text=questions[second_ind], reply_markup=admit_or_pass_keyboard)
-    await call.answer()
+    await random_question(call, state)
 
 
 async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
@@ -463,7 +273,7 @@ async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def return_reports(call: types.CallbackQuery, state: FSMContext):
+async def return_reports(call: types.CallbackQuery):
     await StatesDispute.reports.set()
     await call.message.edit_caption(caption="", reply_markup=report_keyboard)
     await call.answer()
@@ -478,24 +288,11 @@ async def awards(call: types.CallbackQuery, state: FSMContext):
     tmp_msg = ("👑 Бонусы — 0 ₽\n\n"
                "Выбери задание и зарабатывай дополнительные 💰 в свой депозит")
 
-    # data = await state.get_data()
-    #
-    # try:
-    #     await call.bot.delete_message(chat_id=call.message.chat.id,
-    #                                   message_id=data['promocode_msg_delete'])
-    #     await call.bot.delete_message(chat_id=call.message.chat.id,
-    #                                   message_id=data['promocode_msg_delete'] + 1)
-    # finally:
-    #     """if is_deleted['is_deleted'] == 1:
-    #     await call.bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id + 1)
-    #     await call.bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id + 2)
-    #     await state.update_data(is_deleted=0)
-    #     """
     await call.message.edit_caption(caption=tmp_msg, reply_markup=awards_keyboard)
     await call.answer()
 
 
-async def promo_code_awards(call: types.CallbackQuery, state: FSMContext):
+async def promo_code_awards(call: types.CallbackQuery):
     tmp_msg = ("🎟 Рассказывай друзьям и подписчикам о том, как проходишь свой путь и дари 🎁 промо-код "
                "на право одной ошибки без потери депозита в Диспуте.\n\n"
                "Получай дополнительные 1 000 ₽ на счёт своего депозита за каждого, кто примет вызов"
@@ -521,7 +318,7 @@ async def my_promocode(call: types.CallbackQuery):
     await call.answer()
 
 
-async def dispute_awards(call: types.CallbackQuery, state: FSMContext):
+async def dispute_awards(call: types.CallbackQuery):
     tmp_msg = ("⭐️ Отправь свой лучший кружочек "
                "на ежемесячный конкурс DisputeAward.\n\n"
 
@@ -564,7 +361,7 @@ async def deposit_button(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def personal_goals(call: types.CallbackQuery, state: FSMContext):
+async def personal_goals(call: types.CallbackQuery):
     await StatesDispute.personal_goals.set()
     photo = InputFile("client/media/volya/volya1.jpg")
     await call.message.answer_photo(photo=photo,
@@ -589,14 +386,14 @@ async def return_to_account(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer(text=msg, reply_markup=account_keyboard, parse_mode=ParseMode.MARKDOWN)
 
 
-async def withdraw_deposit(call: types.CallbackQuery, state: FSMContext):
+async def withdraw_deposit(call: types.CallbackQuery):
     user = await User.objects.filter(user_id=call.from_user.id).alast()
 
     tmp_msg = (f"🚩*До победы осталось {user.count_days} дней\.*\n\n"
 
                "Пройди свой Путь Героя и вывод твоего депозита на банковскую "
                "карту или в BTC станет доступен в этом окне")
-    # TODO Доделать вывод депозита
+
     await call.message.answer(text=tmp_msg, parse_mode=ParseMode.MARKDOWN_V2)
     await call.answer()
 
@@ -610,7 +407,7 @@ async def view_user_timezone(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_text(text=tmp_msg, reply_markup=back_or_send_keyboard)
 
 
-async def change_timezone(call: types.CallbackQuery, state: FSMContext):
+async def change_timezone(call: types.CallbackQuery):
     geo_position_msg = (
         "🌍 Укажи разницу во времени относительно UTC (Москва +3, Красноярск +7 и тд) или отправь в бот "
         "геопозицию (возьмем только часовой пояс)")
@@ -646,7 +443,7 @@ async def new_time_zone(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def support_button(call: types.CallbackQuery, state: FSMContext):
+async def support_button(call: types.CallbackQuery):
     tmp_msg = ("🆘 *Поддержка*\n\n"
 
                "Расскажи о технической ошибке, если столкнёшься с этим в процессе, и наши арбитры оперативно придут "
@@ -661,14 +458,14 @@ async def support_button(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def new_support_question(call: types.CallbackQuery, state: FSMContext):
+async def new_support_question(call: types.CallbackQuery):
     await StatesDispute.new_question.set()
 
     await call.message.answer(text='💬 Введи сообщение:')
     await call.answer()
 
 
-async def new_review(call: types.CallbackQuery, state: FSMContext):
+async def new_review(call: types.CallbackQuery):
     await NewReview.input_city.set()
     await call.message.answer(text="🌇 Напиши свой город:")
 
@@ -682,7 +479,7 @@ async def new_coment(call: types.CallbackQuery, state: FSMContext):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(begin_dispute, text='go_dispute', state="*")
-    dp.register_callback_query_handler(reports, text='report', state=StatesDispute.none, kwargs={'dp': dp})
+    dp.register_callback_query_handler(reports, text='report', state=StatesDispute.none)
 
     dp.register_callback_query_handler(choose_name_button, text='change_name', state=StatesDispute.account)
     dp.register_callback_query_handler(change_name, text='change_name_access', state=StatesDispute.account)
@@ -703,6 +500,7 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(awards, text='bonuses', state=StatesDispute.reports)
     dp.register_callback_query_handler(awards, text='return_to_bonuses', state=StatesDispute.bonuses)
 
+    dp.register_callback_query_handler(return_reports, text='Thanks1', state=StatesDispute.new_report)
     dp.register_callback_query_handler(return_reports, text='return_to_reports', state=StatesDispute.bonuses)
     dp.register_callback_query_handler(promo_code_awards, text='1promo_code1', state=StatesDispute.bonuses)
     dp.register_callback_query_handler(awards, text='back_awards', state=StatesDispute.bonuses)
@@ -723,38 +521,7 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(return_account, text='cancel_change_name', state=StatesDispute.account)
     dp.register_callback_query_handler(return_account, text='cancel_edit_timezone', state=StatesDispute.account)
 
-    dp.register_callback_query_handler(new_time_zone, text='— 10', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 9:30', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 9', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 8', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 7', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 6', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 5', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 4', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 3:30', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 3', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 2', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='— 1', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+0', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+1', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+2', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+3', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+3:30', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+4', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+4:30', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+5', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+5:30', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+5:45', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+6', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+6:30', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+7', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+8', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+8:45', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+9', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+9:30', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+10', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+10:30', state=StatesDispute.new_timezone)
-    dp.register_callback_query_handler(new_time_zone, text='+11', state=StatesDispute.new_timezone)
+    buttons_timezone(dp=dp, func=new_time_zone, current_state=StatesDispute.new_timezone)
 
     dp.register_callback_query_handler(support_button, text='support', state=StatesDispute.account)
 
@@ -767,8 +534,8 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(personal_goals, text='personal_goals', state=StatesDispute.states)
     dp.register_callback_query_handler(return_to_account, text="back_account", state=StatesDispute.personal_goals)
 
-    dp.register_callback_query_handler(reports, text='nice_god_job', state="*", kwargs={'dp': dp})
-    dp.register_callback_query_handler(reports, text='try_again', state="*", kwargs={'dp': dp})
+    dp.register_callback_query_handler(reports, text='nice_god_job', state="*")
+    dp.register_callback_query_handler(reports, text='try_again', state="*")
     dp.register_callback_query_handler(send_new_report_from_admin, text="send_new_video", state=StatesDispute.video)
     dp.register_callback_query_handler(send_new_report_from_admin, text="send_new_video",
                                        state=StatesDispute.video_note)

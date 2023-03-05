@@ -12,6 +12,7 @@ from client.tasks import del_scheduler, reminder_scheduler_add_job
 from client.initialize import dp
 from client.branches.thirty_days_dispute.keyboards import menu_keyboard
 
+
 async def choose_sum_to_pay(call: types.CallbackQuery, state: FSMContext):
     await PayStates.pay.set()
 
@@ -64,7 +65,7 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
 
     await call.message.answer(text="Поздравляем 🎉 ты уже в шаге от цели. Заявка #TG2802 успешно оплачена.\n\n",
-                                 reply_markup=menu_keyboard)
+                              reply_markup=menu_keyboard)
 
     success_payment_msg = (f" 🔥 Твой депозит пополнен на {v['deposit']} ₽ и заморожен до конца пари — соблюдай "
                            f"условия каждый"
@@ -202,7 +203,6 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
                                 f"⏳ Отправлять в бот до {time_before}\n\n"
                                 "До победы осталось 30 дней\n"
                                 f"Право на ошибку: {promo}")
-
 
     await call.message.edit_text(text=start_current_disput_msg, reply_markup=next_step_keyboard,
                                  parse_mode=ParseMode.MARKDOWN)

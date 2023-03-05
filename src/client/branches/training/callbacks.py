@@ -10,7 +10,7 @@ from client.branches.training.states import Video
 from client.initialize import dp
 from client.tasks import del_scheduler, reminder_scheduler_add_job
 from db.models import RoundVideo, User
-
+from settings.settings import CHANNEL_ID
 
 async def preparation_for_dispute(call: types.CallbackQuery, state: FSMContext):
     await Video.none.set()
@@ -97,7 +97,7 @@ async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
     print("CHAT_ID", call.message.chat.id)
     await Video.next_step.set()
     await call.message.answer(text=tmp_msg)
-    await call.bot.send_video_note(video_note=v['video_id'], chat_id=-1001845655881)  # TODO Вынести бы это в env файл
+    await call.bot.send_video_note(video_note=v['video_id'], chat_id=CHANNEL_ID)
     await call.answer()
 
 

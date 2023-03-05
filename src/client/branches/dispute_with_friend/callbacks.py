@@ -1,5 +1,5 @@
 from aiogram import Dispatcher
-from aiogram import types
+
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode, InputFile
 
@@ -7,7 +7,6 @@ from client.branches.confirm_dispute.states import Promo
 from client.branches.dispute_with_friend.keyboards import *
 from client.branches.dispute_with_friend.messages import *
 from client.branches.dispute_with_friend.states import Form
-from client.branches.start.keyboards import menu_keyboard
 
 
 async def test_of_will(call: types.CallbackQuery):
@@ -247,7 +246,7 @@ async def more_money(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def cook_healthy_food(call: types.CallbackQuery, state: FSMContext):
+async def cook_healthy_food(call: types.CallbackQuery):
     await call.bot.edit_message_caption(chat_id=call.message.chat.id,
                                         parse_mode=ParseMode.MARKDOWN,
                                         message_id=call.message.message_id,

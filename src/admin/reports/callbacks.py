@@ -41,6 +41,7 @@ async def test_videos(call: types.CallbackQuery, state: FSMContext):
         else:
             await call.message.answer_video_note(video_note=new_video.tg_id,
                                                  reply_markup=test_keyboard)
+    await call.answer()
 
 
 async def access_video(call: types.CallbackQuery, state: FSMContext):
@@ -78,11 +79,13 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
     scheduler.print_jobs()"""
     await test_videos(call, state)
+    await call.answer()
 
 
 
 async def refused_video(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_reply_markup(reply_markup=refused_keyboard)
+    await call.answer()
 
 
 async def new_code(chat_id: int, user_id, id_video):
@@ -114,19 +117,23 @@ async def thirty_days_videos(call: types.CallbackQuery):
     await call.message.edit_text(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='🔥 Начать', callback_data='lets_go'),
         types.InlineKeyboardButton(text='Назад', callback_data='back_reports')))
+    await call.answer()
 
 
 async def back_to_menu(call: types.CallbackQuery):
     await call.message.edit_text(text="Меню репортов", reply_markup=reports_menu_keyboard)
+    await call.answer()
 
 
 async def back_to_video(call: types.CallbackQuery):
     await call.bot.delete_message(message_id=call.message.message_id, chat_id=call.message.chat.id)
+    await call.answer()
 
 
 async def confirm_video(call: types.CallbackQuery):
     await call.message.answer(text='Пользователь успешно прошел подготовку и готов к игре?',
                               reply_markup=access_keyboard)
+    await call.answer()
 
 
 async def refused1_video(call: types.CallbackQuery, state: FSMContext):
@@ -144,6 +151,7 @@ async def refused1_video(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer('Готово!')
     await test_videos(call, state)
+    await call.answer()
 
 
 async def refused2_video(call: types.CallbackQuery, state: FSMContext):
@@ -159,13 +167,13 @@ async def refused2_video(call: types.CallbackQuery, state: FSMContext):
                                ))
 
     await call.message.answer('Готово!')
-    await test_videos(call, state)
 
 
 async def refused3_video(call: types.CallbackQuery, state: FSMContext):
     await ReportStates.input_message.set()
 
     await call.message.answer("Введите сообщение:")
+    await call.answer()
 
 
 async def archive_button(call: types.CallbackQuery, state: FSMContext):
@@ -174,6 +182,7 @@ async def archive_button(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_text(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='Назад', callback_data="back_from_archive")
     ))
+    await call.answer()
 
 
 async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
@@ -206,6 +215,7 @@ async def thirty_day_dispute(call: types.CallbackQuery, state: FSMContext):
         else:
             await call.message.answer_video_note(video_note=new_dispute.tg_id,
                                                  reply_markup=volya_keyboard)
+    await call.answer()
 
 
 async def accept_current_dispute(call: types.CallbackQuery, state: FSMContext):
@@ -221,6 +231,7 @@ async def accept_current_dispute(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer_video_note(video_note=start_video.tg_id)
     await call.message.answer(text=tmp_msg, reply_markup=access_volya_keyboard)
+    await call.answer()
 
 
 async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
@@ -243,6 +254,7 @@ async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
     await thirty_day_dispute(call, state)
+    await call.answer()
 
 
 async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext):
@@ -258,7 +270,7 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
     #TODO Разобраться с вычетом депозита
     tmp.save()
     key_b = types.InlineKeyboardMarkup().add(
-            types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again'))
+        types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again'))
     await mainbot.send_message(text="⛔️ Несоответствие условиям спора",
                                chat_id=user.chat_tg_id, reply_markup=types.InlineKeyboardMarkup().add(
             types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')
@@ -266,6 +278,7 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
     # TODO Нужно добавить удаление дедлайнов
     await call.message.answer('Готово!')
     await test_videos(call, state)
+    await call.answer()
 
 
 async def ninety_day_volya(call: types.CallbackQuery, state: FSMContext):
@@ -275,12 +288,14 @@ async def ninety_day_volya(call: types.CallbackQuery, state: FSMContext):
         types.InlineKeyboardButton(text="🔥 Начать", callback_data="start_volya"),
         types.InlineKeyboardButton(text="Назад", callback_data="back_from_volya")
     ))
+    await call.answer()
 
 
 async def new_videos_volya(call: types.CallbackQuery, state: FSMContext):
     tmp_msg = "Новых репортов в категории “Личные цели” не обнаружено."
 
     await call.message.answer(text=tmp_msg)
+    await call.answer()
 
 
 def register_callback(dp: Dispatcher, bot: Bot):

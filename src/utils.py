@@ -2,9 +2,10 @@ import datetime
 
 import pytz
 from tzwhere import tzwhere
+from aiogram import Dispatcher
 
 
-def get_timezone(location: dict):
+def get_timezone(location):
     tz = tzwhere.tzwhere()
     # 65.60632, -168.08659
     timezone_str = tz.tzNameAt(location["latitude"], location["longitude"])  # Seville coordinates
@@ -68,6 +69,41 @@ def get_current_timezone(timezone: str):
         #     return [int(tmp[0]), 0]
 
         return [-1 * int(tmp[0]), -1 * int(tmp[1])]
+
+
+def buttons_timezone(dp: Dispatcher, func, current_state):
+    dp.register_callback_query_handler(func, text='— 10', state=current_state)
+    dp.register_callback_query_handler(func, text='— 9:30', state=current_state)
+    dp.register_callback_query_handler(func, text='— 9', state=current_state)
+    dp.register_callback_query_handler(func, text='— 8', state=current_state)
+    dp.register_callback_query_handler(func, text='— 7', state=current_state)
+    dp.register_callback_query_handler(func, text='— 6', state=current_state)
+    dp.register_callback_query_handler(func, text='— 5', state=current_state)
+    dp.register_callback_query_handler(func, text='— 4', state=current_state)
+    dp.register_callback_query_handler(func, text='— 3:30', state=current_state)
+    dp.register_callback_query_handler(func, text='— 3', state=current_state)
+    dp.register_callback_query_handler(func, text='— 2', state=current_state)
+    dp.register_callback_query_handler(func, text='— 1', state=current_state)
+    dp.register_callback_query_handler(func, text='+0', state=current_state)
+    dp.register_callback_query_handler(func, text='+1', state=current_state)
+    dp.register_callback_query_handler(func, text='+2', state=current_state)
+    dp.register_callback_query_handler(func, text='+3', state=current_state)
+    dp.register_callback_query_handler(func, text='+3:30', state=current_state)
+    dp.register_callback_query_handler(func, text='+4', state=current_state)
+    dp.register_callback_query_handler(func, text='+4:30', state=current_state)
+    dp.register_callback_query_handler(func, text='+5', state=current_state)
+    dp.register_callback_query_handler(func, text='+5:30', state=current_state)
+    dp.register_callback_query_handler(func, text='+5:45', state=current_state)
+    dp.register_callback_query_handler(func, text='+6', state=current_state)
+    dp.register_callback_query_handler(func, text='+6:30', state=current_state)
+    dp.register_callback_query_handler(func, text='+7', state=current_state)
+    dp.register_callback_query_handler(func, text='+8', state=current_state)
+    dp.register_callback_query_handler(func, text='+8:45', state=current_state)
+    dp.register_callback_query_handler(func, text='+9', state=current_state)
+    dp.register_callback_query_handler(func, text='+9:30', state=current_state)
+    dp.register_callback_query_handler(func, text='+10', state=current_state)
+    dp.register_callback_query_handler(func, text='+10:30', state=current_state)
+    dp.register_callback_query_handler(func, text='+11', state=current_state)
 
 
 """myDate = datetime.datetime.today()

@@ -1,6 +1,9 @@
-from aiogram.utils.markdown import link
+
+from aiogram.types import InputFile
+
 from aiogram.utils.markdown import link
 
+from .keyboards import *
 
 test_alcohol_link = link("Например", "https://www.ozon.ru/category/alkotestery-6256/")
 alcohol_msg = ("*🍷 Брошу пить алкоголь*\n\n"
@@ -110,3 +113,118 @@ confirm_food_disput_msg = ("*Условия пари на 30 дней*\n"
 confirm_programming_disput_msg = ("*Условия пари на 30 дней*\n"
                                   "🤳 Видео с кодом и процессом\n"
                                   "⌛ Отправлять в бот до 22:30\n\n")
+
+months = {"January": "Января", "February": "Февраля", "March": "Марта", "April": "Апреля", "May": "Мая", "June": "Июня",
+          "July": "Июля", "August": "Августа", "September": "Сентября", "October": "Октября",
+          "November": "Ноября", "December": "Декабря"}
+
+
+def get_timezone_msg(future_date, variant, ):
+    date_start = str(future_date.day) + " " + months[str(future_date.strftime('%B'))] + " " + str(future_date.year)
+
+    choice_msg = ""
+    tmp_keyboard = types.InlineKeyboardMarkup
+    photo = InputFile
+
+    promocode = variant['promocode']
+    if promocode != '0':
+        promocode = '1'
+
+    if variant['action'] == 'alcohol':
+        photo = InputFile("client/media/disputs_images/alcohol.jpg")
+        choice_msg = f'{confirm_alcohol_disput_msg}Начало 🚩{date_start} \nПраво на ошибку:' \
+                     f' {promocode}\n\n{second_msg} '
+        tmp_keyboard = alcohol_deposit_keyboard
+
+    elif variant['action'] == 'smoking':
+        photo = InputFile("client/media/disputs_images/smoking.jpg")
+        choice_msg = f'{confirm_smoking_disput_msg}Начало 🚩{date_start} \nПраво на ошибку:' \
+                     f' {promocode}\n\n{second_msg} '
+        tmp_keyboard = smoking_deposit_keyboard
+
+    elif variant['action'] == 'drugs':
+        photo = InputFile("client/media/disputs_images/drugs.jpg")
+        choice_msg = f'{confirm_drugs_disput_msg}Начало 🚩{date_start} \nПраво на ошибку:' \
+                     f' {promocode}\n\n{second_msg}'
+        tmp_keyboard = drugs_deposit_keyboard
+
+    elif variant['action'] == 'gym':
+        photo = InputFile("client/media/disputs_images/gym.jpg")
+        choice_msg = f'{confirm_gym_disput_msg}Начало 🚩{date_start} \nПраво на ошибку:' \
+                     f' {promocode}\n\n{second_msg}'
+        tmp_keyboard = gym_deposit_keyboard
+
+    elif variant['action'] == 'weight':
+        photo = InputFile("client/media/disputs_images/weight.jpg")
+        choice_msg = f'{confirm_weight_disput_msg}Начало 🚩{date_start} \nПраво на ошибку:' \
+                     f' {promocode}\n\n{second_msg}'
+        tmp_keyboard = weight_deposit_keyboard
+
+    elif variant['action'] == 'morning':
+        if variant['additional_action'] == 'five_am':
+            photo = InputFile("client/media/disputs_images/five_am.jpg")
+        elif variant['additional_action'] == 'six_am':
+            photo = InputFile("client/media/disputs_images/six_am.jpg")
+        elif variant['additional_action'] == 'seven_am':
+            photo = InputFile("client/media/disputs_images/seven_am.jpg")
+        elif variant['additional_action'] == 'eight_am':
+            photo = InputFile("client/media/disputs_images/eight_am.jpg")
+
+        choice_msg = f'{confirm_morning_disput_msg}Начало 🚩{date_start}' \
+                     f' \nПраво на ошибку: {promocode}\n\n{second_msg}'
+        tmp_keyboard = morning_deposit_keyboard
+
+    elif variant['action'] == 'language':
+        if variant['additional_action'] == 'english':
+            photo = InputFile("client/media/disputs_images/english.jpg")
+        elif variant['additional_action'] == 'chinese':
+            photo = InputFile("client/media/disputs_images/chinese.jpg")
+        elif variant['additional_action'] == 'spanish':
+            photo = InputFile("client/media/disputs_images/spanish.jpg")
+        elif variant['additional_action'] == 'arabian':
+            photo = InputFile("client/media/disputs_images/arabian.jpg")
+        elif variant['additional_action'] == 'italian':
+            photo = InputFile("client/media/disputs_images/italian.jpg")
+        elif variant['additional_action'] == 'french':
+            photo = InputFile("client/media/disputs_images/french.jpg")
+        choice_msg = f'{confirm_language_disput_msg}Начало 🚩{date_start}' \
+                     f' \nПраво на ошибку: {promocode}\n\n{second_msg}'
+        tmp_keyboard = language_deposit_keyboard
+
+    elif variant['action'] == 'money':
+        if variant['additional_action'] == 'hundred':
+            photo = InputFile("client/media/disputs_images/hundred.jpg")
+        elif variant['additional_action'] == 'three_hundred':
+            photo = InputFile("client/media/disputs_images/three_hundred.jpg")
+        choice_msg = f'{confirm_money_disput_msg}Начало 🚩{date_start}' \
+                     f' \nПраво на ошибку: {promocode}\n\n{second_msg}'
+        tmp_keyboard = money_deposit_keyboard
+
+    elif variant['action'] == 'food':
+        photo = InputFile("client/media/disputs_images/food.jpg")
+        choice_msg = f'{confirm_food_disput_msg}Начало 🚩{date_start}' \
+                     f' \nПраво на ошибку: {promocode}\n\n{second_msg}'
+        tmp_keyboard = food_deposit_keyboard
+
+    elif variant['action'] == 'programming':
+        photo = InputFile("client/media/disputs_images/programming.jpg")
+        choice_msg = f'{confirm_programming_disput_msg}Начало 🚩{date_start}' \
+                     f' \nПраво на ошибку: {promocode}\n\n{second_msg}'
+        tmp_keyboard = programming_deposit_keyboard
+
+    elif variant['action'] == 'instruments':
+        if variant['additional_action'] == 'piano':
+            photo = InputFile("client/media/disputs_images/piano.jpg")
+        elif variant['additional_action'] == 'guitar':
+            photo = InputFile("client/media/disputs_images/guitar.jpg")
+        choice_msg = f'{confirm_programming_disput_msg}Начало 🚩{date_start}' \
+                     f' \nПраво на ошибку: {promocode}\n\n{second_msg}'
+        tmp_keyboard = instruments_deposit_keyboard
+
+    elif variant['action'] == 'painting':
+        photo = InputFile("client/media/disputs_images/painting.jpg")
+        choice_msg = f'{confirm_programming_disput_msg}Начало 🚩{date_start}' \
+                     f' \nПраво на ошибку: {promocode}\n\n{second_msg}'
+        tmp_keyboard = painting_deposit_keyboard
+
+    return photo, choice_msg, tmp_keyboard

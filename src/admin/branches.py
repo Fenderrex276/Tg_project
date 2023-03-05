@@ -50,6 +50,7 @@ class Admin:
 
     async def enter(self, call: types.CallbackQuery, state: FSMContext):
         await self.bot.send_message(call.from_user.id, "Меню админа", reply_markup=admin_menu)
+        await call.answer()
 
     async def reports(self, message: types.Message, state: FSMContext):
 

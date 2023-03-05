@@ -26,7 +26,7 @@ class Reports:
 
         v = await state.get_data()
         await RoundVideo.objects.filter(tg_id=v['video_user_id']).aupdate(status="bad",
-                                                                   type_video=RoundVideo.TypeVideo.archive)
+                                                                          type_video=RoundVideo.TypeVideo.archive)
         user = await RoundVideo.objects.aget(tg_id=v['video_user_id'])
 
         await mainbot.send_message(text=message.text,
@@ -95,5 +95,3 @@ class Reports:
             tmp_msg = "Некорректный номер дня, попробуйте ещё раз"
 
             await message.answer(text=tmp_msg)
-
-
