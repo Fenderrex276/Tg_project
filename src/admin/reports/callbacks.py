@@ -8,7 +8,7 @@ from admin.keyboards import *
 from admin.reports.states import ReportStates
 from admin.сallbacks import current_dispute
 from client.initialize import bot as mainbot
-from client.tasks import init_send_code
+from client.tasks import init_send_code, del_scheduler
 from db.models import RoundVideo, User
 
 
@@ -267,7 +267,11 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
     tmp = await User.objects.filter(user_id=user.user_tg_id).alast()
 
     tmp.count_mistakes = tmp.count_mistakes - 1
-    #TODO Разобраться с вычетом депозита
+    # TODO добавить библу с деньгами
+    if tmp.count_mistakes == 1:
+        tmp.deposit = round(tmp.deposit - tmp.deposit/5)
+    elif tmp.count_mistakes == 0:
+        tmp.deposit = 0
     tmp.save()
     key_b = types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again'))
@@ -276,6 +280,10 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
             types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')
         ))
     # TODO Нужно добавить удаление дедлайнов
+
+
+    del_scheduler(job_id=f'{user.chat_tg_id}_hard_deadline_reminder', where='admin')
+    del_scheduler(job_id=f'{user.chat_tg_id}_soft_deadline_reminder', where='admin')
     await call.message.answer('Готово!')
     await test_videos(call, state)
     await call.answer()
