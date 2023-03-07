@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import executor
 
 from admin.reports.branches import Reports
@@ -10,7 +12,7 @@ from client.tasks import load_periodic_task_for_admin, reload_tasks
 
 branches = [Admin, Reports, Reviews]
 callbacks = [rc1, rc2]
-
+logger = logging.getLogger(__name__)
 
 class AdminDisputeBot:
     def __init__(self, bot, dp):
@@ -25,6 +27,7 @@ class AdminDisputeBot:
             call(dp, bot)
 
     def start(self):
+        logger.info("Admin_bot запущен")
         scheduler.start()
         load_periodic_task_for_admin()
 
@@ -32,3 +35,4 @@ class AdminDisputeBot:
                           minute="*")
         scheduler.print_jobs()
         executor.start_polling(self.dp, skip_updates=True)
+

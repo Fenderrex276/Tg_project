@@ -37,9 +37,13 @@ services:
     restart: always
 
     image: redis:7.0.3
+    command: >
+      sh -c "chmod 777 -R /var/lib/redis && redis-server /usr/local/etc/redis/redis.conf"
     volumes:
       - ./redis/redis-data:/var/lib/redis
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    env_file:
+      - ./src/settings/config.env
   postgres:
     restart: always
     image: postgres:14.4

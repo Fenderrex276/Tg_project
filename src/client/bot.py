@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import executor
 
 from branches.confirm_dispute.branches import ConfirmDispute
@@ -24,7 +26,7 @@ from client.tasks import load_periodic_task_for_client
 
 branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training, CurrentDispute]
 callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12, rc13]
-
+logger = logging.getLogger(__name__)
 
 class DisputeBot:
     def __init__(self, bot, dp):
@@ -39,6 +41,8 @@ class DisputeBot:
             call(bot, dp)
 
     def start(self):
+        logger.info("Client_bot запущен")
         scheduler.start()
         load_periodic_task_for_client()
         executor.start_polling(self.dp, skip_updates=True)
+
