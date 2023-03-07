@@ -8,6 +8,8 @@ from .states import StatesDispute, NewReview
 from db.models import RoundVideo, User
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
 from ..dispute_with_friend.messages import personal_goals_msg
+from client.tasks import del_scheduler, change_period_task_info, reminder_scheduler_add_job
+from client.initialize import dp
 from client.tasks import change_period_task_info
 from utils import buttons_timezone
 from .messages import video_text, get_message_video
@@ -30,6 +32,7 @@ async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
 async def reports(call: types.CallbackQuery, state: FSMContext):
     main_photo = InputFile("client/media/Disput Bot-2/Default.png")
     try:
+
         user = User.objects.get(user_id=call.from_user.id)
     except User.DoesNotExist:
         print(f'Такого пользователя с id:{call.from_user.id} не существует')
@@ -51,6 +54,10 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
         elif user.count_days == 0 and user.count_mistakes != 0:
             main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
+            # TODO Отправка уведомлений о повторной игре
+            # TODO RUS Предложить отзывы если он победил
+            await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
+                                             notification_hour=10, notificatison_min=0)
 
     elif current_video.status == "bad" and user.count_days != 30:
 
@@ -393,7 +400,7 @@ async def withdraw_deposit(call: types.CallbackQuery):
 
                "Пройди свой Путь Героя и вывод твоего депозита на банковскую "
                "карту или в BTC станет доступен в этом окне")
-
+    # TODO Доделать вывод депозита
     await call.message.answer(text=tmp_msg, parse_mode=ParseMode.MARKDOWN_V2)
     await call.answer()
 

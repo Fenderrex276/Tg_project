@@ -60,8 +60,9 @@ async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user
                                      notification_hour=None,
                                      notification_min=None):
     hour, minute, second = time_calculated(t_zone, notification_hour, notification_min)
-
-    if fun == "reminder":  # TODO RUS Проверить какую-то кнопку на удаление
+    if dp is None:
+        dp = dp
+    if fun == "reminder":  # TODO RUS Проверить какую-то кнопку на удалениеs
         # TODO Надо поглядеть чтобы пользователь не мог сменить игру иначе порешать с уведомлениями
         if flag == 1:
             kwargs = {"dp": dp, "user_id": user_id,
@@ -184,6 +185,15 @@ async def send_test_period_reminder(dp: Dispatcher, user_id: int, msg: str, coun
         await dp.bot.send_message(user_id, msg)
         del_scheduler(job_id=f"{user_id}_send_test_period_reminder", where='client')
         # TODO Нужно сменить статус пользователя потому что он проиграл. Обработать логику завершения игры
+        # TODO Добавить кнопку "Больше не повторится"
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
+        # TODO Вставить логику снятия денег после подруба библы
+        user.count_mistakes = 0
+        user.deposit = 0
+        user.save()
     else:
         await dp.bot.send_message(user_id, msg)
 
@@ -423,11 +433,11 @@ async def hard_deadline_reminder(user_id, id_round_video, time):
         # TODO Выводит полный депозит после проигрыша. Я не понимаю на чьей стороне косяк
         if user.count_mistakes - 1 <= 0:
             del_scheduler(job_id=f'{user_id}_send_code', where='admin')
-            try:
-                user = User.objects.get(user_id=user_id)
-            except User.DoesNotExist:
-                print(f'Пользователь с user_id {user_id} не найден!')
+            user.deposit = 0
+            # TODO Вставить логику снятия денег после подруба библы
         user.count_mistakes -= 1
+        if user.count_mistakes == 1:
+            user.deposit = round(user.deposit - user.deposit/5)
         user.save()
         del_scheduler(job_id=f'{user_id}_hard_deadline_reminder', where='admin')
     else:
