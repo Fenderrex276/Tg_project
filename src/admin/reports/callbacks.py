@@ -273,8 +273,6 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
     elif tmp.count_mistakes == 0:
         tmp.deposit = 0
     tmp.save()
-    key_b = types.InlineKeyboardMarkup().add(
-        types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again'))
     await mainbot.send_message(text="⛔️ Несоответствие условиям спора",
                                chat_id=user.chat_tg_id, reply_markup=types.InlineKeyboardMarkup().add(
             types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')

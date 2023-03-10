@@ -90,3 +90,8 @@ class Reviews(models.Model):
     mark = models.CharField(max_length=10, verbose_name="кол-во звёзд")
     coment = models.CharField(max_length=256, verbose_name="комментарий")
     state_t = models.CharField(max_length=10, verbose_name="статус отзыва", choices=StateReview.choices)
+
+
+class BlogerPromocodes(models.Model):
+    user_id = models.BigIntegerField(verbose_name="ID пользователя в Телеграмм")
+    promocode = models.CharField(max_length=10, verbose_name="Уникальный промокод для блогера")

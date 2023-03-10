@@ -77,10 +77,10 @@ class CurrentDispute:
         """
         data = await state.get_data()
         print(data)
-        user = await User.objects.filter(user_id=message.from_user.id).alast()
+        user = await User.objects.aget(user_id=message.from_user.id)
         count_days = user.count_days
 
-        recieve_message = video_text(data, count_days)
+        recieve_message = video_text(data, count_days, user.deposit)
         print('HEROPATH, ', message.message_id)
         await message.answer_photo(photo=InputFile(recieve_message[0]),
                                    caption=recieve_message[1],

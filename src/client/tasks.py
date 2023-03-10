@@ -66,7 +66,7 @@ async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user
     hour, minute, second = time_calculated(t_zone, notification_hour, notification_min)
     if dp is None:
         dp = dp
-    if fun == "reminder":  # TODO RUS Проверить какую-то кнопку на удалениеs
+    if fun == "reminder":  # TODO RUS Проверить какую-то кнопку на удаление, я чекнул, первые четыре кнопки робят
         # TODO Надо поглядеть чтобы пользователь не мог сменить игру иначе порешать с уведомлениями
         if flag == 1:
             kwargs = {"dp": dp, "user_id": user_id,
@@ -191,9 +191,6 @@ async def send_test_period_reminder(dp: Dispatcher, user_id: int, msg: str, coun
         kwargs[
             'msg'] = f"У вас последние сутки на то, чтобы отправить тестовое видео. Не затягивайте с этим)"
     if count == 7:
-        msg = f'Сожалеем, но вы не отправили нам тестовое видео, и мы вынуждены закрыть диспут. Не отчаивайтесь и попробуйте снова.'
-        await dp.bot.send_message(user_id, msg)
-        del_scheduler(job_id=f"{user_id}_send_test_period_reminder", where='client')
         # TODO Нужно сменить статус пользователя потому что он проиграл. Обработать логику завершения игры
         # TODO Добавить кнопку "Больше не повторится"
         try:
@@ -208,8 +205,18 @@ async def send_test_period_reminder(dp: Dispatcher, user_id: int, msg: str, coun
         user.count_mistakes = 0
         user.deposit = 0
         user.save()
+        # TODO я тут местами поменял, чтобы сначала он обнулил его депозит а потом уже отправил сообщение что чел еблан
+        msg = f'Сожалеем, но вы не отправили нам тестовое видео, и мы вынуждены закрыть диспут. Не отчаивайтесь и попробуйте снова.'
+        await dp.bot.send_message(user_id, msg, reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='new_dispute_after_finish')
+        ))
+        del_scheduler(job_id=f"{user_id}_send_test_period_reminder", where='client')
+
     else:
-        await dp.bot.send_message(user_id, msg)
+        await dp.bot.send_message(user_id, msg,
+                                  reply_markup=types.InlineKeyboardMarkup().add(
+                                      types.InlineKeyboardButton(text='Отправить видео',
+                                                                 callback_data="lets_start_training")))
         logger.critical(
             f"SEND_TEST_PERIOD_REMINDER: отправили уведомление пользователя с id {user_id}")
         client_scheduler.modify_job(job_id=f"{user_id}_send_test_period_reminder", kwargs=kwargs)
@@ -230,7 +237,8 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
                          notification_min: int = None):
     hour, minute, second = time_calculated(t_zone, notification_hour, notification_min)
     if TEST:
-        logger.debug(f"INIT_SEND_CODE: Была инициализирована отправка кода в тестовом режиме для пользователя с id {user_id}")
+        logger.debug(
+            f"INIT_SEND_CODE: Была инициализирована отправка кода в тестовом режиме для пользователя с id {user_id}")
         hour, minute, second = time_calculated(t_zone)
         minute = int(minute) + 5
         if minute >= 60:
@@ -239,12 +247,14 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
         minute = str(minute)
         day_of_week = '*'
     elif when == "послезавтра":
-        logger.info(f"INIT_SEND_CODE: Была инициализирована отправка кода для пользователя с id {user_id}. Начало ПОСЛЕЗАВТРА")
+        logger.info(
+            f"INIT_SEND_CODE: Была инициализирована отправка кода для пользователя с id {user_id}. Начало ПОСЛЕЗАВТРА")
         my_date = date.today()
         day_of_week = date_calculated(notification_hour, hour, (my_date.weekday() + 2) % 7)
 
     else:
-        logger.info(f"INIT_SEND_CODE: Была инициализирована отправка кода для пользователя с id {user_id}. Начало ПОНЕДЕЛЬНИК")
+        logger.info(
+            f"INIT_SEND_CODE: Была инициализирована отправка кода для пользователя с id {user_id}. Начало ПОНЕДЕЛЬНИК")
         day_of_week = date_calculated(notification_hour, hour, 0)
 
     kwargs = {'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video}
@@ -295,7 +305,6 @@ def load_periodic_task_for_admin():
                                     kwargs=kwargs)
         logger.info(f"LOAD_PERIODIC_TASK_FOR_ADMIN: Периодические задачи подгружены")
         logger.debug(f"{client_scheduler.print_jobs()}")
-
 
 
 def load_periodic_task_for_client():
@@ -378,16 +387,19 @@ async def soft_deadline_reminder(user_id):
         try:
             user = User.objects.get(user_id=user_id)
         except User.DoesNotExist:
-            logger.critical(f'SOFT_DEADLINE_REMINDER: Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User')
+            logger.critical(
+                f'SOFT_DEADLINE_REMINDER: Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User')
             return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
         await dp.bot.send_message(user_id, f'{user.user_name}, ты всё ещё можешь отправить репорт')
 
         del_scheduler(job_id=f'{user_id}_soft_deadline_reminder', where='admin')
-        logger.info(f"SOFT_DEADLINE_REMINDER: Пользователь с id {user_id} не отправил видео в мягкий дедлайн. Был создан жёсткий дедлайн")
+        logger.info(
+            f"SOFT_DEADLINE_REMINDER: Пользователь с id {user_id} не отправил видео в мягкий дедлайн. Был создан жёсткий дедлайн")
         add_hard_deadline(user_id, kwargs={'user_id': user_id, 'id_round_video': instance.id})
 
     else:
-        logger.info(f"SOFT_DEADLINE_REMINDER: Пользователь с id {user_id} отправил видео в мягкий дедлайн. Дедлайны удалены")
+        logger.info(
+            f"SOFT_DEADLINE_REMINDER: Пользователь с id {user_id} отправил видео в мягкий дедлайн. Дедлайны удалены")
         del_scheduler(job_id=f'{user_id}_soft_deadline_reminder', where='admin')
 
 
@@ -429,7 +441,8 @@ async def hard_deadline_reminder(user_id, id_round_video, time):
     try:
         video = RoundVideo.objects.get(id=id_round_video)
     except RoundVideo.DoesNotExist:
-        logger.critical(f'HARD_DEADLINE_REMINDER: Ошибка: Из бд была удалена запись с id {id_round_video} для пользователя {user_id}')
+        logger.critical(
+            f'HARD_DEADLINE_REMINDER: Ошибка: Из бд была удалена запись с id {id_round_video} для пользователя {user_id}')
         return f'Ошибка: Из бд была удалена запись с id {id_round_video} для пользователя {user_id}'
 
     if video.tg_id is None:
@@ -444,11 +457,13 @@ async def hard_deadline_reminder(user_id, id_round_video, time):
         try:
             user = User.objects.get(user_id=user_id)
         except User.DoesNotExist:
-            logger.critical(f'HARD_DEADLINE_REMINDER: Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User')
+            logger.critical(
+                f'HARD_DEADLINE_REMINDER: Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User')
             return f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User'
         # TODO Выводит полный депозит после проигрыша. Я не понимаю на чьей стороне косяк
         if user.count_mistakes - 1 <= 0:
-            logger.info(f"HARD_DEADLINE_REMINDER: Пользователь с id {user_id} проиграл диспут по причине: 'Закончилось право на ошибку'")
+            logger.info(
+                f"HARD_DEADLINE_REMINDER: Пользователь с id {user_id} проиграл диспут по причине: 'Закончилось право на ошибку'")
             del_scheduler(job_id=f'{user_id}_send_code', where='admin')
             user.deposit = 0
             # TODO Вставить логику снятия денег после подруба библы
@@ -467,7 +482,8 @@ async def send_reminder_after_end(dp: Dispatcher, user_id: int, msg: str, count:
     try:
         task = PeriodicTask.objects.get(job_id=f"{user_id}_send_reminder_after_end")
     except PeriodicTask.DoesNotExist:
-        logger.critical(f'SEND_REMINDER_AFTER_END: Ошибка! Периодической задачи с id {user_id}_send_reminder_after_end не существует')
+        logger.critical(
+            f'SEND_REMINDER_AFTER_END: Ошибка! Периодической задачи с id {user_id}_send_reminder_after_end не существует')
         return f'Ошибка! Периодической задачи с id {user_id}_send_reminder_after_end не существует'
 
     task.kwargs['count'] = count + 1
@@ -503,7 +519,8 @@ async def send_reminder_after_end(dp: Dispatcher, user_id: int, msg: str, count:
         logger.info(f'SEND_REMINDER_AFTER_END: Пользователю с id {user_id} было отправлено напоминание')
         return
     else:
-        logger.info(f'SEND_REMINDER_AFTER_END: Пользователю с id {user_id} было отправлено напоминание. Напоминание удалено')
+        logger.info(
+            f'SEND_REMINDER_AFTER_END: Пользователю с id {user_id} было отправлено напоминание. Напоминание удалено')
 
         del_scheduler(job_id=f"{user_id}_reminder", where='client')
 

@@ -28,6 +28,7 @@ branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training, CurrentDisp
 callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12, rc13]
 logger = logging.getLogger(__name__)
 
+
 class DisputeBot:
     def __init__(self, bot, dp):
         self.bot = bot
@@ -45,4 +46,3 @@ class DisputeBot:
         scheduler.start()
         load_periodic_task_for_client()
         executor.start_polling(self.dp, skip_updates=True)
-

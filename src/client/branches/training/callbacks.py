@@ -12,6 +12,7 @@ from client.tasks import del_scheduler, reminder_scheduler_add_job
 from db.models import RoundVideo, User
 from settings.settings import CHANNEL_ID
 
+
 async def preparation_for_dispute(call: types.CallbackQuery, state: FSMContext):
     await Video.none.set()
     await state.update_data(id_dispute=uuid.uuid4().time_mid)
@@ -77,9 +78,6 @@ async def send_video_note(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-
-
-
 async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
     print(v)
@@ -99,8 +97,6 @@ async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer(text=tmp_msg)
     await call.bot.send_video_note(video_note=v['video_id'], chat_id=CHANNEL_ID)
     await call.answer()
-
-
 
     # scheduler_add_job(dp, 'reminder', call.from_user.id, 7)
 
@@ -129,11 +125,13 @@ async def end_test_dispute(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer_photo(photo=photo, caption=msg, reply_markup=go_to_dispute_keyboard)
     await call.answer()
 
+
 async def new_support_question(call: types.CallbackQuery, state: FSMContext):
     await Video.new_question.set()
 
     await call.message.answer(text='💬 Введи сообщение:')
     await call.answer()
+
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(preparation_for_dispute, text='step_to_test_video_note', state="*")

@@ -1,7 +1,7 @@
 from aiogram.types import InputFile
 
 
-def video_text(data: dict, count_days: int):
+def video_text(data: dict, count_days: int, deposit: int):
     purpose = ""
     video_with_code = ""
     time_before = "22:30"
@@ -78,7 +78,7 @@ def video_text(data: dict, count_days: int):
                                 f"{video_with_code}\n"
                                 f"⏳ Отправлять в бот до {time_before}\n\n"
 
-                                f"🧊 Депозит: {data['deposit']} ₽ \n\n")
+                                f"🧊 Депозит: {deposit} ₽ \n\n")
 
     return [purpose, start_current_disput_msg]
 

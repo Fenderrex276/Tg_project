@@ -14,6 +14,7 @@ branches = [Admin, Reports, Reviews]
 callbacks = [rc1, rc2]
 logger = logging.getLogger(__name__)
 
+
 class AdminDisputeBot:
     def __init__(self, bot, dp):
         self.bot = bot
@@ -35,4 +36,3 @@ class AdminDisputeBot:
                           minute="*")
         scheduler.print_jobs()
         executor.start_polling(self.dp, skip_updates=True)
-

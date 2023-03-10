@@ -11,10 +11,11 @@ from db.models import User
 from client.tasks import del_scheduler, reminder_scheduler_add_job
 from client.initialize import dp
 from client.branches.thirty_days_dispute.keyboards import menu_keyboard
+from client.branches.training.states import Video
 
 
 async def choose_sum_to_pay(call: types.CallbackQuery, state: FSMContext):
-    await PayStates.pay.set()
+    await PayStates.first_m.set()
 
     del_scheduler(f'{call.from_user.id}_reminder', 'client')
     redis_data = await state.get_data()
@@ -30,7 +31,7 @@ async def choose_sum_to_pay(call: types.CallbackQuery, state: FSMContext):
 
 async def check_sum(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(deposit=call.data)
-    await PayStates.none.set()
+    await PayStates.second_m.set()
     await call.message.edit_text(text=application_for_payment_msg, reply_markup=get_banking_detials_keyboard,
                                  parse_mode=ParseMode.MARKDOWN)
     await call.answer()
@@ -48,6 +49,7 @@ async def other_sum_to_pay(call: types.CallbackQuery):
 
 
 async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
+    await PayStates.third_m.set()
     money = await state.get_data()
     bank_details_msg = ("Заявка #TG2802\n Переведи точную сумму:\n"
                         f" {money['deposit']} ₽\n По реквизитам карты:\n"
@@ -63,7 +65,7 @@ async def get_bank_details(call: types.CallbackQuery, state: FSMContext):
 
 async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
-
+    await PayStates.none.set()
     await call.message.answer(text="Поздравляем 🎉 ты уже в шаге от цели. Заявка #TG2802 успешно оплачена.\n\n",
                               reply_markup=menu_keyboard)
 
@@ -114,9 +116,9 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
 
     await state.update_data(name=call.from_user.first_name)
 
-    await reminder_scheduler_add_job(dp, redis_data['timezone'], 'send_test_period_reminder', call.from_user.id, notification_hour=10,
+    await reminder_scheduler_add_job(dp, redis_data['timezone'], 'send_test_period_reminder', call.from_user.id,
+                                     notification_hour=10,
                                      notification_min=0)
-
 
 
 async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
@@ -212,15 +214,15 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(choose_sum_to_pay, text='make_deposit', state=Promo.none)
     dp.register_callback_query_handler(choose_sum_to_pay, text='start_pay_state', state=Promo.none)
-    dp.register_callback_query_handler(choose_sum_to_pay, text='choose_current_sum', state=PayStates.all_states)
-    dp.register_callback_query_handler(other_sum_to_pay, text='other_sum', state=PayStates.pay)
-    dp.register_callback_query_handler(check_sum, text='15 000', state=PayStates.pay)
-    dp.register_callback_query_handler(check_sum, text='30 000', state=PayStates.pay)
-    dp.register_callback_query_handler(check_sum, text='50 000', state=PayStates.pay)
-    dp.register_callback_query_handler(check_sum, text='100 000', state=PayStates.pay)
-    dp.register_callback_query_handler(get_bank_details, text='get_pay_details', state=PayStates.all_states)
-    dp.register_callback_query_handler(get_bank_details, text='get_details', state=PayStates.none)
-    dp.register_callback_query_handler(successful_payment, text='access', state=PayStates.none)
-    dp.register_callback_query_handler(successful_payment, text='confirm_deposit', state=PayStates.none)
+    dp.register_callback_query_handler(choose_sum_to_pay, text='choose_current_sum', state=PayStates.first_m)
+    dp.register_callback_query_handler(other_sum_to_pay, text='other_sum', state=PayStates.first_m)
+    dp.register_callback_query_handler(check_sum, text='15 000', state=PayStates.first_m)
+    dp.register_callback_query_handler(check_sum, text='30 000', state=PayStates.first_m)
+    dp.register_callback_query_handler(check_sum, text='50 000', state=PayStates.first_m)
+    dp.register_callback_query_handler(check_sum, text='100 000', state=PayStates.first_m)
+    dp.register_callback_query_handler(get_bank_details, text='get_pay_details', state=PayStates.second_m)
+    dp.register_callback_query_handler(get_bank_details, text='get_details', state=PayStates.second_m)
+    dp.register_callback_query_handler(successful_payment, text='access', state=PayStates.third_m)
+    dp.register_callback_query_handler(successful_payment, text='confirm_deposit', state=PayStates.third_m)
     dp.register_callback_query_handler(start_current_disput, text='go_disput', state=PayStates.none)
     dp.register_callback_query_handler(start_current_disput, text='start_current_dispute', state=PayStates.none)
