@@ -67,11 +67,13 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     v = await state.get_data()
     await PayStates.none.set()
     await call.message.answer(text="Поздравляем 🎉 ты уже в шаге от цели. Заявка #TG2802 успешно оплачена.\n\n",
-                              reply_markup=menu_keyboard)
-
+                              reply_markup=types.ReplyKeyboardRemove()) #reply_markup=menu_keyboard
+    n_d = 30
+    if v['count_days'] == 3:
+        n_d = 3
     success_payment_msg = (f" 🔥 Твой депозит пополнен на {v['deposit']} ₽ и заморожен до конца пари — соблюдай "
                            f"условия каждый"
-                           " из 30 дней и сохрани депозит, всё зависит только от тебя")
+                           f" из {n_d} и сохрани депозит, всё зависит только от тебя")
 
     await call.message.answer(text=success_payment_msg, reply_markup=go_keyboard)
     await call.answer()
@@ -88,7 +90,9 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     mistake = 0
     if redis_data['promocode'] != '0':
         mistake = 1
+    print("USER FIND PLS")
     try:
+        print("USER FOUND")
         user = await User.objects.aget(user_id=call.from_user.id)
         user.user_name = call.from_user.first_name
         user.action = redis_data['action']
@@ -96,12 +100,13 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
         user.start_disput = start_d
         user.promocode_user = secrets.token_hex(nbytes=5)
         user.promocode_from_friend = redis_data['promocode']
-        user.count_days = 30
+        user.count_days = redis_data['count_days']
         user.timezone = redis_data['timezone']
         user.deposit = deposit
         user.count_mistakes = (2 + mistake)
         user.save()
-    except Exception:
+    except User.DoesNotExist:
+        print('USER NOT EXISTS')
         await User.objects.acreate(user_id=call.from_user.id,
                                    user_name=call.from_user.first_name,
                                    action=redis_data['action'],
@@ -110,7 +115,7 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
                                    deposit=deposit,
                                    promocode_user=secrets.token_hex(nbytes=5),
                                    promocode_from_friend=redis_data['promocode'],
-                                   count_days=30,
+                                   count_days=redis_data['count_days'],
                                    timezone=redis_data['timezone'],
                                    count_mistakes=(2 + mistake))
 
@@ -195,15 +200,19 @@ async def start_current_disput(call: types.CallbackQuery, state: FSMContext):
     promo = data['promocode']
     if promo != '0':
         promo = '1'
+    n_d = '30 дней'
+    if data['count_days'] == 3:
+        n_d = '3 дня'
+
     start_current_disput_msg = (f"👋 Привет, {call.from_user.first_name},"
                                 f" заверши свою подготовку к цели и начни путь героя.\n\n"
                                 "*Твоя цель:*\n"
                                 f"{purpose}\n"
                                 f"🧊 Депозит: {data['deposit']} ₽ \n\n"
-                                "*Условия на 30 дней*\n"
+                                f"*Условия на {n_d}*\n"
                                 f"{video_with_code}\n"
                                 f"⏳ Отправлять в бот до {time_before}\n\n"
-                                "До победы осталось 30 дней\n"
+                                f"До победы осталось {n_d}\n"
                                 f"Право на ошибку: {promo}")
 
     await call.message.edit_text(text=start_current_disput_msg, reply_markup=next_step_keyboard,
@@ -226,3 +235,4 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(successful_payment, text='confirm_deposit', state=PayStates.third_m)
     dp.register_callback_query_handler(start_current_disput, text='go_disput', state=PayStates.none)
     dp.register_callback_query_handler(start_current_disput, text='start_current_dispute', state=PayStates.none)
+    dp.register_callback_query_handler(successful_payment, text='make_deposit', state=Promo.blogger)

@@ -93,5 +93,4 @@ class Reviews(models.Model):
 
 
 class BlogerPromocodes(models.Model):
-    user_id = models.BigIntegerField(verbose_name="ID пользователя в Телеграмм")
     promocode = models.CharField(max_length=10, verbose_name="Уникальный промокод для блогера")

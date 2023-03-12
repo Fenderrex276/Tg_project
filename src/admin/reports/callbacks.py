@@ -279,11 +279,11 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
         ))
     # TODO Нужно добавить удаление дедлайнов
 
-
+    await call.message.answer('Готово!')
+    await thirty_day_dispute(call, state)
     del_scheduler(job_id=f'{user.chat_tg_id}_hard_deadline_reminder', where='admin')
     del_scheduler(job_id=f'{user.chat_tg_id}_soft_deadline_reminder', where='admin')
-    await call.message.answer('Готово!')
-    await test_videos(call, state)
+
     await call.answer()
 
 

@@ -72,9 +72,15 @@ def video_text(data: dict, count_days: int, deposit: int):
     elif data['action'] == 'painting':
         purpose = "client/media/disputs_images/painting.jpg"
         video_with_code = "🤳 Видео с кодом и процессом"
+    day = "дней"
+    if count_days == 3:
+        day = "дня"
 
-    start_current_disput_msg = (f"*До победы осталось {count_days} дней*\n\n"
-                                "Условия на 30 дней\n"
+    n_days = "30 дней"
+    if data['is_blogger'] is True:
+        n_days = "3 дня"
+    start_current_disput_msg = (f"*До победы осталось {count_days} {day}*\n\n"
+                                f"Условия на {n_days}\n"
                                 f"{video_with_code}\n"
                                 f"⏳ Отправлять в бот до {time_before}\n\n"
 

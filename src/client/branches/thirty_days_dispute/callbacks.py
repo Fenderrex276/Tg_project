@@ -20,8 +20,10 @@ async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(is_deleted=-1)
 
     data = await state.get_data()
-
-    recieve_message = video_text(data, 30, data['deposit'])
+    n_d = 30
+    if data['is_blogger'] is True:
+        n_d = 3
+    recieve_message = video_text(data, n_d, data['deposit'])
 
     await call.message.answer_photo(photo=InputFile(recieve_message[0]), caption=recieve_message[1],
                                     reply_markup=menu_keyboard,
@@ -41,37 +43,69 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
     current_video = RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                               type_video=RoundVideo.TypeVideo.archive).last()
 
-    if current_video.status == "good" and user.count_days != 30:
+    redis_data = await state.get_data()
+    if redis_data['is_blogger'] is True:
 
-        if (user.count_mistakes == 3 or (
-                user.count_mistakes == 2 and user.promocode_from_friend == '0')) and current_video.n_day == 1:
-            main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
-        elif user.count_mistakes == 3 or (
-                user.count_mistakes == 2 and user.promocode_from_friend == '0') and current_video.n_day != 0:
-            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{1}.png")
-        elif (user.count_mistakes == 2 or (
-                user.count_mistakes == 1 and user.promocode_from_friend == '0')) and current_video.n_day != 0:
-            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
-        elif user.count_days == 0 and user.count_mistakes != 0:
-            main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
-            # TODO Отправка уведомлений о повторной игре
-            # TODO RUS Предложить отзывы если он победил
-            await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
-                                             notification_hour=10, notificatison_min=0)
+        if current_video.status == "good" and user.count_days != 3:
 
-    elif current_video.status == "bad" and user.count_days != 30:
+            if user.count_mistakes == 3 and current_video.n_day == 28:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
+            elif user.count_mistakes == 3 and current_video.n_day != 0:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}-{1}.png")
+            elif user.count_mistakes == 2  and current_video.n_day != 0:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}.png")
+            elif user.count_days == 0 and user.count_mistakes != 0:
+                main_photo = InputFile("client/media/days_of_dispute/days/BLOGER WIN.png")
+                await state.update_data(is_blogger=False)
+                # TODO Отправка уведомлений о повторной игре
+                # TODO RUS Предложить отзывы если он победил
+                await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
+                                                 notification_hour=10, notificatison_min=0)
 
-        if user.count_mistakes == 2 and current_video.n_day == 1 and user.promocode_from_friend != '0':
-            main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{2}.png")
-        elif user.count_mistakes == 1 and current_video.n_day == 1 and user.promocode_from_friend == '0':
-            main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{1}.png")
-        elif user.count_mistakes == 2 and user.promocode_from_friend != '0':
-            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{3}.png")
+        elif current_video.status == "bad" and user.count_days != 3:
 
-        elif user.count_mistakes == 1:
-            main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{2}.png")
-        elif user.count_mistakes == 0:
-            main_photo = InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png")
+            if user.count_mistakes == 2 and current_video.n_day == 28:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{2}.png")
+            elif user.count_mistakes == 2 and user.promocode_from_friend != '0':
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}-{3}.png")
+            elif user.count_mistakes == 1:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}-{2}.png")
+            elif user.count_mistakes == 0:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/BLOGER SAD FINISH.png")
+                await state.update_data(is_blogger=False)
+    else:
+
+        if current_video.status == "good" and user.count_days != 30:
+
+            if (user.count_mistakes == 3 or (
+                    user.count_mistakes == 2 and user.promocode_from_friend == '0')) and current_video.n_day == 1:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
+            elif user.count_mistakes == 3 or (
+                    user.count_mistakes == 2 and user.promocode_from_friend == '0') and current_video.n_day != 0:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{1}.png")
+            elif (user.count_mistakes == 2 or (
+                    user.count_mistakes == 1 and user.promocode_from_friend == '0')) and current_video.n_day != 0:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
+            elif user.count_days == 0 and user.count_mistakes != 0:
+                main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
+                # TODO Отправка уведомлений о повторной игре
+                # TODO RUS Предложить отзывы если он победил
+                await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
+                                                 notification_hour=10, notificatison_min=0)
+
+        elif current_video.status == "bad" and user.count_days != 30:
+
+            if user.count_mistakes == 2 and current_video.n_day == 1 and user.promocode_from_friend != '0':
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{2}.png")
+            elif user.count_mistakes == 1 and current_video.n_day == 1 and user.promocode_from_friend == '0':
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{1}.png")
+            elif user.count_mistakes == 2 and user.promocode_from_friend != '0':
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{3}.png")
+
+            elif user.count_mistakes == 1:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{2}.png")
+            elif user.count_mistakes == 0:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png")
 
     cur_state = await state.get_state()
     if cur_state not in StatesDispute.states_names:
@@ -345,14 +379,18 @@ async def dispute_awards(call: types.CallbackQuery):
     await call.answer()
 
 
-async def choose_video_to_contest(call: types.CallbackQuery):
+async def choose_video_to_contest(call: types.CallbackQuery, state: FSMContext):
     user = await User.objects.aget(user_id=call.from_user.id)
-    tmp_msg = "Будет доступно только после 7 дней в игре"
-    if user.count_days < 23:
-        await call.message.edit_caption(caption='Выбери видео...')
+    tmp_msg = ""
+    data = state.get_data()
+    if user.count_days < 23 and data['is_blogger'] is False:
+        tmp_msg = "Выбери видео..."
     else:
-        await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
-            types.InlineKeyboardButton(text='Назад', callback_data='return_to_awards')))
+        tmp_msg = "Будет доступно только после 7 дней в игре"
+
+    await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text='Назад', callback_data='return_to_awards')))
+
 
 
 async def deposit_button(call: types.CallbackQuery, state: FSMContext):
@@ -420,8 +458,8 @@ async def view_user_timezone(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     tmp_msg = f"🌍 Установлен часовой пояс {data['timezone']} UTC"
     back_or_send_keyboard = types.InlineKeyboardMarkup()
-    back_or_send_keyboard.add(types.InlineKeyboardButton(text='Всё верно 👍', callback_data='cancel_edit_timezone'),
-                              types.InlineKeyboardButton(text='Изменить', callback_data='confirm_to_change_timezone'))
+    back_or_send_keyboard.add(types.InlineKeyboardButton(text='Изменить', callback_data='confirm_to_change_timezone'),
+                              types.InlineKeyboardButton(text='Всё верно 👍', callback_data='cancel_edit_timezone'))
     await call.message.edit_text(text=tmp_msg, reply_markup=back_or_send_keyboard)
 
 

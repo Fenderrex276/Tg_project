@@ -5,7 +5,7 @@ from aiogram.types import ParseMode, InputFile
 from client.branches.confirm_dispute.messages import *
 from client.branches.confirm_dispute.states import Promo
 from client.tasks import reminder_scheduler_add_job, change_period_task_info
-from db.models import User
+from db.models import User, BlogerPromocodes
 from utils import get_timezone, get_date_to_start_dispute
 
 
@@ -24,20 +24,31 @@ class ConfirmDispute:
         self.dp.register_message_handler(self.get_geo_position, content_types=['location'], state=Promo.geo_position)
 
     async def input_promo_code_handler(self, message: types.Message, state: FSMContext):
-        promocodes = ['HUI', 'ZALUPA', 'CHLEN', 'PIDARAS', 'SOBCHAK']
-        blogers_promo = []
-        print(message.text)
 
-        if message.text in promocodes or User.objects.filter(promocode_user=message.text).exists():
+
+        blogers_promo = BlogerPromocodes.objects.all()
+        is_blogger = False
+        for i in range(len(blogers_promo)):
+            if message.text == blogers_promo[i].promocode:
+                blogers_promo[i].delete()
+                await state.update_data(promocode=message.text, is_blogger=True, count_days=3, deposit='0')
+                is_blogger = True
+                await Promo.next()
+                await message.answer(text='Спасибо 🙏 Промо-код успешно принят.')
+                await message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
+                break
+
+
+        if User.objects.filter(promocode_user=message.text).exists():
             msg = 'Спасибо 🙏 Промо-код успешно принят.'
             await Promo.next()
             await state.update_data(promocode=message.text)
             await message.answer(text=msg)
             await message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
-
         else:
-            msg = 'Неверный промокод, попробуйте ещё раз'
-            await message.answer(text=msg)
+            if is_blogger is False:
+                msg = 'Неверный промокод, попробуйте ещё раз'
+                await message.answer(text=msg)
 
     async def get_geo_position(self, message: types.Message, state: FSMContext):
 
@@ -70,4 +81,7 @@ class ConfirmDispute:
                                    parse_mode=ParseMode.MARKDOWN_V2)
 
         await state.update_data({'id_to_delete': message.message_id + 1})  # ??????? пофиксить
-        await Promo.next()
+        if variant['is_blogger'] is True:
+            await Promo.blogger.set()
+        else:
+            await Promo.none.set()

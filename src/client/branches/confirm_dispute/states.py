@@ -6,3 +6,4 @@ class Promo(StatesGroup):
     input_promo = State()
     geo_position = State()
     none = State()
+    blogger = State()

@@ -23,7 +23,7 @@ from branches.training.branches import Training
 from branches.training.callbacks import register_callback as rc5
 from client.initialize import scheduler
 from client.tasks import load_periodic_task_for_client
-
+from client.branches.confirm_dispute.promo_codes import load_promo_codes_blogers
 branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training, CurrentDispute]
 callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12, rc13]
 logger = logging.getLogger(__name__)
@@ -45,4 +45,5 @@ class DisputeBot:
         logger.info("Client_bot запущен")
         scheduler.start()
         load_periodic_task_for_client()
+        load_promo_codes_blogers()
         executor.start_polling(self.dp, skip_updates=True)

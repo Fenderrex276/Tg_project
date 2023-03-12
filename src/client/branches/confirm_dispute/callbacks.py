@@ -123,7 +123,7 @@ async def choice_painting(call: types.CallbackQuery, state: FSMContext):
 
 async def monday_or_after_tomorrow(call: types.CallbackQuery, state: FSMContext):
     # print(call.data)
-    await state.update_data(additional_action=call.data)
+    await state.update_data(additional_action=call.data, is_blogger=False, count_days=30)
 
     await call.message.edit_text(text=monday_or_later_msg, reply_markup=select_day_keyboard)
     await call.answer()
@@ -170,7 +170,12 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer_photo(photo=photo, caption=choice_msg, reply_markup=tmp_keyboard,
                                     parse_mode=ParseMode.MARKDOWN_V2)
     await state.update_data({'id_to_delete': call.message.message_id})
-    await Promo.next()
+
+    if variant['is_blogger'] is True:
+        await Promo.blogger.set()
+    else:
+        await Promo.none.set()
+
     await call.answer()
 
 
