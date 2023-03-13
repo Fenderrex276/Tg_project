@@ -30,7 +30,7 @@ PATH_TO_ADMIN_LOG = os.environ.get('PATH_TO_ADMIN_LOG')
 PATH_TO_LOG = os.environ.get('PATH_TO_LOG')
 PATH_TO_APSCHEDULER_LOG = os.environ.get('PATH_TO_APSCHEDULER_LOG')
 PATH_TO_AIOGRAM_LOG = os.environ.get('PATH_TO_AIOGRAM_LOG')
-REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
