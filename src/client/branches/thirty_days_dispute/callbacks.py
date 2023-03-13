@@ -5,6 +5,8 @@ from aiogram.types import InputFile, ParseMode
 from .diary import questions
 from .keyboards import *
 from .states import StatesDispute, NewReview
+
+
 from db.models import RoundVideo, User
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
 from ..dispute_with_friend.messages import personal_goals_msg
@@ -91,7 +93,6 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
                 # TODO Отправка уведомлений о повторной игре
                 # TODO RUS Предложить отзывы если он победил
 
-
         elif current_video.status == "bad" and user.count_days != 30:
 
             if user.count_mistakes == 2 and current_video.n_day == 1 and user.promocode_from_friend != '0':
@@ -137,7 +138,6 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-
 async def choose_name_button(call: types.CallbackQuery, state: FSMContext):
     user = await state.get_data()
     msg = (f"💎 В твоём профиле Телеграмм указано имя "
@@ -148,11 +148,13 @@ async def choose_name_button(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-async def change_name(call: types.CallbackQuery):
-    await StatesDispute.change_name.set()
+async def change_name(call: types.CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
     msg = "💬 Введи своё новое имя:"
 
     await call.message.edit_text(text=msg)
+    if current_state in StatesDispute.states_names:
+        await StatesDispute.change_name.set()
     await call.answer()
 
 
@@ -467,15 +469,19 @@ async def view_user_timezone(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_text(text=tmp_msg, reply_markup=back_or_send_keyboard)
 
 
-async def change_timezone(call: types.CallbackQuery):
+async def change_timezone(call: types.CallbackQuery, state: FSMContext):
     geo_position_msg = (
         "🌍 Укажи разницу во времени относительно UTC (Москва +3, Красноярск +7 и тд) или отправь в бот "
         "геопозицию (возьмем только часовой пояс)")
-    await StatesDispute.new_timezone.set()
+
     # test_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     # test_keyboard.add(types.KeyboardButton(text='Отправить гео 📍', request_location=True))
     #
     await call.message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
+    current_state = await state.get_state()
+    if current_state in StatesDispute.states_names:
+        await StatesDispute.new_timezone.set()
+
     await call.answer()
 
 
@@ -498,7 +504,9 @@ async def new_time_zone(call: types.CallbackQuery, state: FSMContext):
     user.save()
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
     await change_period_task_info(user.user_id, call.data)
-    await StatesDispute.none.set()
+    current_state = await state.get_state()
+    if current_state in StatesDispute.states_names:
+        await StatesDispute.none.set()
     await call.message.answer(text=tmp_msg, reply_markup=menu_keyboard)
     await call.answer()
 
@@ -518,10 +526,13 @@ async def support_button(call: types.CallbackQuery):
     await call.answer()
 
 
-async def new_support_question(call: types.CallbackQuery):
-    await StatesDispute.new_question.set()
+async def new_support_question(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer(text='💬 Введи сообщение:')
+    current_state = await state.get_state()
+    if current_state in StatesDispute.states_names:
+        await StatesDispute.new_question.set()
+
     await call.answer()
 
 
@@ -537,12 +548,36 @@ async def new_coment(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer(text="💬 Напиши текст отзыва:")
 
 
+async def sad_finish_after_test(call: types.CallbackQuery, state: FSMContext):
+    try:
+
+        user = User.objects.get(user_id=call.from_user.id)
+    except User.DoesNotExist:
+        print(f'Такого пользователя с id:{call.from_user.id} не существует')
+        return
+    await state.update_data(deposit=0)
+    user.count_days = 0
+    user.deposit = 0
+    user.save()
+    data = await state.get_data()
+
+    image = InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png")
+
+    if data['is_blogger'] is True:
+        image = InputFile(f"client/media/days_of_dispute/days/BLOGER SAD FINISH.png")
+
+    await call.message.answer_photo(image, reply_markup=new_menu_keyboard)
+    await call.message.answer(text="Выберите следующее действие:", reply_markup=end_game_keyboard)
+    await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
+                                     notification_hour=10, notification_min=0)
+
+
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(begin_dispute, text='go_dispute', state="*")
     dp.register_callback_query_handler(reports, text='report', state=StatesDispute.none)
 
-    dp.register_callback_query_handler(choose_name_button, text='change_name', state=StatesDispute.account)
-    dp.register_callback_query_handler(change_name, text='change_name_access', state=StatesDispute.account)
+    dp.register_callback_query_handler(choose_name_button, text='change_name', state="*")
+    dp.register_callback_query_handler(change_name, text='change_name_access', state="*")
 
     dp.register_callback_query_handler(check_report, text="send_new_report", state=StatesDispute.reports)
     dp.register_callback_query_handler(send_new_report_from_admin, text="send_dispute_report", state="*")
@@ -572,21 +607,21 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(choose_video_to_contest, text='choose_video_to_dispute_award',
                                        state=StatesDispute.bonuses)
 
-    dp.register_callback_query_handler(deposit_button, text='deposit', state=StatesDispute.account)
-    dp.register_callback_query_handler(deposit_button, text='back_to_deposit', state=StatesDispute.account)
-    dp.register_callback_query_handler(withdraw_deposit, text='withdrawal_deposit', state=StatesDispute.account)
+    dp.register_callback_query_handler(deposit_button, text='deposit', state="*")
+    dp.register_callback_query_handler(deposit_button, text='back_to_deposit', state="*")
+    dp.register_callback_query_handler(withdraw_deposit, text='withdrawal_deposit', state="*")
 
-    dp.register_callback_query_handler(view_user_timezone, text='change_timezone', state=StatesDispute.account)
-    dp.register_callback_query_handler(change_timezone, text='confirm_to_change_timezone', state=StatesDispute.account)
+    dp.register_callback_query_handler(view_user_timezone, text='change_timezone', state="*")
+    dp.register_callback_query_handler(change_timezone, text='confirm_to_change_timezone', state="*")
 
-    dp.register_callback_query_handler(return_account, text='cancel_change_name', state=StatesDispute.account)
-    dp.register_callback_query_handler(return_account, text='cancel_edit_timezone', state=StatesDispute.account)
-    dp.register_callback_query_handler(return_account, text='back_to_account', state=StatesDispute.account)
+    dp.register_callback_query_handler(return_account, text='cancel_change_name', state="*")
+    dp.register_callback_query_handler(return_account, text='cancel_edit_timezone', state="*")
+    dp.register_callback_query_handler(return_account, text='back_to_account', state="*")
     buttons_timezone(dp=dp, func=new_time_zone, current_state=StatesDispute.new_timezone)
 
-    dp.register_callback_query_handler(support_button, text='support', state=StatesDispute.account)
+    dp.register_callback_query_handler(support_button, text='support', state="*")
 
-    dp.register_callback_query_handler(new_support_question, text='send_new_support', state=StatesDispute.account)
+    dp.register_callback_query_handler(new_support_question, text='send_new_support', state="*")
     dp.register_callback_query_handler(new_support_question, text='send_new_support', state=StatesDispute.states)
     dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video)
     dp.register_callback_query_handler(recieved_video, text='send_video', state=StatesDispute.video_note)
@@ -601,7 +636,7 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(send_new_report_from_admin, text="send_new_video",
                                        state=StatesDispute.video_note)
 
-    dp.register_callback_query_handler(reports, text='new_dispute_after_finish',
+    dp.register_callback_query_handler(sad_finish_after_test, text='new_dispute_after_finish',
                                        state="*")  # на седьмой день, чел не прошел тест
 
     dp.register_callback_query_handler(new_review, text='new_review', state="*")

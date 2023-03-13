@@ -57,12 +57,12 @@ async def like_ps(call: types.CallbackQuery):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(choose_ps, text='principle_of_success',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(dislike_ps, text='start_ps',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(like_ps, text='like_ps',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(dislike_ps, text='dislike_ps',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(read_ps, text='read_ps',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")

@@ -44,8 +44,8 @@ async def like_meme(call: types.CallbackQuery):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(dislike_meme, text='memes',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(like_meme, text='like_meme',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(dislike_meme, text='dislike_meme',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")

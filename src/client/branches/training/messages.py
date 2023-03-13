@@ -1,3 +1,5 @@
+from aiogram.types import InputFile
+
 
 algorithm_msg = ("Разбивая каждую цель на этапы, можно определить точки,"
                  " в которых будет возможно доказать свой путь и "
@@ -56,3 +58,47 @@ pin_chat_msg = "Для того, чтобы сохранять фокус на �
                " 📌 Диспут наверху и нажми «Готово». Никакого спама. Только важное."
 
 
+def message_to_training(data):
+    video = InputFile
+    tmp_msg = ""
+    if data['action'] == 'alcohol':
+        tmp_msg = send_video_alcohol_msg
+        video = InputFile("client/media/videos/alcohol.mp4")
+    elif data['action'] == 'drugs':
+        tmp_msg = send_video_drugs_msg
+        video = InputFile("client/media/videos/drugs.mp4")
+    elif data['action'] == 'smoking':
+        tmp_msg = send_video_smoking_msg
+        video = InputFile("client/media/videos/smoke.mp4")
+    elif data['action'] == 'gym':
+        tmp_msg = send_video_gym_msg
+        video = InputFile("client/media/videos/gym.mp4")
+    elif data['action'] == 'weight':
+        tmp_msg = send_video_weight_msg
+        video = InputFile("client/media/videos/weight.mp4")
+    elif data['action'] == 'morning':
+        tmp_msg = send_video_morning_msg
+        video = InputFile("client/media/videos/morning.mp4")
+    elif data['action'] == 'language':
+        tmp_msg = send_video_language_msg
+        video = InputFile("client/media/videos/language.mp4")
+    elif data['action'] == 'money':
+        tmp_msg = send_video_bank_msg
+        video = InputFile("client/media/videos/bank.mp4")
+    elif data['action'] == 'food':
+        tmp_msg = send_video_food_msg
+        video = InputFile("client/media/videos/food.mp4")
+    elif data['action'] == 'programming':
+        tmp_msg = send_video_programming_msg
+        video = InputFile("client/media/videos/programming.mp4")
+    elif data['action'] == 'instruments':
+        tmp_msg = send_video_instrument_msg
+        if data['additional_action'] == 'piano':
+            video = InputFile("client/media/videos/piano.mp4")
+        elif data['additional_action'] == 'guitar':
+            video = InputFile("client/media/videos/guitar.mp4")
+    elif data['action'] == 'painting':
+        tmp_msg = send_video_painting_msg
+        video = InputFile("client/media/videos/painting.mp4")
+
+    return tmp_msg, video

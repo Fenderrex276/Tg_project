@@ -13,8 +13,13 @@ from .keyboards import *
 from .states import StatesDispute, NewReview
 from .callbacks import video_text
 from db.models import Supt, User, Reviews, RoundVideo
+from client.branches.pay.states import PayStates
 import pytz
 from .callbacks import random_question
+from ..pay.keyboards import next_step_keyboard
+from ..pay.messages import starting_message_dispute
+from ..training.messages import message_to_training
+from ..training.states import Video
 
 
 class CurrentDispute:
@@ -30,6 +35,10 @@ class CurrentDispute:
     def register_handlers(self):
         self.dp.register_message_handler(self.the_hero_path, text=[menu_keyboard, "✅ Путь героя"],
                                          state=StatesDispute.all_states)
+        self.dp.register_message_handler(self.the_hero_path, text=[menu_keyboard, "✅ Путь героя"],
+                                         state=PayStates.all_states)
+        self.dp.register_message_handler(self.the_hero_path, text=[menu_keyboard, "✅ Путь героя"],
+                                         state=Video.all_states)
         self.dp.register_message_handler(self.knowledge_base, text=[menu_keyboard, "💚 База знаний"],
                                          state="*")
         self.dp.register_message_handler(self.account, text=[menu_keyboard, "🟢 Аккаунт"],
@@ -37,8 +46,11 @@ class CurrentDispute:
 
         self.dp.register_message_handler(self.process_name_invalid, lambda message: len(message.text) > 20,
                                          state=StatesDispute.change_name)
+        self.dp.register_message_handler(self.process_name_invalid, lambda message: len(message.text) > 20,
+                                         state=PayStates.all_states)
 
         self.dp.register_message_handler(self.input_name, state=StatesDispute.change_name)
+        self.dp.register_message_handler(self.input_name, state=PayStates.all_states)
         self.dp.register_message_handler(self.recieve_video_note, content_types=['video_note'],
                                          state=StatesDispute.video_note)
         self.dp.register_message_handler(self.recieve_video, content_types=['video'], state=StatesDispute.video_note)
@@ -50,18 +62,56 @@ class CurrentDispute:
                                          state=StatesDispute.video_note)
         self.dp.register_message_handler(self.inpute_answer, state=StatesDispute.diary)
         self.dp.register_message_handler(self.input_support, state=StatesDispute.new_question)
+        self.dp.register_message_handler(self.input_support, state=PayStates.all_states)
+
         self.dp.register_message_handler(self.new_timezone, content_types=['location'],
                                          state=StatesDispute.new_timezone)
+        self.dp.register_message_handler(self.new_timezone, content_types=['location'],
+                                         state=PayStates.all_states)
         self.dp.register_message_handler(self.input_city, state=NewReview.input_city)
         self.dp.register_message_handler(self.get_coment, state=NewReview.input_review)
 
     async def the_hero_path(self, message: types.Message, state: FSMContext):
         current_state = await state.get_state()
         print(current_state)
-#        await StatesDispute.none.set()
+        #        await StatesDispute.none.set()
+        data = await state.get_data()
         if current_state in StatesDispute.states_names:
             await StatesDispute.none.set()
             print(current_state)
+        elif current_state in PayStates.states_names:
+            print("really work?")
+            start_current_disput_msg = starting_message_dispute(data, message.from_user.first_name)
+
+            await message.answer(text=start_current_disput_msg, reply_markup=next_step_keyboard,
+                                 parse_mode=ParseMode.MARKDOWN)
+            return
+        elif current_state in Video.states_names:
+            try:
+
+                user_video = await RoundVideo.objects.filter(user_tg_id=message.from_user.id,
+                                                             chat_tg_id=message.chat.id,
+                                                             type_video=RoundVideo.TypeVideo.test
+                                                             ).alast()
+
+                if user_video.status == "" and user_video.tg_id is not None:
+                    tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
+                    await message.answer(text=tmp_msg)
+                else:
+                    tmp_msg, video = message_to_training(data)
+
+                    await message.answer(tmp_msg)
+
+                    if data['action'] == 'money':
+                        await self.bot.send_video(message.chat.id, video, reply_markup=None)
+                        await Video.recv_video.set()
+                    else:
+                        await Video.recv_video_note.set()
+                        await self.bot.send_video_note(message.chat.id, video, reply_markup=None)
+            except RoundVideo.DoesNotExist:
+
+                await message.answer(text='Твой новый код придёт в бот автоматически.')
+            return
         else:
             return
 
@@ -75,7 +125,7 @@ class CurrentDispute:
                                 deposit=user.deposit,
                                 id_dispute=user.number_dispute)
         """
-        data = await state.get_data()
+
         print(data)
         user = await User.objects.aget(user_id=message.from_user.id)
         count_days = user.count_days
@@ -87,8 +137,11 @@ class CurrentDispute:
                                    reply_markup=report_diary_keyboard,
                                    parse_mode=ParseMode.MARKDOWN)
 
-    async def knowledge_base(self, message: types.Message):
-        await StatesDispute.knowledge_base.set()
+    async def knowledge_base(self, message: types.Message, state: FSMContext):
+        # await StatesDispute.knowledge_base.set()
+        current_state = await state.get_state()
+        if current_state in StatesDispute.states_names:
+            await StatesDispute.knowledge_base.set()
         msg = ("*💚 База знаний* \n\n"
                "Читайте о том, как живут и работают самые успешные люди планеты, сохраняйте уникальные мемы,"
                " знакомьтесь с великими книгами и смотрите хорошее кино, чтобы больше узнать о том, "
@@ -97,7 +150,11 @@ class CurrentDispute:
         await message.answer(text=msg, reply_markup=knowledge_base_keyboard, parse_mode=ParseMode.MARKDOWN_V2)
 
     async def account(self, message: types.Message, state: FSMContext):
-        await StatesDispute.account.set()
+        # await StatesDispute.account.set()
+
+        current_state = await state.get_state()
+        if current_state in StatesDispute.states_names:
+            await StatesDispute.account.set()
         user = await state.get_data()
         msg = (f"👋 *Привет, {user['name']}* \n\n"
                "Здесь ты можешь изменить своё имя, вывести выигранный депозит, "
@@ -115,16 +172,22 @@ class CurrentDispute:
         user.timezone = tmp[:len(tmp) - 4]
         user.save()
         msg = f"Установлен часовой пояс {tmp}"
-        await StatesDispute.none.set()
+
+        current_state = await state.get_state()
+        if current_state in StatesDispute.states_names:
+            await StatesDispute.none.set()
+
         await message.answer(text=msg, reply_markup=menu_keyboard)
 
     async def input_name(self, message: types.Message, state: FSMContext):
-        await StatesDispute.account.set()
+        current_state = await state.get_state()
         await state.update_data(name=message.text)
         user = await User.objects.filter(user_id=message.from_user.id).alast()
         user.user_name = message.text
         user.save()
         await message.answer(text='Готово!')
+        if current_state in StatesDispute.states_names:
+            await StatesDispute.none.set()
 
     async def process_name_invalid(self, message: types.Message):
         msg = "Максимум 20 символов, пожалуйста попробуйте ещё раз"
@@ -199,4 +262,3 @@ class CurrentDispute:
 
         await message.answer(text="Готово! Спасибо за отзыв ❤️", reply_markup=types.InlineKeyboardMarkup().add(
             types.InlineKeyboardButton(text='Спорим 🤝 ещё', callback_data='new_dispute')))
-

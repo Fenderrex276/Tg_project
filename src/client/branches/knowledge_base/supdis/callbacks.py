@@ -9,6 +9,8 @@ from client.branches.knowledge_base.supdis import messages, states, keyboards
 from client.branches.thirty_days_dispute.states import StatesDispute
 
 UserSubdis = {}
+
+
 def getSubdis(call: types.CallbackQuery):
     try:
         ted_number = UserSubdis[call.message.chat.id]
@@ -19,6 +21,7 @@ def getSubdis(call: types.CallbackQuery):
         UserSubdis[call.message.chat.id] = random.randint(120, 548)
         ted_number = UserSubdis[call.message.chat.id]
     return ted_number
+
 
 async def dislike_supdis(call: types.CallbackQuery):
     sd = getSubdis(call)
@@ -47,8 +50,8 @@ async def supdis(call: types.CallbackQuery):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(supdis, text='supdis',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(like_supdis, text='like_supdis',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(dislike_supdis, text='dislike_supdis',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")

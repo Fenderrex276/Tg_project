@@ -49,8 +49,8 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(choose_faq, text='faq',
                                        state="*")
     dp.register_callback_query_handler(first_faq, text='read_faq',
-                                       state=StatesDispute.account)
+                                       state="*")
     dp.register_callback_query_handler(next_faq, text='next_faq',
-                                       state=StatesDispute.account)
+                                       state="*")
     dp.register_callback_query_handler(prev_faq, text='back_faq',
-                                       state=StatesDispute.account)
+                                       state="*")

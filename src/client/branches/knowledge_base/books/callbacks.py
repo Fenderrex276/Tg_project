@@ -51,8 +51,8 @@ async def like_bk(call: types.CallbackQuery):
 
 def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(books, text='kb_books',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(like_bk, text='like_bk',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
     dp.register_callback_query_handler(dislike_bk, text='dislike_bk',
-                                       state=StatesDispute.knowledge_base)
+                                       state="*")
