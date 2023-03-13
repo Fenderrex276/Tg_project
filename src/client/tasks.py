@@ -49,7 +49,7 @@ def add_job(scheduler, call_fun, str_name: str, user_id, day_of_week: str, hour:
                       second=second,
                       kwargs=kwargs)
 
-    if str_name == "reminder" or str_name == "send_test_period_reminder":
+    if str_name in ["reminder", "send_test_period_reminder", "send_reminder_after_end"]:
         kwargs.pop('dp')
     PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_{str_name}', fun=str_name,
                                 day_of_week=day_of_week,
@@ -64,8 +64,8 @@ async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user
                                      notification_hour=None,
                                      notification_min=None):
     hour, minute, second = time_calculated(t_zone, notification_hour, notification_min)
-    if dp is None:
-        dp = dp
+    PeriodicTask.objects.filter(job_id=f"{user_id}_send_reminder_after_end").delete()
+    del_scheduler(job_id=f"{user_id}_send_reminder_after_end", where='client')
     if fun == "reminder":  # TODO RUS Проверить какую-то кнопку на удаление, я чекнул, первые четыре кнопки робят
         # TODO Надо поглядеть чтобы пользователь не мог сменить игру иначе порешать с уведомлениями
         if flag == 1:
@@ -192,7 +192,7 @@ async def send_test_period_reminder(dp: Dispatcher, user_id: int, msg: str, coun
             'msg'] = f"У вас последние сутки на то, чтобы отправить тестовое видео. Не затягивайте с этим)"
     if count == 7:
         # TODO Нужно сменить статус пользователя потому что он проиграл. Обработать логику завершения игры
-        # TODO Добавить кнопку "Больше не повторится"
+
         try:
             user = User.objects.get(user_id=user_id)
         except User.DoesNotExist:
@@ -205,7 +205,6 @@ async def send_test_period_reminder(dp: Dispatcher, user_id: int, msg: str, coun
         user.count_mistakes = 0
         user.deposit = 0
         user.save()
-        # TODO я тут местами поменял, чтобы сначала он обнулил его депозит а потом уже отправил сообщение что чел еблан
         msg = f'Сожалеем, но вы не отправили нам тестовое видео, и мы вынуждены закрыть диспут. Не отчаивайтесь и попробуйте снова.'
         await dp.bot.send_message(user_id, msg, reply_markup=types.InlineKeyboardMarkup().add(
             types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='new_dispute_after_finish')
@@ -247,11 +246,10 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
         minute = str(minute)
         day_of_week = '*'
     elif when == "послезавтра":
-        logger.info(
-            f"INIT_SEND_CODE: Была инициализирована отправка кода для пользователя с id {user_id}. Начало ПОСЛЕЗАВТРА")
         my_date = date.today()
         day_of_week = date_calculated(notification_hour, hour, (my_date.weekday() + 2) % 7)
-
+        logger.info(
+            f"INIT_SEND_CODE: Была инициализирована отправка кода для пользователя с id {user_id}. Начало ПОСЛЕЗАВТРА DAY: {day_of_week}")
     else:
         logger.info(
             f"INIT_SEND_CODE: Была инициализирована отправка кода для пользователя с id {user_id}. Начало ПОНЕДЕЛЬНИК")
@@ -262,7 +260,7 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
             day_of_week=str(day_of_week),
             hour=hour,
             minute=minute, second=second, kwargs=kwargs)
-
+    PeriodicTask.objects.filter(job_id=f'{user_id}_send_test_period_reminder').delete()
     admin_scheduler.print_jobs()
 
 
@@ -328,6 +326,15 @@ def load_periodic_task_for_client():
                                      day_of_week=task.day_of_week,
                                      hour=f'{task.hour}',
                                      minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
+        elif task.fun == "send_reminder_after_end":
+            print(task.fun)
+            kwargs['dp'] = dp
+            client_scheduler.add_job(send_reminder_after_end, replace_existing=True, trigger='cron',
+                                     id=f'{task.job_id}',
+                                     month=task.month,
+                                     day_of_week=task.day_of_week,
+                                     hour=f'{task.hour}',
+                                     minute=f'{task.minute}', second=f'{task.second}', kwargs=task.kwargs)
 
     logger.info(f"LOAD_PERIODIC_TASK_FOR_CLIENT: Периодические задачи подгружены")
     logger.debug(f"{client_scheduler.print_jobs()}")
@@ -344,9 +351,9 @@ async def send_first_code(user_id: int, chat_id: int, id_video: int):
             hour=scheduler.hour,
             minute=scheduler.minute,
             second=scheduler.second, kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
-
-    add_soft_deadline(user_id)
     logger.info(f"SEND_FIRST_CODE: Был отправлен первый код пользователю с id {user_id}")
+    add_soft_deadline(user_id)
+
 
 
 def add_soft_deadline(user_id):
@@ -529,22 +536,25 @@ async def send_code(user_id: int, chat_id: int, id_video: int):
     from admin.reports.callbacks import new_code
     await new_code(chat_id, user_id, id_video)
     logger.info(
-        f'SEND_REMINDER_AFTER_END: Пользователю с id {user_id} был отправлен код')
+        f'SEND_CODE: Пользователю с id {user_id} был отправлен код')
     add_soft_deadline(user_id)
 
 
 def del_scheduler(job_id: str, where: str):
-    PeriodicTask.objects.filter(job_id=job_id).delete()
+    try:
+        PeriodicTask.objects.filter(job_id=job_id).delete()
 
-    if where == 'client':
-        client_scheduler.remove_job(job_id=job_id)
-        logger.debug(f"Удалили задачу с job_id {job_id}. Where= client")
-    elif where == 'admin':
-        admin_scheduler.remove_job(job_id=job_id)
-        logger.debug(f"Удалили задачу с job_id {job_id}. Where= admin")
+        if where == 'client':
+            client_scheduler.remove_job(job_id=job_id)
+            logger.debug(f"Удалили задачу с job_id {job_id}. Where= client")
+        elif where == 'admin':
+            admin_scheduler.remove_job(job_id=job_id)
+            logger.debug(f"Удалили задачу с job_id {job_id}. Where= admin")
 
-    else:
-        print(f'ERROR: Неверный параметр where')
+        else:
+            print(f'ERROR: Неверный параметр where')
+    except:
+        pass
 
 
 async def change_period_task_info(user_id, time_zone):
