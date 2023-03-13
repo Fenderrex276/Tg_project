@@ -79,19 +79,20 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
 
         if current_video.status == "good" and user.count_days != 30:
 
-            if (user.count_mistakes == 3 or (
+            if user.count_days == 0 and user.count_mistakes != 0:
+                main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
+                # TODO Отправка уведомлений о повторной игре
+                # TODO RUS Предложить отзывы если он победил
+
+            elif (user.count_mistakes == 3 or (
                     user.count_mistakes == 2 and user.promocode_from_friend == '0')) and current_video.n_day == 1:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
-            elif user.count_mistakes == 3 or (
-                    user.count_mistakes == 2 and user.promocode_from_friend == '0') and current_video.n_day != 0:
+            elif (user.count_mistakes == 3 or (
+                    user.count_mistakes == 2 and user.promocode_from_friend == '0')) and current_video.n_day != 0:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{1}.png")
             elif (user.count_mistakes == 2 or (
                     user.count_mistakes == 1 and user.promocode_from_friend == '0')) and current_video.n_day != 0:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
-            elif user.count_days == 0 and user.count_mistakes != 0:
-                main_photo = InputFile("client/media/days_of_dispute/days/USER WIN.png")
-                # TODO Отправка уведомлений о повторной игре
-                # TODO RUS Предложить отзывы если он победил
 
         elif current_video.status == "bad" and user.count_days != 30:
 
