@@ -228,11 +228,11 @@ async def accept_current_dispute(call: types.CallbackQuery, state: FSMContext):
         n_day=0,
         status="good",
     ).afirst()
-
     await call.message.answer_video_note(video_note=start_video.tg_id)
     await call.message.answer(text=tmp_msg, reply_markup=access_volya_keyboard)
     await call.answer()
-
+    del_scheduler(job_id=f'{current_video.user_tg_id}_soft_deadline_reminder', where='admin')
+    del_scheduler(job_id=f'{current_video.user_tg_id}_hard_deadline_reminder', where='admin')
 
 async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
@@ -247,7 +247,8 @@ async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
     await mainbot.send_message(text="Твой новый код придёт сюда завтра.", chat_id=user.chat_tg_id,
                                reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(
                                    text='Отлично!', callback_data="nice_god_job")))
-
+    if user.n_day == 0:
+        del_scheduler(job_id=f'{user.user_tg_id}_send_code', where='admin')
     """reply_markup = types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='Отлично!', callback_data='nice_go_next')
     )"""
@@ -272,17 +273,19 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
         tmp.deposit = round(tmp.deposit - tmp.deposit/5)
     elif tmp.count_mistakes == 0:
         tmp.deposit = 0
+        del_scheduler(job_id=f'{user.user_tg_id}_send_code', where='admin')
     tmp.save()
     await mainbot.send_message(text="⛔️ Несоответствие условиям спора",
                                chat_id=user.chat_tg_id, reply_markup=types.InlineKeyboardMarkup().add(
             types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')
         ))
-    # TODO Нужно добавить удаление дедлайнов
+
 
     await call.message.answer('Готово!')
     await thirty_day_dispute(call, state)
-    del_scheduler(job_id=f'{user.chat_tg_id}_hard_deadline_reminder', where='admin')
     del_scheduler(job_id=f'{user.chat_tg_id}_soft_deadline_reminder', where='admin')
+    del_scheduler(job_id=f'{user.chat_tg_id}_hard_deadline_reminder', where='admin')
+
 
     await call.answer()
 
