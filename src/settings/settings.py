@@ -19,6 +19,9 @@ INSTALLED_APPS = (
 )
 
 SECRET_KEY = 'ogew78f887fho273f1o3f(&*^&%Y(&*^G&fr46'
+TIME_ZONE = 'UTC'
+USE_TZ = False
+
 
 TOKEN_CLIENT = os.getenv('TOKEN_CLIENT')
 TOKEN_ADMIN = os.getenv('TOKEN_ADMIN')
