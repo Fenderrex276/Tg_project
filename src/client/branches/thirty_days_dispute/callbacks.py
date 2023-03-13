@@ -49,20 +49,21 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
     if redis_data['is_blogger'] is True:
 
         if current_video.status == "good" and user.count_days != 3:  # TODO Исправить косяк. Описал в ТГ
-
-            if user.count_mistakes == 3 and current_video.n_day == 28:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
-            elif user.count_mistakes == 3 and current_video.n_day != 0:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}-{1}.png")
-            elif user.count_mistakes == 2 and current_video.n_day != 0:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}.png")
-            elif user.count_days == 0 and user.count_mistakes != 0:
+            if user.count_days == 0 and user.count_mistakes != 0:
                 main_photo = InputFile("client/media/days_of_dispute/days/BLOGER WIN.png")
                 await state.update_data(is_blogger=False)
                 # TODO Отправка уведомлений о повторной игре
                 # TODO RUS Предложить отзывы если он победил
                 await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
                                                  notification_hour=10, notification_min=0)
+
+            elif user.count_mistakes == 3 and current_video.n_day == 28:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
+            elif user.count_mistakes == 3 and current_video.n_day != 0:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}-{1}.png")
+            elif user.count_mistakes == 2 and current_video.n_day != 0:
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}.png")
+
 
         elif current_video.status == "bad" and user.count_days != 3:
 
