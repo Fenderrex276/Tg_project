@@ -123,14 +123,19 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
         await call.message.answer_photo(InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png"),
                                         reply_markup=new_menu_keyboard)
         await call.message.answer(text="Выберите следующее действие:", reply_markup=end_game_keyboard)
+        await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
+                                         notification_hour=10, notification_min=0)
     elif user.count_days == 0 and user.count_mistakes != 0:
         await call.message.answer_photo(InputFile(f"client/media/days_of_dispute/days/USER WIN.png"),
                                         reply_markup=new_menu_keyboard)
         await call.message.answer(text="Выберите следующее действие:", reply_markup=end_game_keyboard)
+        await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
+                                         notification_hour=10, notification_min=0)
     else:
         await call.message.answer_photo(main_photo, reply_markup=report_keyboard)
 
     await call.answer()
+
 
 
 async def choose_name_button(call: types.CallbackQuery, state: FSMContext):
@@ -392,7 +397,6 @@ async def choose_video_to_contest(call: types.CallbackQuery, state: FSMContext):
         types.InlineKeyboardButton(text='Назад', callback_data='return_to_awards')))
 
 
-
 async def deposit_button(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await state.update_data(id_to_delete=call.message.message_id)
@@ -410,7 +414,7 @@ async def deposit_button(call: types.CallbackQuery, state: FSMContext):
     dep_keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='back_to_account'))
 
     await call.message.edit_text(text=tmp_msg, reply_markup=dep_keyboard,
-                              parse_mode=ParseMode.MARKDOWN_V2)
+                                 parse_mode=ParseMode.MARKDOWN_V2)
     await call.answer()
 
 
@@ -597,7 +601,8 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(send_new_report_from_admin, text="send_new_video",
                                        state=StatesDispute.video_note)
 
-    dp.register_callback_query_handler(reports, text='new_dispute_after_finish', state="*") # на седьмой день, чел не прошел тест
+    dp.register_callback_query_handler(reports, text='new_dispute_after_finish',
+                                       state="*")  # на седьмой день, чел не прошел тест
 
     dp.register_callback_query_handler(new_review, text='new_review', state="*")
     dp.register_callback_query_handler(new_coment, text='one', state="*")
