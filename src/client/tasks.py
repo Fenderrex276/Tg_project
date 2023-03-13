@@ -455,7 +455,10 @@ async def hard_deadline_reminder(user_id, id_round_video, time):
     if video.tg_id is None:
         # TODO Добавить кнопку "Больше не повторится"
         await dp.bot.send_message(user_id,
-                                  f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}')
+                                  f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}',
+                                  reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')))
+
         video.status = RoundVideo.VideoStatus.bad
         video.type_video = RoundVideo.TypeVideo.archive
         video.save()

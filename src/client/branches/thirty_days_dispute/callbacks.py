@@ -521,7 +521,8 @@ async def support_button(call: types.CallbackQuery):
                "стороне 🤝")
 
     await call.message.edit_text(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
-        types.InlineKeyboardButton(text='Сообщить о проблеме', callback_data='send_new_support')),
+        types.InlineKeyboardButton(text='Сообщить о проблеме', callback_data='send_new_support'),
+        types.InlineKeyboardButton(text='Назад', callback_data="cancel_change_name")),
                                  parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 
