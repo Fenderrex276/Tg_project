@@ -64,7 +64,6 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             elif user.count_mistakes == 2 and current_video.n_day != 0:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}.png")
 
-
         elif current_video.status == "bad" and user.count_days != 3:
 
             if user.count_mistakes == 2 and current_video.n_day == 28:
@@ -123,13 +122,13 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
         user.count_days = 0
         user.deposit = 0
         user.save()
-        await call.message.answer_photo(InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png"),
+        await call.message.answer_photo(main_photo,
                                         reply_markup=new_menu_keyboard)
         await call.message.answer(text="Выберите следующее действие:", reply_markup=end_game_keyboard)
         await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
                                          notification_hour=10, notification_min=0)
     elif user.count_days == 0 and user.count_mistakes != 0:
-        await call.message.answer_photo(InputFile(f"client/media/days_of_dispute/days/USER WIN.png"),
+        await call.message.answer_photo(main_photo,
                                         reply_markup=new_menu_keyboard)
         await call.message.answer(text="Выберите следующее действие:", reply_markup=end_game_keyboard)
         await reminder_scheduler_add_job(dp, user.timezone, 'send_reminder_after_end', call.from_user.id,
@@ -197,7 +196,7 @@ async def check_report(call: types.CallbackQuery, state: FSMContext):
             else:
                 await StatesDispute.video_note.set()
                 await call.message.answer_video_note(video_note=InputFile(temp_array[1]))
-    except:
+    except RoundVideo.DoesNotExist:
         # ?????????????
         await call.message.edit_caption(caption='Твой новый код придёт в бот автоматически.',
                                         reply_markup=types.InlineKeyboardMarkup().add(
@@ -298,14 +297,14 @@ async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
              'instruments']
     user = await User.objects.aget(user_id=call.from_user.id)
     if data['action'] in array:
-        start_time_dispute = "6:00 до 22:30 вечера."
+        start_time_dispute = "до 22:30."
     else:
         if data['additional_action'] == 'five_am':
-            start_time_dispute = "5:00–5:30 утра."
+            start_time_dispute = "в период с 5:00–5:30 утра."
         elif data['additional_action'] == 'six_am':
-            start_time_dispute = "6:00–6:30 утра."
+            start_time_dispute = "в период с 6:00–6:30 утра."
         elif data['additional_action'] == 'seven_am':
-            start_time_dispute = "7:00–7:30 утра."
+            start_time_dispute = "в период с 7:00–7:30 утра."
         elif data['additional_action'] == 'eight_am':
             start_time_dispute = "8:00–8:30 утра."
     promocode = '0'
@@ -313,7 +312,7 @@ async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
         promocode = '1'
 
     tmp_msg = ("😇 Правила диспута\n\n"
-               f"Мы принимаем твой репорт в этом диспуте в период с {start_time_dispute}\n\n"
+               f"Мы принимаем твой репорт в этом диспуте {start_time_dispute}\n\n"
                "Каждый день бот присылает уведомление со специальным кодом из четырёх цифр, "
                "который тебе необходимо произнести на видео, как в примере, и отправить в бот вовремя.\n\n"
                "👍 Если все ок, игра продолжится и"
@@ -390,8 +389,8 @@ async def dispute_awards(call: types.CallbackQuery):
 
 async def choose_video_to_contest(call: types.CallbackQuery, state: FSMContext):
     user = await User.objects.aget(user_id=call.from_user.id)
-    tmp_msg = ""
-    data = state.get_data()
+
+    data = await state.get_data()
     if user.count_days < 23 and data['is_blogger'] is False:
         tmp_msg = "Выбери видео..."
     else:

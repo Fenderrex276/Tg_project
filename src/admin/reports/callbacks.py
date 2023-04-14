@@ -82,7 +82,6 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-
 async def refused_video(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_reply_markup(reply_markup=refused_keyboard)
     await call.answer()
@@ -234,6 +233,7 @@ async def accept_current_dispute(call: types.CallbackQuery, state: FSMContext):
     del_scheduler(job_id=f'{current_video.user_tg_id}_soft_deadline_reminder', where='admin')
     del_scheduler(job_id=f'{current_video.user_tg_id}_hard_deadline_reminder', where='admin')
 
+
 async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await RoundVideo.objects.filter(tg_id=data['video_user_id']).aupdate(status="good",
@@ -241,14 +241,17 @@ async def access_volya_dispute(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer(text="Готово!")
 
-    user = await RoundVideo.objects.filter(tg_id=data['video_user_id']).alast()
+    video_user = await RoundVideo.objects.filter(tg_id=data['video_user_id']).alast()
 
-    await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=user.chat_tg_id)
-    await mainbot.send_message(text="Твой новый код придёт сюда завтра.", chat_id=user.chat_tg_id,
+    await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=video_user.chat_tg_id)
+    await mainbot.send_message(text="Твой новый код придёт сюда завтра.", chat_id=video_user.chat_tg_id,
                                reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(
                                    text='Отлично!', callback_data="nice_god_job")))
-    if user.n_day == 0:
-        del_scheduler(job_id=f'{user.user_tg_id}_send_code', where='admin')
+
+    user = await User.objects.aget(user_id=video_user.user_tg_id)
+
+    if user.count_days == 0:
+        del_scheduler(job_id=f'{video_user.user_tg_id}_send_code', where='admin')
     """reply_markup = types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='Отлично!', callback_data='nice_go_next')
     )"""
@@ -270,7 +273,7 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
     tmp.count_mistakes = tmp.count_mistakes - 1
     # TODO добавить библу с деньгами
     if tmp.count_mistakes == 1:
-        tmp.deposit = round(tmp.deposit - tmp.deposit/5)
+        tmp.deposit = round(tmp.deposit - tmp.deposit / 5)
     elif tmp.count_mistakes == 0:
         tmp.deposit = 0
         del_scheduler(job_id=f'{user.user_tg_id}_send_code', where='admin')
@@ -280,12 +283,10 @@ async def refused_video_thirty_day(call: types.CallbackQuery, state: FSMContext)
             types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')
         ))
 
-
     await call.message.answer('Готово!')
     await thirty_day_dispute(call, state)
     del_scheduler(job_id=f'{user.chat_tg_id}_soft_deadline_reminder', where='admin')
     del_scheduler(job_id=f'{user.chat_tg_id}_hard_deadline_reminder', where='admin')
-
 
     await call.answer()
 

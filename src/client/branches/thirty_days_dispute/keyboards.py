@@ -64,9 +64,8 @@ send_video_keyboard.add(types.InlineKeyboardButton(text='🚀 Отправить
                         types.InlineKeyboardButton(text='Новое видео', callback_data='send_new_video'))
 
 
-end_game_keyboard = types.InlineKeyboardMarkup(row_width=2)
-end_game_keyboard.add(types.InlineKeyboardButton(text='Оставить ✌️ отзыв', callback_data='new_review'),
-                      types.InlineKeyboardButton(text='Спорим 🤝 ещё', callback_data='new_dispute'))
+end_game_keyboard = types.InlineKeyboardMarkup()
+end_game_keyboard.add(types.InlineKeyboardButton(text='Оставить ✌️ отзыв', callback_data='new_review'))
 
 buttons_menu1 = ["🤜 Спорим 🤛", "💚 База знаний", "🟢 Аккаунт"]
 new_menu_keyboard = createKeyboard(buttons_menu1, [1, 2])

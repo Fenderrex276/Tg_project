@@ -79,12 +79,12 @@ def video_text(data: dict, count_days: int, deposit: int):
     n_days = "30 дней"
     if data['is_blogger'] is True:
         n_days = "3 дня"
-    start_current_disput_msg = (f"*До победы осталось {count_days} {day}*\n\n"
+    start_current_disput_msg = (f"🚩 *До победы осталось {count_days} {day}*\n\n"
                                 f"Условия на {n_days}\n"
                                 f"{video_with_code}\n"
                                 f"⏳ Отправлять в бот до {time_before}\n\n"
 
-                                f"🧊 Депозит: {deposit} ₽ \n\n")
+                                f"💰 Депозит: {deposit} ₽ \n\n")
 
     return [purpose, start_current_disput_msg]
 

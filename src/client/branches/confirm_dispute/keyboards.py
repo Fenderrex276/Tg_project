@@ -17,6 +17,10 @@ fourth = types.InlineKeyboardButton(text='в 8:00', callback_data='eight_am')
 really_confirm_morning_keyboard.add(first, second)
 really_confirm_morning_keyboard.add(third, fourth)
 
+all_confirm_keyboard = types.InlineKeyboardMarkup(row_width=2)
+all_confirm_keyboard.add(types.InlineKeyboardButton(text='👍 Мне понятно', callback_data='agree'),
+                         types.InlineKeyboardButton(text='Назад', callback_data='back_to_choice'))
+
 really_confirm_language_keyboard = types.InlineKeyboardMarkup(row_width=2)
 english = types.InlineKeyboardButton(text='Английский', callback_data='english')
 chinese = types.InlineKeyboardButton(text='Китайский', callback_data='chinese')

@@ -41,7 +41,7 @@ class Training:
         file_id = message.video_note.file_id
         await state.update_data(video_id=file_id)
 
-        tmp_msg = "Пожалуйста, проверь, чётко ли слышен 📣 код на этом видео перед отправкой"
+        tmp_msg = "Пожалуйста, проверь, чётко ли видим 📣 код на этом видео перед отправкой"
         await message.answer(text=tmp_msg, reply_markup=send_video_keyboard)
 
     async def recieve_video(self, message: types.Message, state: FSMContext):
@@ -49,7 +49,7 @@ class Training:
 
         await state.update_data(video_id=file_id)
 
-        tmp_msg = "Пожалуйста, проверь, чётко ли слышен 📣 код на этом видео перед отправкой"
+        tmp_msg = "Пожалуйста, проверь, чётко ли видим 📣 код на этом видео перед отправкой"
         await message.answer(text=tmp_msg, reply_markup=send_video_keyboard)
 
     async def is_not_a_video(self, message: types.Message):
