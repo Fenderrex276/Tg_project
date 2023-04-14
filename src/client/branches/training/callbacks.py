@@ -77,9 +77,10 @@ async def send_new_video(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer(text=tmp_msg)
     await call.answer()
 
+
 async def monday_or_after_tomorrow(call: types.CallbackQuery, state: FSMContext):
     # print(call.data)
-    await state.update_data(additional_action=call.data)
+    await state.update_data(start_disput=call.data)
     start = ""
     if call.data == 'select_monday':
         start = "понедельник"
@@ -88,6 +89,7 @@ async def monday_or_after_tomorrow(call: types.CallbackQuery, state: FSMContext)
 
     await call.message.answer(text=f"Твой новый код придёт сюда {start}.", reply_markup=success_keyboard)
     await call.answer()
+
 
 async def pin_a_chat(call: types.CallbackQuery):
     photo = InputFile("client/media/training/done.jpg")
