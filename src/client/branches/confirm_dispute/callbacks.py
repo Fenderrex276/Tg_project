@@ -150,7 +150,7 @@ async def monday_or_after_tomorrow(call: types.CallbackQuery, state: FSMContext)
 
 async def recieved_date(call: types.CallbackQuery, state: FSMContext):
     await Promo.input_promo.set()
-    await state.update_data(start_disput="0")
+    await state.update_data(start_disput="0", additional_action=call.data, is_blogger=False, count_days=30)
     await call.message.answer(text=without_msg)
     await call.message.answer(text=promo_code_msg, reply_markup=no_promo_code_keyboard)
     await call.answer()

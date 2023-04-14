@@ -3,7 +3,7 @@ import uuid
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile
-
+from aiogram.types import ParseMode
 from client.branches.training.keyboards import *
 from client.branches.training.messages import *
 from client.branches.training.states import Video
@@ -16,10 +16,15 @@ from settings.settings import CHANNEL_ID
 async def preparation_for_dispute(call: types.CallbackQuery, state: FSMContext):
     await Video.none.set()
     await state.update_data(id_dispute=uuid.uuid4().time_mid)
-
+    data = await state.get_data()
+    links_msgs = ['alcohol', 'smoking', 'drugs']
     photo = InputFile("client/media/training/algorithm.jpg")
     await call.message.answer_photo(photo=photo, caption=algorithm_msg)
-    await call.message.answer(text=algorithm_msg2, reply_markup=test_confirm_keyboard)
+    if data['action'] in links_msgs:
+        await call.message.answer(text=message_to_prepare(data), reply_markup=test_confirm_keyboard,
+                                  parse_mode=ParseMode.MARKDOWN_V2)
+    else:
+        await call.message.answer(text=message_to_prepare(data), reply_markup=test_confirm_keyboard)
     await call.answer()
 
 
