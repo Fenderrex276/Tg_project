@@ -140,14 +140,6 @@ async def confirm_painting(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_text(text=confirm_painting_msg, reply_markup=all_confirm_keyboard)
 
 
-async def monday_or_after_tomorrow(call: types.CallbackQuery, state: FSMContext):
-    # print(call.data)
-    await state.update_data(additional_action=call.data, is_blogger=False, count_days=30)
-
-    await call.message.edit_text(text=monday_or_later_msg, reply_markup=select_day_keyboard)
-    await call.answer()
-
-
 async def recieved_date(call: types.CallbackQuery, state: FSMContext):
     await Promo.input_promo.set()
     await state.update_data(start_disput="0", additional_action=call.data, is_blogger=False, count_days=30)
@@ -183,7 +175,7 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
         await reminder_scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1, notification_hour=10,
                                          notification_min=0)
 
-    future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
+    # future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
     photo, choice_msg, tmp_keyboard = get_timezone_msg(variant)
 
     await call.message.answer_photo(photo=photo, caption=choice_msg, reply_markup=tmp_keyboard,

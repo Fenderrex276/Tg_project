@@ -53,18 +53,24 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
 
     round_video_info = await RoundVideo.objects.aget(tg_id=data['video_user_id'])
     current_user = await User.objects.filter(user_id=round_video_info.user_tg_id).afirst()
-    start = ""
+    start = "послезавтра"
 
     if current_user.start_disput == "tomorrow":
         start = "послезавтра"
     elif current_user.start_disput == "monday":
         start = "в понедельник"
-    success_keyboard = types.InlineKeyboardMarkup()
-    success_keyboard.add(types.InlineKeyboardButton(text='👍 Хорошо', callback_data='good'))
+    # success_keyboard = types.InlineKeyboardMarkup()
+    # success_keyboard.add(types.InlineKeyboardButton(text='👍 Хорошо', callback_data='good'))
+
+    select_day_keyboard = types.InlineKeyboardMarkup(row_width=2)
+    monday_button = types.InlineKeyboardButton(text='С понедельника', callback_data='select_monday')
+    after_tomorrow_button = types.InlineKeyboardButton(text='👍 Послезавтра', callback_data='select_after_tomorrow')
+    select_day_keyboard.add(after_tomorrow_button, monday_button)
 
     await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=round_video_info.chat_tg_id)
-    await mainbot.send_message(text=f"Твой новый код придёт сюда {start}.", chat_id=round_video_info.chat_tg_id,
-                               reply_markup=success_keyboard)
+    await mainbot.send_message(text=f"Диспут продлится каждый из 30 последующих дней,"
+                                    f" без возможности прерваться. Когда вы готовы начать?", chat_id=round_video_info.chat_tg_id,
+                               reply_markup=select_day_keyboard)
 
     data = await state.get_data()
     try:
@@ -72,6 +78,9 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
     except User.DoesNotExist:
         print("Пользователь не найден")
         return
+
+    # TODO SIM кароче я рот ебал всей этой хуйни, надо с отправкой как-то порешать, мне кажется мы эту функцию
+    #  перенесем в клиента
 
     await init_send_code(round_video_info.user_tg_id, round_video_info.chat_tg_id, start, data['id_video'],
                          user.timezone, 4, 30)

@@ -80,7 +80,7 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
 
     redis_data = await state.get_data()
     del_scheduler(f'{call.from_user.id}_reminder', 'client')
-    start_d = ""
+    start_d = "0"
     if redis_data['start_disput'] == "select_after_tomorrow":
         start_d = "tomorrow"
     elif redis_data['start_disput'] == "select_monday":

@@ -16,3 +16,7 @@ success_pin_keyboard.add(types.InlineKeyboardButton(text='👍 Готово', ca
 
 go_to_dispute_keyboard = types.InlineKeyboardMarkup()
 go_to_dispute_keyboard.add(types.InlineKeyboardButton(text='✅ Отправиться в путь', callback_data='go_dispute'))
+
+
+success_keyboard = types.InlineKeyboardMarkup()
+success_keyboard.add(types.InlineKeyboardButton(text='👍 Хорошо', callback_data='good'))

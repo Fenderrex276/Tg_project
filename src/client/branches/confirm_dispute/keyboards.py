@@ -58,10 +58,7 @@ pad = types.InlineKeyboardButton(text='На планшете', callback_data='pa
 hand = types.InlineKeyboardButton(text='От руки', callback_data='hand')
 really_confirm_painting_keyboard.add(pad, hand)
 
-select_day_keyboard = types.InlineKeyboardMarkup(row_width=2)
-monday_button = types.InlineKeyboardButton(text='С понедельника', callback_data='select_monday')
-after_tomorrow_button = types.InlineKeyboardButton(text='👍 Послезавтра', callback_data='select_after_tomorrow')
-select_day_keyboard.add(after_tomorrow_button, monday_button)
+
 
 no_promo_code_keyboard = types.InlineKeyboardMarkup()
 no_promo_code_keyboard.add(types.InlineKeyboardButton(text='Без кода', callback_data='next_step_three'))
