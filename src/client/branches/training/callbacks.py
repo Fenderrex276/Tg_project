@@ -4,11 +4,13 @@ from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile
 from aiogram.types import ParseMode
+
+
 from client.branches.training.keyboards import *
 from client.branches.training.messages import *
 from client.branches.training.states import Video
 from client.initialize import dp
-from client.tasks import del_scheduler, reminder_scheduler_add_job
+from client.tasks import del_scheduler, reminder_scheduler_add_job, init_send_code
 from db.models import RoundVideo, User
 from settings.settings import CHANNEL_ID
 
@@ -22,7 +24,7 @@ async def preparation_for_dispute(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer_photo(photo=photo, caption=algorithm_msg)
     if data['action'] in links_msgs:
         await call.message.answer(text=message_to_prepare(data), reply_markup=test_confirm_keyboard,
-                                  parse_mode=ParseMode.MARKDOWN_V2)
+                                  parse_mode=ParseMode.MARKDOWN_V2, disable_web_page_preview=True)
     else:
         await call.message.answer(text=message_to_prepare(data), reply_markup=test_confirm_keyboard)
     await call.answer()
@@ -80,16 +82,36 @@ async def send_new_video(call: types.CallbackQuery, state: FSMContext):
 
 async def monday_or_after_tomorrow(call: types.CallbackQuery, state: FSMContext):
     # print(call.data)
-    await state.update_data(start_disput=call.data)
+    # await state.update_data(start_disput=call.data)
+    data = await state.get_data()
+    round_video_info = await RoundVideo.objects.aget(tg_id=data['video_id'])
+
+    try:
+        user = await User.objects.filter(user_id=call.from_user.id).alast()
+    except User.DoesNotExist:
+        print("Пользователь не найден")
+        return
+
+
     start = ""
-    if call.data == 'select_monday':
-        start = "понедельник"
-    elif call.data == 'select_after_tomorrow':
+    data_start = ""
+
+    if call.data == "select_after_tomorrow":
         start = "послезавтра"
+        data_start = "tomorrow"
+    elif call.data == "select_monday":
+        start = "в понедельник"
+        data_start = "monday"
+
+    user.start_disput = data_start
+    user.save()
+    # TODO SIM вот твоя функция в клиентской части
+    await init_send_code(round_video_info.user_tg_id, round_video_info.chat_tg_id, start, round_video_info.id_video,
+                         user.timezone, 4, 30)
+    # TODO SIM короче я сюда эту функцию добавил
 
     await call.message.answer(text=f"Твой новый код придёт сюда {start}.", reply_markup=success_keyboard)
     await call.answer()
-
 
 async def pin_a_chat(call: types.CallbackQuery):
     photo = InputFile("client/media/training/done.jpg")

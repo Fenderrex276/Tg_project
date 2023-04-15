@@ -7,7 +7,9 @@ from aiogram.types import ParseMode
 from admin.keyboards import *
 from admin.reports.states import ReportStates
 from admin.сallbacks import current_dispute
+from client.branches.training.keyboards import success_keyboard
 from client.initialize import bot as mainbot
+from client.initialize import dp as maindp
 from client.tasks import init_send_code, del_scheduler
 from db.models import RoundVideo, User
 
@@ -22,6 +24,8 @@ async def test_videos(call: types.CallbackQuery, state: FSMContext):
         await call.message.answer("Нет новых видео")
     else:
         user = await User.objects.filter(user_id=new_video.user_tg_id).afirst()
+        print(user.action, user.additional_action)
+
         id_dispute = str(new_video.id_video)
         purpose = current_dispute(user.action, user.additional_action)
 
@@ -53,12 +57,7 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
 
     round_video_info = await RoundVideo.objects.aget(tg_id=data['video_user_id'])
     current_user = await User.objects.filter(user_id=round_video_info.user_tg_id).afirst()
-    start = "послезавтра"
 
-    if current_user.start_disput == "tomorrow":
-        start = "послезавтра"
-    elif current_user.start_disput == "monday":
-        start = "в понедельник"
     # success_keyboard = types.InlineKeyboardMarkup()
     # success_keyboard.add(types.InlineKeyboardButton(text='👍 Хорошо', callback_data='good'))
 
@@ -69,26 +68,31 @@ async def access_video(call: types.CallbackQuery, state: FSMContext):
 
     await mainbot.send_message(text="Отлично 🔥 У тебя всё получилось", chat_id=round_video_info.chat_tg_id)
     await mainbot.send_message(text=f"Диспут продлится каждый из 30 последующих дней,"
-                                    f" без возможности прерваться. Когда вы готовы начать?", chat_id=round_video_info.chat_tg_id,
+                                    f" без возможности прерваться. Когда вы готовы начать?",
+                               chat_id=round_video_info.chat_tg_id,
                                reply_markup=select_day_keyboard)
 
     data = await state.get_data()
-    try:
-        user = await User.objects.filter(user_id=round_video_info.user_tg_id).alast()
-    except User.DoesNotExist:
-        print("Пользователь не найден")
-        return
+    print(data)
+    # try:
+    #     user = await User.objects.filter(user_id=round_video_info.user_tg_id).alast()
+    # except User.DoesNotExist:
+    #     print("Пользователь не найден")
+    #     return
 
     # TODO SIM кароче я рот ебал всей этой хуйни, надо с отправкой как-то порешать, мне кажется мы эту функцию
-    #  перенесем в клиента
+    #  перенесем в клиента (UPDATE МЫ В ДЕРЬМЕ, я перенес функцию выбора даты начала в клиент,
+    #  и init_send_code теперь инициализирует отправку кодов на клиентском scheduler)
 
-    await init_send_code(round_video_info.user_tg_id, round_video_info.chat_tg_id, start, data['id_video'],
-                         user.timezone, 4, 30)
+    # await init_send_code(round_video_info.user_tg_id, round_video_info.chat_tg_id, start, data['id_video'],
+    #                      user.timezone, 4, 30)
     """date_now = call.message.date.utcnow() + datetime.timedelta(seconds=30)
     scheduler.add_job(new_code, "date", run_date=date_now, args=(user.chat_tg_id, state,))
     scheduler.print_jobs()"""
+
     await test_videos(call, state)
     await call.answer()
+
 
 
 async def refused_video(call: types.CallbackQuery, state: FSMContext):

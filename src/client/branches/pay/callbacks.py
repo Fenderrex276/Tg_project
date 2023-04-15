@@ -97,7 +97,7 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
         user.user_name = call.from_user.first_name
         user.action = redis_data['action']
         user.additional_action = redis_data['additional_action']
-        user.start_disput = start_d
+        user.start_disput = "0"
         user.promocode_user = secrets.token_hex(nbytes=5)
         user.promocode_from_friend = redis_data['promocode']
         user.count_days = redis_data['count_days']
@@ -111,7 +111,7 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
                                    user_name=call.from_user.first_name,
                                    action=redis_data['action'],
                                    additional_action=redis_data['additional_action'],
-                                   start_disput=start_d,
+                                   start_disput="0",
                                    deposit=deposit,
                                    promocode_user=secrets.token_hex(nbytes=5),
                                    promocode_from_friend=redis_data['promocode'],

@@ -11,7 +11,7 @@ from utils import get_date_to_start_dispute, buttons_timezone
 
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
-    await state.update_data(action='alcohol')
+    await state.update_data(action='alcohol', additional_action='none')
     await call.message.answer(text=alcohol_msg, parse_mode=ParseMode.MARKDOWN_V2,
                               reply_markup=really_confirm_alcohol_keyboard,
                               disable_web_page_preview=True)
@@ -21,7 +21,7 @@ async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
 
 async def choice_smoking(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
-    await state.update_data(action='smoking')
+    await state.update_data(action='smoking', additional_action='none')
     await call.message.answer(text=smoking_msg, parse_mode=ParseMode.MARKDOWN_V2,
                               reply_markup=really_confirm_alcohol_keyboard,
                               disable_web_page_preview=True)
@@ -30,7 +30,7 @@ async def choice_smoking(call: types.CallbackQuery, state: FSMContext):
 
 async def choice_drugs(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
-    await state.update_data(action='drugs')
+    await state.update_data(action='drugs', additional_action='none')
     await call.message.answer(text=drugs_msg, parse_mode=ParseMode.MARKDOWN_V2,
                               reply_markup=really_confirm_alcohol_keyboard,
                               disable_web_page_preview=True)
@@ -40,7 +40,7 @@ async def choice_drugs(call: types.CallbackQuery, state: FSMContext):
 async def choice_gym(call: types.CallbackQuery, state: FSMContext):
     # print(call.message.text)
     await Promo.choose_dispute.set()
-    await state.update_data(action='gym')
+    await state.update_data(action='gym', additional_action='none')
 
     await call.message.answer(text=gymm_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_gym_keyboard)
@@ -49,7 +49,7 @@ async def choice_gym(call: types.CallbackQuery, state: FSMContext):
 
 async def choice_lose_weight(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
-    await state.update_data(action='weight')
+    await state.update_data(action='weight', additional_action='none')
 
     await call.message.answer(text=weight_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_gym_keyboard)
@@ -85,7 +85,7 @@ async def choice_more_money(call: types.CallbackQuery, state: FSMContext):
 
 async def choice_healthy_food(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
-    await state.update_data(action='food')
+    await state.update_data(action='food', additional_action='none')
 
     await call.message.answer(text=healthy_food_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_food_keyboard)
@@ -94,7 +94,7 @@ async def choice_healthy_food(call: types.CallbackQuery, state: FSMContext):
 
 async def choice_programming(call: types.CallbackQuery, state: FSMContext):
     await Promo.choose_dispute.set()
-    await state.update_data(action='programming')
+    await state.update_data(action='programming', additional_action='none')
 
     await call.message.answer(text=programming_msg, parse_mode=ParseMode.MARKDOWN,
                               reply_markup=really_confirm_programming_keyboard)
@@ -121,28 +121,33 @@ async def choice_painting(call: types.CallbackQuery, state: FSMContext):
 
 
 async def confirm_morning(call: types.CallbackQuery, state: FSMContext):
+    await state.update_data(additional_action=call.data)
     await call.message.edit_text(text=confirm_morning_msg, reply_markup=all_confirm_keyboard)
 
 
 async def confirm_language(call: types.CallbackQuery, state: FSMContext):
+    await state.update_data(additional_action=call.data)
     await call.message.edit_text(text=confirm_language_msg, reply_markup=all_confirm_keyboard)
 
 
 async def confirm_money(call: types.CallbackQuery, state: FSMContext):
+    await state.update_data(additional_action=call.data)
     await call.message.edit_text(text=confirm_money_msg, reply_markup=all_confirm_keyboard)
 
 
 async def confirm_music(call: types.CallbackQuery, state: FSMContext):
+    await state.update_data(additional_action=call.data)
     await call.message.edit_text(text=confirm_music_msg, reply_markup=all_confirm_keyboard)
 
 
 async def confirm_painting(call: types.CallbackQuery, state: FSMContext):
+    await state.update_data(additional_action=call.data)
     await call.message.edit_text(text=confirm_painting_msg, reply_markup=all_confirm_keyboard)
 
 
 async def recieved_date(call: types.CallbackQuery, state: FSMContext):
     await Promo.input_promo.set()
-    await state.update_data(start_disput="0", additional_action=call.data, is_blogger=False, count_days=30)
+    await state.update_data(start_disput="0", is_blogger=False, count_days=30)
     await call.message.answer(text=without_msg)
     await call.message.answer(text=promo_code_msg, reply_markup=no_promo_code_keyboard)
     await call.answer()
@@ -174,7 +179,7 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     else:
         await reminder_scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1, notification_hour=10,
                                          notification_min=0)
-
+    print(variant)
     # future_date = get_date_to_start_dispute(call.message.date, variant['start_disput'], call.data)
     photo, choice_msg, tmp_keyboard = get_timezone_msg(variant)
 
