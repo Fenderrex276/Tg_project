@@ -149,7 +149,12 @@ async def recieved_date(call: types.CallbackQuery, state: FSMContext):
     await Promo.input_promo.set()
     await state.update_data(start_disput="0", is_blogger=False, count_days=30)
     await call.message.answer(text=without_msg)
-    await call.message.answer(text=promo_code_msg, reply_markup=no_promo_code_keyboard)
+    await call.message.answer(text=promo_code_msg, reply_markup=promo_code_keyboard)
+    await call.answer()
+
+
+async def input_promocod1(call: types.CallbackQuery, state: FSMContext):
+    await call.message.answer(text='Введите код', reply_markup=no_promo_code_keyboard)
     await call.answer()
 
 
@@ -237,6 +242,8 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(recieved_date, text='next_step_two', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(recieved_date, text='agree', state=Promo.choose_dispute)
+
+    dp.register_callback_query_handler(input_promocod1, text='input_data_code', state=Promo.input_promo)
 
     dp.register_callback_query_handler(geo_position, text='next_step_three', state=Promo.input_promo)
     buttons_timezone(dp=dp, func=set_geo_position, current_state=Promo.geo_position)

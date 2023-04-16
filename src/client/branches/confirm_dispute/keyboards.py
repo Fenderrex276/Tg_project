@@ -60,6 +60,10 @@ really_confirm_painting_keyboard.add(pad, hand)
 
 
 
+promo_code_keyboard = types.InlineKeyboardMarkup()
+promo_code_keyboard.add(types.InlineKeyboardButton(text='Ввести код', callback_data='input_data_code'),
+                           types.InlineKeyboardButton(text='Без кода', callback_data='next_step_three'))
+
 no_promo_code_keyboard = types.InlineKeyboardMarkup()
 no_promo_code_keyboard.add(types.InlineKeyboardButton(text='Без кода', callback_data='next_step_three'))
 

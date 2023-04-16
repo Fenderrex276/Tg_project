@@ -6,7 +6,6 @@ from .diary import questions
 from .keyboards import *
 from .states import StatesDispute, NewReview
 
-
 from db.models import RoundVideo, User
 from ..confirm_dispute.keyboards import choose_time_zone_keyboard
 from ..dispute_with_friend.messages import personal_goals_msg
@@ -14,7 +13,7 @@ from client.tasks import del_scheduler, change_period_task_info, reminder_schedu
 from client.initialize import dp
 from client.tasks import change_period_task_info
 from utils import buttons_timezone
-from .messages import video_text, get_message_video
+from .messages import video_text, get_message_video, rules_msg
 
 
 async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
@@ -196,7 +195,7 @@ async def check_report(call: types.CallbackQuery, state: FSMContext):
             else:
                 await StatesDispute.video_note.set()
                 await call.message.answer_video_note(video_note=InputFile(temp_array[1]))
-    except RoundVideo.DoesNotExist:
+    except:
         # ?????????????
         await call.message.edit_caption(caption='Твой новый код придёт в бот автоматически.',
                                         reply_markup=types.InlineKeyboardMarkup().add(
@@ -297,32 +296,30 @@ async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
              'instruments']
     user = await User.objects.aget(user_id=call.from_user.id)
     if data['action'] in array:
-        start_time_dispute = "до 22:30."
+        start_time_dispute = "в период до 22:30"
     else:
         if data['additional_action'] == 'five_am':
-            start_time_dispute = "в период с 5:00–5:30 утра."
+            start_time_dispute = "в период до 5:30 утра"
         elif data['additional_action'] == 'six_am':
-            start_time_dispute = "в период с 6:00–6:30 утра."
+            start_time_dispute = "в период до 6:30 утра"
         elif data['additional_action'] == 'seven_am':
-            start_time_dispute = "в период с 7:00–7:30 утра."
+            start_time_dispute = "в период до 7:30 утра"
         elif data['additional_action'] == 'eight_am':
-            start_time_dispute = "8:00–8:30 утра."
+            start_time_dispute = "в период до 8:30 утра"
     promocode = '0'
     if data['promocode'] != '0' and user.count_mistakes == 3:
         promocode = '1'
 
-    tmp_msg = ("😇 Правила диспута\n\n"
-               f"Мы принимаем твой репорт в этом диспуте {start_time_dispute}\n\n"
-               "Каждый день бот присылает уведомление со специальным кодом из четырёх цифр, "
-               "который тебе необходимо произнести на видео, как в примере, и отправить в бот вовремя.\n\n"
-               "👍 Если все ок, игра продолжится и"
-               "вы сохраните свой депозит\n\n"
-               "👎 Если правила спора нарушены, вы проиграете сначала "
-               "20% депозита, а если это повторится — остальные 80%.\n\n"
-               f"Право на ошибку: {promocode}")
+    tmp_msg = rules_msg(start_time_dispute, promocode, data)
+    links_msgs = ['alcohol', 'smoking', 'drugs']
 
-    await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
-        types.InlineKeyboardButton(text='👍 Спасибо', callback_data='Thanks1')))
+    if data['action'] in links_msgs:
+        await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(text='👍 Спасибо', callback_data='Thanks1')), parse_mode=ParseMode.MARKDOWN_V2)
+
+    else:
+        await call.message.edit_caption(caption=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton(text='👍 Спасибо', callback_data='Thanks1')))
     await call.answer()
 
 
@@ -529,7 +526,6 @@ async def support_button(call: types.CallbackQuery):
 
 
 async def new_support_question(call: types.CallbackQuery, state: FSMContext):
-
     await call.message.answer(text='💬 Введи сообщение:')
     current_state = await state.get_state()
     if current_state in StatesDispute.states_names:

@@ -25,7 +25,6 @@ class ConfirmDispute:
 
     async def input_promo_code_handler(self, message: types.Message, state: FSMContext):
 
-
         blogers_promo = BlogerPromocodes.objects.all()
         is_blogger = False
         for i in range(len(blogers_promo)):
@@ -48,7 +47,8 @@ class ConfirmDispute:
         else:
             if is_blogger is False:
                 msg = 'Неверный промокод, попробуйте ещё раз'
-                await message.answer(text=msg)
+                await message.answer(text=msg, reply_markup=types.InlineKeyboardMarkup().add(
+                    types.InlineKeyboardButton(text='Без кода', callback_data='next_step_three')))
 
     async def get_geo_position(self, message: types.Message, state: FSMContext):
 
