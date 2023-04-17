@@ -149,7 +149,7 @@ async def update_disput_choice(call: types.CallbackQuery, state: FSMContext):
     elif v['action'] == 'instruments':
         tmp_msg = play_instruments_msg
         tmp_keyboard = confirm_play_instruments_keyboard
-        video = InputFile("client/media/videos/piano.mp4")
+        video = InputFile("client/media/videos/guitar.mp4")
     elif v['action'] == 'painting':
         tmp_msg = learn_painting_msg
         tmp_keyboard = confirm_painting_keyboard
