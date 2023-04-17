@@ -277,7 +277,7 @@ async def play_instruments(call: types.CallbackQuery):
                                         message_id=call.message.message_id,
                                         caption=play_instruments_msg)
 
-    video = InputFile("client/media/videos/piano.mp4")
+    video = InputFile("client/media/videos/guitar.mp4")
     await call.bot.send_video_note(call.message.chat.id, video, reply_markup=confirm_play_instruments_keyboard)
     await call.answer()
 
