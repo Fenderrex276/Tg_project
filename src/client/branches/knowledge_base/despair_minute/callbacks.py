@@ -18,8 +18,8 @@ def getTips(call: types.CallbackQuery):
         if pos_number == len(messages.tips):
             UserTips[call.message.chat.id] = 0
     except:
-        UserTips[call.message.chat.id] = 0
-        pos_number = 0
+        UserTips[call.message.chat.id] = random.randint(0, len(messages.tips)-1)
+        pos_number = UserTips[call.message.chat.id]
     return pos_number
 
 

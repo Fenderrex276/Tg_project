@@ -20,8 +20,8 @@ def getFilm(call: types.CallbackQuery):  # POS = Principle of success
         if film_number == len(messages.films):
             UserFilms[call.message.chat.id] = 0
     except:
-        UserFilms[call.message.chat.id] = 0
-        film_number = 0
+        UserFilms[call.message.chat.id] = random.randint(0, len(messages.films)-1)
+        film_number = UserFilms[call.message.chat.id]
     return film_number
 
 

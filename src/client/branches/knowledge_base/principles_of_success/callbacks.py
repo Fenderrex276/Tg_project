@@ -17,8 +17,8 @@ def getPOS(call: types.CallbackQuery): #POS = Principle of success
         if pos_number == len(messages.tips):
             UserPos[call.message.chat.id] = 0
     except:
-        UserPos[call.message.chat.id] = 0
-        pos_number = 0
+        UserPos[call.message.chat.id] = random.randint(0, len(messages.tips)-1)
+        pos_number = UserPos[call.message.chat.id]
     return pos_number
 
 

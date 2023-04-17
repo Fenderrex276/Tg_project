@@ -16,8 +16,8 @@ def getMeme(call: types.CallbackQuery):
         if meme_number == 136:
             UserMemes[call.message.chat.id] = 1
     except:
-        UserMemes[call.message.chat.id] = 1
-        meme_number = 1
+        UserMemes[call.message.chat.id] = random.randint(1, 135)
+        meme_number = UserMemes[call.message.chat.id]
     return meme_number
 
 async def dislike_meme(call: types.CallbackQuery):

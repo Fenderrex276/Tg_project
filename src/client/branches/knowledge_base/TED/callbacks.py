@@ -17,8 +17,8 @@ def getTED(call: types.CallbackQuery):
         if ted_number == len(messages.teds):
             UserTED[call.message.chat.id] = 0
     except:
-        UserTED[call.message.chat.id] = 0
-        ted_number = 0
+        UserTED[call.message.chat.id] = random.randint(0, len(messages.teds)-1)
+        ted_number = UserTED[call.message.chat.id]
     return ted_number
 
 async def dislike_ted(call: types.CallbackQuery):

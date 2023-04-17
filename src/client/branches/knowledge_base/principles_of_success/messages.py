@@ -14,6 +14,9 @@ for line in f:
         tips.append(message)
         message = line.replace('1.', "")
         message = message.replace('1. **', "*")
+    elif i == 0:
+        message = line.replace('1.', "")
+        message = message.replace('1. **', "*")
     else:
         message += line
     i += 1

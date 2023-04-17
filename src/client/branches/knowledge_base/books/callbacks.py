@@ -6,9 +6,9 @@ from aiogram.types import InputFile, ParseMode
 from client.branches.knowledge_base.books import messages, states, keyboards
 from client.branches.thirty_days_dispute.states import StatesDispute
 
-
 # books
 UserBooks = {}
+
 
 def getBook(call: types.CallbackQuery):
     try:
@@ -17,15 +17,16 @@ def getBook(call: types.CallbackQuery):
         if book_number == len(messages.books):
             UserBooks[call.message.chat.id] = 0
     except:
-        UserBooks[call.message.chat.id] = 0
-        book_number = 0
+        UserBooks[call.message.chat.id] = random.randint(0, len(messages.books)-1)
+        book_number = UserBooks[call.message.chat.id]
     return book_number
+
 
 async def books(call: types.CallbackQuery):
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
     bn = getBook(call)
     await call.message.answer(text=messages.books[bn], reply_markup=keyboards.control_bk_keyboard,
-                                     parse_mode=ParseMode.MARKDOWN)
+                              parse_mode=ParseMode.MARKDOWN)
     await call.answer()
 
 
@@ -34,7 +35,7 @@ async def dislike_bk(call: types.CallbackQuery):
         await call.bot.delete_message(call.message.chat.id, call.message.message_id)
         bn = getBook(call)
         await call.message.answer(text=messages.books[bn], reply_markup=keyboards.control_bk_keyboard,
-                                     parse_mode=ParseMode.MARKDOWN)
+                                  parse_mode=ParseMode.MARKDOWN)
         await call.answer()
     except:
         await dislike_bk(call)

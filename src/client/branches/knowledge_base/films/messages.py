@@ -13,6 +13,10 @@ for line in f:
         message = line.replace('1.', "")
         message = message.replace('**', "*")
 
+    elif i == 0:
+        message = line.replace('1.', "")
+        message = message.replace('1. **', "*")
+
     elif 'Трейлер:' in line:
         continue
 
