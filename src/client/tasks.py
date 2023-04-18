@@ -57,7 +57,6 @@ def add_job(scheduler, call_fun, str_name: str, user_id, day_of_week: str, hour:
                                 minute=minute, second=second,
                                 kwargs=kwargs)
     logger.info(f"ADD_JOB: Добавили задачу {str_name} для пользователя с id: {user_id}")
-    logger.debug(f"ADD_JOB:{scheduler.print_jobs()}")
 
 
 async def reminder_scheduler_add_job(dp: Dispatcher, t_zone: str, fun: str, user_id: int, flag: int = -1,
@@ -256,12 +255,12 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
         day_of_week = date_calculated(notification_hour, hour, 0)
 
     kwargs = {'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video}
-    add_job(admin_scheduler, call_fun=send_first_code, str_name='send_first_code', user_id=user_id,
-            day_of_week=str(day_of_week),
-            hour=hour,
-            minute=minute, second=second, kwargs=kwargs)
+    PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_{"send_first_code"}', fun="send_first_code",
+                                day_of_week=str(day_of_week),
+                                hour=hour,
+                                minute=minute, second=second,
+                                kwargs=kwargs)
     PeriodicTask.objects.filter(job_id=f'{user_id}_send_test_period_reminder').delete()
-    admin_scheduler.print_jobs()
 
 
 def load_periodic_task_for_admin():
@@ -353,7 +352,6 @@ async def send_first_code(user_id: int, chat_id: int, id_video: int):
             second=scheduler.second, kwargs={'user_id': user_id, 'chat_id': chat_id, 'id_video': id_video})
     logger.info(f"SEND_FIRST_CODE: Был отправлен первый код пользователю с id {user_id}")
     add_soft_deadline(user_id)
-
 
 
 def add_soft_deadline(user_id):
@@ -457,7 +455,8 @@ async def hard_deadline_reminder(user_id, id_round_video, time):
         await dp.bot.send_message(user_id,
                                   f'Время для отправки репорта истекло. По правилам Диспута, мы ждём твой репорт каждый день до {time}',
                                   reply_markup=types.InlineKeyboardMarkup().add(
-            types.InlineKeyboardButton(text='👍 Больше не повторится', callback_data='try_again')))
+                                      types.InlineKeyboardButton(text='👍 Больше не повторится',
+                                                                 callback_data='try_again')))
 
         video.status = RoundVideo.VideoStatus.bad
         video.type_video = RoundVideo.TypeVideo.archive
