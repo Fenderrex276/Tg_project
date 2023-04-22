@@ -260,8 +260,10 @@ async def init_send_code(user_id, chat_id, when: str, id_video: int, t_zone: str
     PeriodicTask.objects.create(user_id=user_id, job_id=f'{user_id}_{"send_first_code"}', fun="send_first_code",
                                 day_of_week=str(day_of_week),
                                 hour=hour,
-                                minute=minute, second=second,
+                                minute=minute, second=second, is_change=True,
                                 kwargs=kwargs)
+    logger.info(f"ADD_JOB: Добавили задачу send_first_code для пользователя с id: {user_id}")
+    admin_scheduler.print_jobs()
     PeriodicTask.objects.filter(job_id=f'{user_id}_send_test_period_reminder').delete()
 
 
