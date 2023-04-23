@@ -14,7 +14,7 @@ from client.initialize import dp
 from client.tasks import change_period_task_info
 from utils import buttons_timezone
 from .messages import video_text, get_message_video, rules_msg
-
+from admin.initialize import bot as adminbot
 
 async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
     await StatesDispute.none.set()
@@ -214,6 +214,7 @@ async def recieved_video(call: types.CallbackQuery, state: FSMContext):
     current_video.save()
 
     tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
+    await adminbot.send_message(text='У вас новый кружок на проверку в разделе "ежедневные', chat_id=-792408904)
     await call.bot.send_video_note(video_note=data['video_id'], chat_id=-1001845655881)
     await call.message.answer(text=tmp_msg)
     await call.answer()
@@ -259,7 +260,7 @@ async def diary_button(call: types.CallbackQuery, state: FSMContext):
            "остаются здесь, наедине с тобой.\n\n"
            "Перечитай и проанализируй их, посмотри на ситуации и себя со стороны и продолжай свой путь")
 
-    await state.update_data(number_question=random.randint(0, 45))
+    await state.update_data(number_question=random.randint(0, 845))
     await call.message.answer(text=msg, reply_markup=types.InlineKeyboardMarkup().add(
         types.InlineKeyboardButton(text='🎲 Рандомно', callback_data='random_questions')))
     await call.answer()
@@ -268,9 +269,9 @@ async def diary_button(call: types.CallbackQuery, state: FSMContext):
 async def random_question(call: types.CallbackQuery, state: FSMContext):
     number = await state.get_data()
     ind = number['number_question']
-    second_ind = random.randint(0, 29)
+    second_ind = random.randint(0, 845)
     if second_ind == ind:
-        second_ind = random.randint(0, 29)
+        second_ind = random.randint(0, 845)
     await state.update_data(number_question=second_ind)
     await call.message.answer(text=questions[second_ind], reply_markup=admit_or_pass_keyboard)
     await call.answer()
@@ -293,7 +294,7 @@ async def dispute_rules(call: types.CallbackQuery, state: FSMContext):
 
     start_time_dispute = ""
     array = ['alcohol', 'drugs', 'smoking', 'gym', 'weight', 'language', 'programming', 'paint', 'food',
-             'instruments']
+             'instruments', 'money']
     user = await User.objects.aget(user_id=call.from_user.id)
     if data['action'] in array:
         start_time_dispute = "в период до 22:30"

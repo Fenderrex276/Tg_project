@@ -13,6 +13,7 @@ from client.initialize import dp
 from client.tasks import del_scheduler, reminder_scheduler_add_job, init_send_code
 from db.models import RoundVideo, User
 from settings.settings import CHANNEL_ID
+from admin.initialize import bot as adminbot
 
 
 async def preparation_for_dispute(call: types.CallbackQuery, state: FSMContext):
@@ -58,7 +59,7 @@ async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
                                      type_video=RoundVideo.TypeVideo.test)
 
     tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
-
+    await adminbot.send_message(text='У вас новый кружок на проверку в разделе "тестовые', chat_id=-792408904)
     print("FROM USER_BOT", v['video_id'])
     print("CHAT_ID", call.message.chat.id)
     await Video.next_step.set()
@@ -83,6 +84,7 @@ async def send_new_video(call: types.CallbackQuery, state: FSMContext):
 async def monday_or_after_tomorrow(call: types.CallbackQuery, state: FSMContext):
     # print(call.data)
     # await state.update_data(start_disput=call.data)
+    await Video.date.set()
     data = await state.get_data()
     round_video_info = await RoundVideo.objects.aget(tg_id=data['video_id'])
 
@@ -144,11 +146,11 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(send_new_video, text='send_new_video', state=Video.recv_video_note)
     dp.register_callback_query_handler(send_new_video, text='send_new1', state=Video.all_states)
     dp.register_callback_query_handler(send_new_video, text='send_new1', state=Video.all_states)
-    dp.register_callback_query_handler(pin_a_chat, text='good', state=Video.next_step)
-    dp.register_callback_query_handler(end_test_dispute, text='end_test', state=Video.next_step)
+    dp.register_callback_query_handler(pin_a_chat, text='good', state=Video.date)
+    dp.register_callback_query_handler(end_test_dispute, text='end_test', state=Video.date)
     dp.register_callback_query_handler(send_new_video, text='next_one1', state=Video.recv_video)
     dp.register_callback_query_handler(send_new_video, text='next_one1', state=Video.recv_video_note)
     dp.register_callback_query_handler(new_support_question, text='podderzka', state=Video.recv_video)
     dp.register_callback_query_handler(new_support_question, text='podderzka', state=Video.recv_video_note)
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='select_after_tomorrow', state='*')
-    dp.register_callback_query_handler(monday_or_after_tomorrow, text='select_monday', state='*')
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='select_after_tomorrow', state=Video.next_step)
+    dp.register_callback_query_handler(monday_or_after_tomorrow, text='select_monday', state=Video.next_step)

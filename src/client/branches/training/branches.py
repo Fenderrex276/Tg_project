@@ -28,7 +28,7 @@ class Training:
                                          state=Video.recv_video_note)
         self.dp.register_message_handler(self.recieve_video, content_types=['video'], state=Video.recv_video)
         self.dp.register_message_handler(self.is_not_a_video,
-                                         content_types=['text', 'audio', 'photo', 'sticker', 'voice'],
+                                         content_types=['text', 'audio', 'photo', 'sticker', 'voice', 'video_note'],
                                          state=Video.recv_video)
         self.dp.register_message_handler(self.is_not_a_video,
                                          content_types=['text', 'audio', 'photo', 'sticker', 'voice', 'video'],

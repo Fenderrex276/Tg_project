@@ -37,7 +37,6 @@ class ConfirmDispute:
                 await message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
                 break
 
-
         if User.objects.filter(promocode_user=message.text).exists():
             msg = 'Спасибо 🙏 Промо-код успешно принят.'
             await Promo.next()

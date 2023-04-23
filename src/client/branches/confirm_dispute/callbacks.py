@@ -120,6 +120,31 @@ async def choice_painting(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
 
 
+async def returned_choice(call: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    tmp_msg = ""
+    keyboard = types.InlineKeyboardMarkup()
+
+    if data['action'] == 'morning':
+        tmp_msg = morning_msg
+        keyboard = really_confirm_morning_keyboard
+    elif data['action'] == 'language':
+        tmp_msg = language_msg
+        keyboard = really_confirm_language_keyboard
+    elif data['action'] == 'money':
+        tmp_msg = money_msg
+        keyboard = really_confirm_more_money_keyboard
+    elif data['action'] == 'instruments':
+        tmp_msg = instruments_msg
+        keyboard = really_confirm_instruments_keyboard
+    elif data['action'] == 'painting':
+        tmp_msg = painting_msg
+        keyboard = really_confirm_painting_keyboard
+
+    await call.message.edit_text(text=tmp_msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+    await call.answer()
+
+
 async def confirm_morning(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(additional_action=call.data)
     await call.message.edit_text(text=confirm_morning_msg, reply_markup=all_confirm_keyboard)
@@ -154,12 +179,13 @@ async def recieved_date(call: types.CallbackQuery, state: FSMContext):
 
 
 async def input_promocod1(call: types.CallbackQuery, state: FSMContext):
-    await call.message.answer(text='Введите код', reply_markup=no_promo_code_keyboard)
+    await call.message.answer(text='Введите код')
     await call.answer()
 
 
 async def geo_position(call: types.CallbackQuery, state: FSMContext):
     await Promo.geo_position.set()
+
     await state.update_data(promocode='0')
     await call.message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
     await call.answer()
@@ -244,6 +270,8 @@ def register_callback(bot, dp: Dispatcher):
     dp.register_callback_query_handler(recieved_date, text='agree', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(input_promocod1, text='input_data_code', state=Promo.input_promo)
+
+    dp.register_callback_query_handler(returned_choice, text='back_to_choice', state=Promo.choose_dispute)
 
     dp.register_callback_query_handler(geo_position, text='next_step_three', state=Promo.input_promo)
     buttons_timezone(dp=dp, func=set_geo_position, current_state=Promo.geo_position)

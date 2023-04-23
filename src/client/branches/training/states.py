@@ -7,3 +7,4 @@ class Video(StatesGroup):
     next_step = State()
     none = State()
     new_question = State()
+    date = State()
