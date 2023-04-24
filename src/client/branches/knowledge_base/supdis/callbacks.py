@@ -13,12 +13,13 @@ UserSubdis = {}
 
 def getSubdis(call: types.CallbackQuery):
     try:
-        ted_number = UserSubdis[call.message.chat.id]
         UserSubdis[call.message.chat.id] += 1
-        if ted_number == 548:
+        ted_number = UserSubdis[call.message.chat.id]
+        if ted_number == 550:
             UserSubdis[call.message.chat.id] = 120
+            ted_number = UserSubdis[call.message.chat.id]
     except:
-        UserSubdis[call.message.chat.id] = random.randint(120, 548)
+        UserSubdis[call.message.chat.id] = random.randint(530, 550)
         ted_number = UserSubdis[call.message.chat.id]
     return ted_number
 

@@ -12,10 +12,11 @@ UserBooks = {}
 
 def getBook(call: types.CallbackQuery):
     try:
-        book_number = UserBooks[call.message.chat.id]
         UserBooks[call.message.chat.id] += 1
+        book_number = UserBooks[call.message.chat.id]
         if book_number == len(messages.books):
             UserBooks[call.message.chat.id] = 0
+            book_number = UserBooks[call.message.chat.id]
     except:
         UserBooks[call.message.chat.id] = random.randint(0, len(messages.books)-1)
         book_number = UserBooks[call.message.chat.id]

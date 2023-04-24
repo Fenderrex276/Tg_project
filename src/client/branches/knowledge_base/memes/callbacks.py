@@ -11,10 +11,11 @@ from client.branches.thirty_days_dispute.states import StatesDispute
 UserMemes = {}
 def getMeme(call: types.CallbackQuery):
     try:
-        meme_number = UserMemes[call.message.chat.id]
         UserMemes[call.message.chat.id] += 1
+        meme_number = UserMemes[call.message.chat.id]
         if meme_number == 136:
             UserMemes[call.message.chat.id] = 1
+            meme_number = UserMemes[call.message.chat.id]
     except:
         UserMemes[call.message.chat.id] = random.randint(1, 135)
         meme_number = UserMemes[call.message.chat.id]

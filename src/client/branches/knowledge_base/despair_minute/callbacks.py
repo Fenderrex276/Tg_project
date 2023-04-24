@@ -13,10 +13,11 @@ UserTips = {}
 
 def getTips(call: types.CallbackQuery):
     try:
-        pos_number = UserTips[call.message.chat.id]
         UserTips[call.message.chat.id] += 1
+        pos_number = UserTips[call.message.chat.id]
         if pos_number == len(messages.tips):
             UserTips[call.message.chat.id] = 0
+            pos_number = UserTips[call.message.chat.id]
     except:
         UserTips[call.message.chat.id] = random.randint(0, len(messages.tips)-1)
         pos_number = UserTips[call.message.chat.id]

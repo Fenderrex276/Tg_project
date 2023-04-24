@@ -12,10 +12,11 @@ from client.branches.thirty_days_dispute.states import StatesDispute
 UserPos = {}
 def getPOS(call: types.CallbackQuery): #POS = Principle of success
     try:
-        pos_number = UserPos[call.message.chat.id]
         UserPos[call.message.chat.id] += 1
+        pos_number = UserPos[call.message.chat.id]
         if pos_number == len(messages.tips):
             UserPos[call.message.chat.id] = 0
+            pos_number = UserPos[call.message.chat.id]
     except:
         UserPos[call.message.chat.id] = random.randint(0, len(messages.tips)-1)
         pos_number = UserPos[call.message.chat.id]

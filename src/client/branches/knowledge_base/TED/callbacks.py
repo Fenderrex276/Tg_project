@@ -12,10 +12,11 @@ from client.branches.thirty_days_dispute.states import StatesDispute
 UserTED = {}
 def getTED(call: types.CallbackQuery):
     try:
-        ted_number = UserTED[call.message.chat.id]
         UserTED[call.message.chat.id] += 1
+        ted_number = UserTED[call.message.chat.id]
         if ted_number == len(messages.teds):
             UserTED[call.message.chat.id] = 0
+            ted_number = UserTED[call.message.chat.id]
     except:
         UserTED[call.message.chat.id] = random.randint(0, len(messages.teds)-1)
         ted_number = UserTED[call.message.chat.id]
