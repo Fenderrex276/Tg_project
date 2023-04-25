@@ -13,6 +13,7 @@ from branches.knowledge_base.despair_minute.callbacks import register_callback a
 from branches.knowledge_base.films.callbacks import register_callback as rc10
 from branches.knowledge_base.memes.callbacks import register_callback as rc8
 from branches.knowledge_base.principles_of_success.callbacks import register_callback as rc7
+from branches.knowledge_base.supdis.callbacks import register_callback as rc14
 from branches.pay.branches import Pay
 from branches.pay.callbacks import register_callback as rc4
 from branches.start.branches import Start
@@ -25,7 +26,7 @@ from client.initialize import scheduler
 from client.tasks import load_periodic_task_for_client
 from client.branches.confirm_dispute.promo_codes import load_promo_codes_blogers
 branches = [Start, DisputeWithFriend, ConfirmDispute, Pay, Training, CurrentDispute]
-callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12, rc13]
+callbacks = [rc1, rc2, rc3, rc4, rc5, rc6, rc7, rc8, rc9, rc10, rc11, rc12, rc13, rc14]
 logger = logging.getLogger(__name__)
 
 
