@@ -27,7 +27,7 @@ def getSubdis(call: types.CallbackQuery):
 async def dislike_supdis(call: types.CallbackQuery):
     sd = getSubdis(call)
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    await call.bot.send_audio(call.message.chat.id, messages.supdis_link + sd,
+    await call.bot.send_audio(call.message.chat.id, messages.supdis_link + str(sd),
                               reply_markup=keyboards.supdis_keyboard)
     await call.answer()
 
@@ -36,7 +36,7 @@ async def like_supdis(call: types.CallbackQuery):
     sd = getSubdis(call)
     await call.bot.edit_message_reply_markup(chat_id=call.message.chat.id,
                                              message_id=call.message.message_id)
-    await call.bot.send_audio(call.message.chat.id, messages.supdis_link + sd,
+    await call.bot.send_audio(call.message.chat.id, messages.supdis_link + str(sd),
                               reply_markup=keyboards.supdis_keyboard)
     await call.answer()
 
@@ -44,7 +44,7 @@ async def like_supdis(call: types.CallbackQuery):
 async def supdis(call: types.CallbackQuery):
     sd = getSubdis(call)
     await call.bot.delete_message(call.message.chat.id, call.message.message_id)
-    await call.bot.send_audio(call.message.chat.id, messages.supdis_link+sd,
+    await call.bot.send_audio(call.message.chat.id, messages.supdis_link+str(sd),
                               reply_markup=keyboards.supdis_keyboard)
     await call.answer()
 
