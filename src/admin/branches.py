@@ -8,7 +8,7 @@ from random import randint
 from .keyboards import *
 from .states import AdminStates
 from .apikeys import api_keys_arr
-from db.models import RoundVideo, User
+from db.models import RoundVideo, User, Supt
 from .сallbacks import *
 from client.initialize import bot as mainbot
 from admin.support_reviews.states import ReviewStates
@@ -28,9 +28,9 @@ class Admin:
         self.dp.register_message_handler(self.start_handler, commands=["start"], state='*')
         self.dp.register_message_handler(self.start_handler, text=["start"], state='*')
         self.dp.register_message_handler(self.check_key, state=AdminStates.input_key)
-        self.dp.register_callback_query_handler(self.enter, text='enter_bot', state="*")
-        self.dp.register_message_handler(self.reports, text="✅ Репорты", state="*")
-        self.dp.register_message_handler(self.supports, text="💚 Поддержка и отзывы", state="*")
+        for i in range(300):
+            self.dp.register_message_handler(self.reports, text=f"✅ Репорты ({i})", state="*")
+            self.dp.register_message_handler(self.supports, text=f"💚 Поддержка и отзывы ({i})", state="*")
 
     async def start_handler(self, message: types.Message):
         msg = "Введи свой 🗝 ключ для входа:"
@@ -49,10 +49,33 @@ class Admin:
             await self.bot.send_message(message.from_user.id, "Введён неверный ключ")
 
     async def enter(self, call: types.CallbackQuery, state: FSMContext):
+        videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(status="")
+        supports = Supt.objects.filter(solved="new")
+        admin_menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        admin_menu.add(types.KeyboardButton(f"✅ Репорты ({len(videos)})"))
+        admin_menu.add(types.KeyboardButton(f"💚 Поддержка и отзывы ({len(supports)})"))
+
         await self.bot.send_message(call.from_user.id, "Меню админа", reply_markup=admin_menu)
         await call.answer()
 
     async def reports(self, message: types.Message, state: FSMContext):
+
+        dispute_videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(
+            status="",
+            type_video=RoundVideo.TypeVideo.dispute)
+
+        test_videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(
+            status="",
+            type_video=RoundVideo.TypeVideo.test)
+
+        reports_menu_keyboard = types.InlineKeyboardMarkup()
+        reports_menu_keyboard.add(
+            types.InlineKeyboardButton(text=f"Ежедневные ({len(dispute_videos)})", callback_data="every_day"))
+        reports_menu_keyboard.add(
+            types.InlineKeyboardButton(text=f"Тестовые ({len(test_videos)})", callback_data="test_videos"))
+        reports_menu_keyboard.add(types.InlineKeyboardButton(text="До результата (0)", callback_data="before_result"))
+        reports_menu_keyboard.add(types.InlineKeyboardButton(text="Архив", callback_data="archive"))
 
         await message.answer(text="Меню репортов", reply_markup=reports_menu_keyboard)
 

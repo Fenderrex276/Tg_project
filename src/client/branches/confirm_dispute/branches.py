@@ -74,7 +74,7 @@ class ConfirmDispute:
         print(message.date)
         future_date = get_date_to_start_dispute(message.date, variant['start_disput'], tmp[:len(tmp) - 4])
 
-        photo, choice_msg, tmp_keyboard = get_timezone_msg(future_date, variant)
+        photo, choice_msg, tmp_keyboard = get_timezone_msg(variant)
 
         await message.answer_photo(photo=photo, caption=choice_msg, reply_markup=tmp_keyboard,
                                    parse_mode=ParseMode.MARKDOWN_V2)

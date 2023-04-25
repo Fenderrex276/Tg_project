@@ -110,6 +110,19 @@ async def thirty_days_videos(call: types.CallbackQuery):
 
 
 async def back_to_menu(call: types.CallbackQuery):
+    dispute_videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(
+        status="",
+        type_video=RoundVideo.TypeVideo.dispute)
+
+    test_videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(
+        status="",
+        type_video=RoundVideo.TypeVideo.test)
+
+    reports_menu_keyboard = types.InlineKeyboardMarkup()
+    reports_menu_keyboard.add(types.InlineKeyboardButton(text=f"Ежедневные ({len(dispute_videos)})", callback_data="every_day"))
+    reports_menu_keyboard.add(types.InlineKeyboardButton(text=f"Тестовые ({len(test_videos)})", callback_data="test_videos"))
+    reports_menu_keyboard.add(types.InlineKeyboardButton(text="До результата (0)", callback_data="before_result"))
+    reports_menu_keyboard.add(types.InlineKeyboardButton(text="Архив", callback_data="archive"))
     await call.message.edit_text(text="Меню репортов", reply_markup=reports_menu_keyboard)
     await call.answer()
 

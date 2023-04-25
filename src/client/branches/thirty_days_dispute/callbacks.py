@@ -214,7 +214,7 @@ async def recieved_video(call: types.CallbackQuery, state: FSMContext):
     current_video.save()
 
     tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
-    await adminbot.send_message(text='У вас новый кружок на проверку в разделе "ежедневные', chat_id=-792408904)
+    # await adminbot.send_message(text='У вас новый кружок на проверку в разделе "ежедневные', chat_id=-792408904)
     await call.bot.send_video_note(video_note=data['video_id'], chat_id=-1001845655881)
     await call.message.answer(text=tmp_msg)
     await call.answer()

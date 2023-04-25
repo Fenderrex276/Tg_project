@@ -59,7 +59,7 @@ async def send_video_to_admin(call: types.CallbackQuery, state: FSMContext):
                                      type_video=RoundVideo.TypeVideo.test)
 
     tmp_msg = "🎈 Спасибо, репорт успешно отправлен на верификацию. Ожидайте результатов проверки."
-    await adminbot.send_message(text='У вас новый кружок на проверку в разделе "тестовые', chat_id=-792408904)
+    # await adminbot.send_message(text='У вас новый кружок на проверку в разделе "тестовые', chat_id=-792408904)
     print("FROM USER_BOT", v['video_id'])
     print("CHAT_ID", call.message.chat.id)
     await Video.next_step.set()
