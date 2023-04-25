@@ -28,7 +28,8 @@ class Admin:
         self.dp.register_message_handler(self.start_handler, commands=["start"], state='*')
         self.dp.register_message_handler(self.start_handler, text=["start"], state='*')
         self.dp.register_message_handler(self.check_key, state=AdminStates.input_key)
-        for i in range(300):
+        self.dp.register_callback_query_handler(self.enter, text='enter_bot', state="*")
+        for i in range(1000):
             self.dp.register_message_handler(self.reports, text=f"✅ Репорты ({i})", state="*")
             self.dp.register_message_handler(self.supports, text=f"💚 Поддержка и отзывы ({i})", state="*")
 
