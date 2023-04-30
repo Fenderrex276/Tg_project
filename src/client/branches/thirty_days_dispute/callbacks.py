@@ -43,6 +43,8 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
 
     current_video = RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                               type_video=RoundVideo.TypeVideo.archive).last()
+    print("TG_ID", current_video.tg_id, "USER ID", current_video.user_tg_id, current_video.chat_tg_id, current_video.code_in_video, "STATUS VIDEO", current_video.status,
+          current_video.type_video, current_video.n_day)
 
     redis_data = await state.get_data()
     if redis_data['is_blogger'] is True:
@@ -59,18 +61,18 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             elif user.count_mistakes == 3 and current_video.n_day == 28:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
             elif user.count_mistakes == 3 and current_video.n_day != 0:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}-{1}.png")
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}-{1}.png") # 30 - user.count_days - 27
             elif user.count_mistakes == 2 and current_video.n_day != 0:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}.png")
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}.png") # 30 - user.count_days - 27
 
         elif current_video.status == "bad" and user.count_days != 3:
 
             if user.count_mistakes == 2 and current_video.n_day == 28:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{2}.png")
             elif user.count_mistakes == 2 and user.promocode_from_friend != '0':
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}-{3}.png")
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}-{3}.png") # 30 - user.count_days - 27
             elif user.count_mistakes == 1:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days - 27}-{2}.png")
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}-{2}.png") # 30 - user.count_days - 27
             elif user.count_mistakes == 0:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/BLOGER SAD FINISH.png")
                 await state.update_data(is_blogger=False)
@@ -88,10 +90,10 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
             elif (user.count_mistakes == 3 or (
                     user.count_mistakes == 2 and user.promocode_from_friend == '0')) and current_video.n_day != 0:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{1}.png")
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}-{1}.png")
             elif (user.count_mistakes == 2 or (
                     user.count_mistakes == 1 and user.promocode_from_friend == '0')) and current_video.n_day != 0:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}.png")
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}.png")
 
         elif current_video.status == "bad" and user.count_days != 30:
 
@@ -100,10 +102,10 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             elif user.count_mistakes == 1 and current_video.n_day == 1 and user.promocode_from_friend == '0':
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{1}.png")
             elif user.count_mistakes == 2 and user.promocode_from_friend != '0':
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{3}.png")
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}-{3}.png")
 
             elif user.count_mistakes == 1:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{30 - user.count_days}-{2}.png")
+                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}-{2}.png")
             elif user.count_mistakes == 0:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/USER SAD FINISH.png")
 
