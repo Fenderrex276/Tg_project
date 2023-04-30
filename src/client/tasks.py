@@ -168,6 +168,7 @@ async def send_test_period_reminder(dp: Dispatcher, user_id: int, msg: str, coun
     if PeriodicTask.objects.filter(job_id=f"{user_id}_send_first_code").exists() or PeriodicTask.objects.filter(
             job_id=f"{user_id}_send_code"):
         del_scheduler(job_id=f"{user_id}_send_test_period_reminder", where='client')
+        return
     try:
         task = PeriodicTask.objects.get(job_id=f"{user_id}_send_test_period_reminder")
     except PeriodicTask.DoesNotExist:
