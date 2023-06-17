@@ -25,19 +25,16 @@ class ConfirmDispute:
 
     async def input_promo_code_handler(self, message: types.Message, state: FSMContext):
 
-        blogers_promo = BlogerPromocodes.objects.all()
         is_blogger = False
-        for i in range(len(blogers_promo)):
-            if message.text == blogers_promo[i].promocode:
-                blogers_promo[i].delete()
-                await state.update_data(promocode=message.text, is_blogger=True, count_days=3, deposit='0')
-                is_blogger = True
-                await Promo.next()
-                await message.answer(text='Спасибо 🙏 Промо-код успешно принят.')
-                await message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
-                break
+        if BlogerPromocodes.objects.filter(promocode=message.text).exists():
+            BlogerPromocodes.objects.get(promocode=message.text).delete()
+            await state.update_data(promocode=message.text, is_blogger=True, count_days=3, deposit='0')
+            is_blogger = True
+            await Promo.next()
+            await message.answer(text='Спасибо 🙏 Промо-код успешно принят.')
+            await message.answer(text=geo_position_msg, reply_markup=choose_time_zone_keyboard)
 
-        if User.objects.filter(promocode_user=message.text).exists():
+        elif User.objects.filter(promocode_user=message.text).exists():
             msg = 'Спасибо 🙏 Промо-код успешно принят.'
             await Promo.next()
             await state.update_data(promocode=message.text)
