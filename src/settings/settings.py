@@ -33,6 +33,7 @@ PATH_TO_ADMIN_LOG = os.environ.get('PATH_TO_ADMIN_LOG')
 PATH_TO_LOG = os.environ.get('PATH_TO_LOG')
 PATH_TO_APSCHEDULER_LOG = os.environ.get('PATH_TO_APSCHEDULER_LOG')
 PATH_TO_AIOGRAM_LOG = os.environ.get('PATH_TO_AIOGRAM_LOG')
+SUPER_ADMIN = os.environ.get('SUPER_ADMIN')
 
 LOGGING = {
     'version': 1,

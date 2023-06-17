@@ -1,6 +1,5 @@
 from aiogram import types
 
-
 test_keyboard = types.InlineKeyboardMarkup()
 test_keyboard.add(types.InlineKeyboardButton(text="⛔️ Не ок", callback_data="bad"),
                   types.InlineKeyboardButton(text="👍 Ок", callback_data="good"))
@@ -23,9 +22,11 @@ support_menu_keyboard.add(types.InlineKeyboardButton(text="Отзывы", callba
 support_menu_keyboard.add(types.InlineKeyboardButton(text="⚡️ Системные сообщения", callback_data="sys_msg"))
 support_menu_keyboard.add(types.InlineKeyboardButton(text="⭐️ DisputeAward", callback_data="dispute_award"))
 
+
+
 volya_keyboard = types.InlineKeyboardMarkup()
 volya_keyboard.add(types.InlineKeyboardButton(text="⛔️ Не ок", callback_data="bad1"),
-                  types.InlineKeyboardButton(text="👍 Ок", callback_data="good1"))
+                   types.InlineKeyboardButton(text="👍 Ок", callback_data="good1"))
 
 access_volya_keyboard = types.InlineKeyboardMarkup()
 access_volya_keyboard.add(types.InlineKeyboardButton(text='Да', callback_data='confirm_video1'),

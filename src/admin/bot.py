@@ -2,16 +2,18 @@ import logging
 
 from aiogram import executor
 
+from admin.administration.callbacks import register_callback as rc3
 from admin.reports.branches import Reports
 from admin.reports.callbacks import register_callback as rc1
 from admin.support_reviews.branches import Reviews
+from admin.administration.branches import Administration
 from admin.support_reviews.callbacks import register_callback as rc2
+from client.tasks import load_periodic_task_for_admin, reload_tasks
 from .branches import Admin
 from .initialize import scheduler
-from client.tasks import load_periodic_task_for_admin, reload_tasks
 
-branches = [Admin, Reports, Reviews]
-callbacks = [rc1, rc2]
+branches = [Admin, Reports, Reviews, Administration]
+callbacks = [rc1, rc2, rc3]
 logger = logging.getLogger(__name__)
 
 

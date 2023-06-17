@@ -95,3 +95,10 @@ class Reviews(models.Model):
 class BlogerPromocodes(models.Model):
     promocode = models.CharField(max_length=10, verbose_name="Уникальный промокод для блогера")
 
+
+class DisputeAdmin(models.Model):
+    username = models.CharField(max_length=255, verbose_name="Имя пользователя в TG")
+    user_id = models.BigIntegerField(null=True, blank=True, verbose_name="id пользователя в рамках админ бота")
+    chat_id = models.BigIntegerField(null=True, blank=True, verbose_name="id пользователя в рамках админ бота")
+    is_super_admin = models.BooleanField(default=False, verbose_name="Является ли админ супер-админом?")
+    is_active = models.BooleanField(default=True, verbose_name="Активен ли администратор?")

@@ -1,17 +1,17 @@
-import datetime
-import uuid
+import logging
 
-from aiogram import Bot, Dispatcher
-from aiogram import types
-from aiogram.dispatcher import FSMContext
-from random import randint
-from .keyboards import *
-from .states import AdminStates
-from .apikeys import api_keys_arr
-from db.models import RoundVideo, User, Supt
-from .сallbacks import *
-from client.initialize import bot as mainbot
+from aiogram import Bot
+
 from admin.support_reviews.states import ReviewStates
+from db.models import RoundVideo, DisputeAdmin
+from settings.settings import SUPER_ADMIN
+from .administration.states import AdministrationStates
+from .keyboards import support_menu_keyboard
+from admin.administration.keyboards import administration_menu_keyboard
+from .states import AdminStates
+from .сallbacks import *
+
+logger = logging.getLogger(__name__)
 
 
 class Admin:
@@ -27,48 +27,45 @@ class Admin:
     def register_handlers(self):
         self.dp.register_message_handler(self.start_handler, commands=["start"], state='*')
         self.dp.register_message_handler(self.start_handler, text=["start"], state='*')
-        self.dp.register_message_handler(self.check_key, state=AdminStates.input_key)
-        self.dp.register_callback_query_handler(self.enter, text='enter_bot', state="*")
-        for i in range(1000):
-            self.dp.register_message_handler(self.reports, text=f"✅ Репорты ({i})", state="*")
-            self.dp.register_message_handler(self.supports, text=f"💚 Поддержка и отзывы ({i})", state="*")
+        self.dp.register_message_handler(self.reports, text=f"✅ Репорты", state="*")
+        self.dp.register_message_handler(self.supports, text=f"💚 Поддержка и отзывы", state="*")
+        self.dp.register_message_handler(self.administration, text=f"‍👤 Администрирование", state="*")
 
-    async def start_handler(self, message: types.Message):
-        msg = "Введи свой 🗝 ключ для входа:"
-        await self.bot.send_message(message.from_user.id, msg)
-        await AdminStates.input_key.set()
-
-    async def check_key(self, message: types.Message, state: FSMContext):
-        if message.text in api_keys_arr:
-            await self.bot.send_message(message.from_user.id, "Спасибо!")
-            await self.bot.send_message(message.from_user.id, "Ключ принят, добро пожаловать!",
-                                        reply_markup=types.InlineKeyboardMarkup()
-                                        .add(types.InlineKeyboardButton('🔒 Войти', callback_data='enter_bot')
-                                             ))
-            await state.set_state(AdminStates.is_admin)
-        else:
-            await self.bot.send_message(message.from_user.id, "Введён неверный ключ")
-
-    async def enter(self, call: types.CallbackQuery, state: FSMContext):
-        videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(status="")
-        supports = Supt.objects.filter(solved="new")
+    async def start_handler(self, message: types.Message, state: FSMContext):
+        username = message['from']['username']
+        logger.info(f"---------------MESSAGE---{message}")
+        try:
+            admin = DisputeAdmin.objects.get(username=username)
+            is_super = admin.is_super_admin
+            admin.user_id = message['from']['id']
+            admin.chat_id = message['chat']['id']
+            admin.save()
+            if not admin.is_active:
+                await self.bot.send_message(message['from']['id'], text=f"У вас нет доступа")
+                return
+        except DisputeAdmin.DoesNotExist:
+            if SUPER_ADMIN != username:
+                await self.bot.send_message(message['from']['id'], text=f"У вас нет доступа")
+                return
+            is_super = True
+        text = f'Меню админа'
         admin_menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-        admin_menu.add(types.KeyboardButton(f"✅ Репорты ({len(videos)})"))
-        admin_menu.add(types.KeyboardButton(f"💚 Поддержка и отзывы ({len(supports)})"))
+        admin_menu.add(types.KeyboardButton(f"✅ Репорты"))
+        admin_menu.add(types.KeyboardButton(f"💚 Поддержка и отзывы"))
+        if is_super:
+            admin_menu.add(types.KeyboardButton(f"‍👤 Администрирование"))
+            text = f'Меню супер-админа'
 
-        await self.bot.send_message(call.from_user.id, "Меню админа", reply_markup=admin_menu)
-        await call.answer()
+        await self.bot.send_message(message['from']['id'], text, reply_markup=admin_menu)
+        await AdminStates.is_admin.set()
 
     async def reports(self, message: types.Message, state: FSMContext):
+        dispute_videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(status="",
+                                                                               type_video=RoundVideo.TypeVideo.dispute)
 
-        dispute_videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(
-            status="",
-            type_video=RoundVideo.TypeVideo.dispute)
-
-        test_videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(
-            status="",
-            type_video=RoundVideo.TypeVideo.test)
+        test_videos = RoundVideo.objects.exclude(tg_id__isnull=True).filter(status="",
+                                                                            type_video=RoundVideo.TypeVideo.test)
 
         reports_menu_keyboard = types.InlineKeyboardMarkup()
         reports_menu_keyboard.add(
@@ -81,6 +78,9 @@ class Admin:
         await message.answer(text="Меню репортов", reply_markup=reports_menu_keyboard)
 
     async def supports(self, message: types.Message, state: FSMContext):
-
         await message.answer(text="💚 Поддержка и отзывы", reply_markup=support_menu_keyboard)
         await ReviewStates.none.set()
+
+    async def administration(self, message: types.Message, state: FSMContext):
+        await message.answer(text=f"Администрирование", reply_markup=administration_menu_keyboard)
+        await AdministrationStates.none.set()
