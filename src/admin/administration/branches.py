@@ -1,19 +1,10 @@
-# from admin.support_reviews.callbacks import Nums
-# from db.models import Supt, User, RoundVideo
-# from aiogram import types, Bot, Dispatcher
-# from admin.support_reviews.messages import getQuestions
-# from admin.support_reviews import keyboards, states
-# from admin.states import AdminStates
-# from client.initialize import bot as mainbot
-#
-#
 import logging
 
 from aiogram import Bot, Dispatcher, types
 
 from admin.administration.states import AdministrationStates
-from admin.administration.callbacks import show_admins
-from db.models import DisputeAdmin
+from admin.initialize import bot, storage
+from db.models import DisputeAdmin, User
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +21,100 @@ class Administration:
 
     def register_handlers(self):
         self.dp.register_message_handler(self.input_username_admin, state=AdministrationStates.input_username_admin)
+        self.dp.register_message_handler(self.delete_admin, state=AdministrationStates.delete_admin)
+        self.dp.register_message_handler(self.make_super_admin, state=AdministrationStates.make_super_admin)
+        self.dp.register_message_handler(self.remove_super_admin, state=AdministrationStates.remove_super_admin)
+        self.dp.register_message_handler(self.move_to_dialog, state=AdministrationStates.move_to_dialog_with_admin)
+        self.dp.register_message_handler(self.activate_admin, state=AdministrationStates.activate_admin)
+        self.dp.register_message_handler(self.deactivate_admin, state=AdministrationStates.deactivate_admin)
+        self.dp.register_message_handler(self.notify_all_administrators,
+                                         state=AdministrationStates.notify_all_administrators)
 
     async def input_username_admin(self, message: types.Message):
-        await AdministrationStates.none.set()
-        DisputeAdmin.objects.create(username=message['text'])
-        await message.answer("Готово!")
+        if DisputeAdmin.objects.filter(username=message['text']).exists():
+            await message.answer("В системе уже есть админ с таким username.")
+        else:
 
+            DisputeAdmin.objects.create(username=message['text'])
+            await AdministrationStates.none.set()
+            await message.answer("Готово!")
+
+    async def delete_admin(self, message: types.Message):
+
+        try:
+            admin = DisputeAdmin.objects.get(username=message['text'])
+            admin.delete()
+            await AdministrationStates.none.set()
+            await message.answer("Готово!")
+        except DisputeAdmin.DoesNotExist:
+            await message.answer("В системе нет такого админа. Введите username повторно.")
+
+    async def make_super_admin(self, message: types.Message):
+
+        try:
+            admin = DisputeAdmin.objects.get(username=message['text'])
+            admin.is_super_admin = True
+            admin.save()
+            await AdministrationStates.none.set()
+            await message.answer("Готово!")
+        except DisputeAdmin.DoesNotExist:
+            await message.answer("В системе нет такого админа. Введите username повторно.")
+
+    async def remove_super_admin(self, message: types.Message):
+
+        try:
+            admin = DisputeAdmin.objects.get(username=message['text'])
+            admin.is_super_admin = False
+            admin.save()
+            await AdministrationStates.none.set()
+            await message.answer("Готово!")
+        except DisputeAdmin.DoesNotExist:
+            await message.answer("В системе нет такого админа. Введите username повторно.")
+
+    async def move_to_dialog(self, message: types.Message):
+
+        try:
+            DisputeAdmin.objects.get(username=message['text'])
+            await AdministrationStates.none.set()
+            await message.answer(
+                f"Готово!\nДля перехода в диалогу нажмите на эту ссылку https://t.me/{message['text']}")
+        except DisputeAdmin.DoesNotExist:
+            await message.answer("В системе нет такого админа. Введите username повторно.")
+
+    async def activate_admin(self, message: types.Message):
+
+        try:
+            admin = DisputeAdmin.objects.get(username=message['text'])
+            admin.is_active = True
+            admin.save()
+            await AdministrationStates.none.set()
+            await message.answer(f"Готово!")
+        except DisputeAdmin.DoesNotExist:
+            await message.answer("В системе нет такого админа. Введите username повторно.")
+
+    async def deactivate_admin(self, message: types.Message):
+
+        try:
+            admin = DisputeAdmin.objects.get(username=message['text'])
+            admin.is_active = False
+            admin.save()
+            await AdministrationStates.none.set()
+            await message.answer(f"Готово!")
+        except DisputeAdmin.DoesNotExist:
+            await message.answer("В системе нет такого админа. Введите username повторно.")
+
+    async def notify_all_administrators(self, message: types.Message):
+        admins = DisputeAdmin.objects.filter(is_active=True).exclude(user_id=message["from"]["id"])
+        for admin in admins:
+            bot.send_message(admin.chat_id, message['text'])
+
+        await AdministrationStates.none.set()
+        await message.answer(f"Готово!")
+
+    async def notify_all_users(self, message: types.Message):
+        users = User.objects.all()
+        for user in users:
+            bot.send_message(user.chat_id, message['text'])
+
+        await AdministrationStates.none.set()
+        await message.answer(f"Готово!")

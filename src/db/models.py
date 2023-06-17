@@ -94,6 +94,7 @@ class Reviews(models.Model):
 
 class BlogerPromocodes(models.Model):
     promocode = models.CharField(max_length=10, verbose_name="Уникальный промокод для блогера")
+    is_issued = models.BooleanField(default=False, verbose_name="Выдан ли промокод?")
 
 
 class DisputeAdmin(models.Model):

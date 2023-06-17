@@ -33,13 +33,13 @@ class Admin:
 
     async def start_handler(self, message: types.Message, state: FSMContext):
         username = message['from']['username']
-        logger.info(f"---------------MESSAGE---{message}")
         try:
             admin = DisputeAdmin.objects.get(username=username)
             is_super = admin.is_super_admin
-            admin.user_id = message['from']['id']
-            admin.chat_id = message['chat']['id']
-            admin.save()
+            if admin.user_id is None:
+                admin.user_id = message['from']['id']
+                admin.chat_id = message['chat']['id']
+                admin.save()
             if not admin.is_active:
                 await self.bot.send_message(message['from']['id'], text=f"У вас нет доступа")
                 return
