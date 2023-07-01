@@ -6,7 +6,7 @@ from aiogram.dispatcher import FSMContext
 
 from admin.administration.states import AdministrationStates
 from admin.initialize import storage
-from db.models import DisputeAdmin, BlogerPromocodes
+from db.models import DisputeAdmin, BlogerPromocodes, PeriodicTask
 
 logger = logging.getLogger(__name__)
 
@@ -159,14 +159,32 @@ async def list_promo(call: types.CallbackQuery, state: FSMContext):
         types.InlineKeyboardButton(text='Назад', callback_data="back_from_action_promo")
     ))
 
+
 async def statistic(call: types.CallbackQuery, state: FSMContext):
-    tmp_msg = "Статистика\n\n"
-    promos = BlogerPromocodes.objects.all()
-    for promo in promos:
-        tmp_msg += f"{promo.promocode}\t|\t{'Выдан' if promo.is_issued else 'Свободен'}\n"
-    await call.message.answer(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
-        types.InlineKeyboardButton(text='Назад', callback_data="back_from_action_promo")
-    ))
+    tasks = PeriodicTask.objects.all()  # .values_list("user_id", flat=True).distinct()
+    out_game = 0
+    in_game = 0
+    in_test_game = 0
+    out_test_game = 0
+    for task in tasks:
+        if task.fun == "send_reminder_after_end":
+            out_game += 1
+        elif task.fun in ["send_code", "send_first_code"]:
+            in_game += 1
+        elif task.fun == "send_test_period_reminder":
+            in_test_game += 1
+        elif task.fun == "reminder":
+            out_test_game += 1
+
+    msg = f"""
+        [Статистика по боту]\n\n
+        Окончили диспут: {out_game}\n\n
+        В игре: {in_game}\n\n
+        На этапе подготовки: {in_test_game}\n\n
+        Выбирают диспут: {out_test_game}"""
+
+    await call.message.answer(text=msg)
+
 
 def register_callback(dp: Dispatcher, bot):
     dp.register_callback_query_handler(show_admins, text='admins', state='*')
