@@ -32,9 +32,11 @@ class AdminDisputeBot:
     def start(self):
         logger.info("Admin_bot запущен")
         scheduler.start()
-        load_periodic_task_for_admin()
-
-        scheduler.add_job(reload_tasks, replace_existing=True, trigger='cron', id=f'reload_tasks',
-                          minute="*")
-        scheduler.print_jobs()
-        executor.start_polling(self.dp, skip_updates=True)
+        try:
+            load_periodic_task_for_admin()
+            scheduler.add_job(reload_tasks, replace_existing=True, trigger='cron', id=f'reload_tasks',
+                              minute="*")
+            scheduler.print_jobs()
+            executor.start_polling(self.dp, skip_updates=True)
+        except:
+            logger.info("Выполните миграцию базы данных и перезапустите бота")
