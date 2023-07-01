@@ -205,3 +205,4 @@ def register_callback(dp: Dispatcher, bot):
     dp.register_callback_query_handler(delete_promo, text='delete_promo', state='*')
     dp.register_callback_query_handler(give_promo, text='give_promo', state='*')
     dp.register_callback_query_handler(list_promo, text='list_promo', state='*')
+    dp.register_callback_query_handler(statistic, text='statistic', state='*')
