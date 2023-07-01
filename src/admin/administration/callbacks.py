@@ -113,20 +113,22 @@ async def notify_all_users(call: types.CallbackQuery, state: FSMContext):
 
 async def promocod_actions(call: types.CallbackQuery, state: FSMContext):
     await AdministrationStates.none.set()
-    admins_keyboard = types.InlineKeyboardMarkup()
-    admins_keyboard.add(types.InlineKeyboardButton(text=f"Добавить промокод", callback_data="add_promo"))
-    admins_keyboard.add(types.InlineKeyboardButton(text=f"Удалить промокод", callback_data="delete_promo"))
-    admins_keyboard.add(types.InlineKeyboardButton(text=f"Выдать промокод", callback_data="delete_promo"))
-    admins_keyboard.add(types.InlineKeyboardButton(text=f"Список промокодов", callback_data="list_promo"))
+    promo_keyboard = types.InlineKeyboardMarkup()
+    promo_keyboard.add(types.InlineKeyboardButton(text=f"Добавить промокод", callback_data="add_promo"))
+    promo_keyboard.add(types.InlineKeyboardButton(text=f"Удалить промокод", callback_data="delete_promo"))
+    promo_keyboard.add(types.InlineKeyboardButton(text=f"Выдать промокод", callback_data="give_promo"))
+    promo_keyboard.add(types.InlineKeyboardButton(text=f"Список промокодов", callback_data="list_promo"))
 
-    await call.message.answer(text="Список администраторов", reply_markup=admins_keyboard)
+    await call.message.answer(text="Список действий", reply_markup=promo_keyboard)
 
 
 async def add_promo(call: types.CallbackQuery, state: FSMContext):
     promo = secrets.token_hex(nbytes=5)
     BlogerPromocodes.objects.create(promocode=promo)
     tmp_msg = f"Сгенерирован промокод:\n{promo}"
-    await call.message.edit_text(text=tmp_msg)
+    await call.message.answer(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text='Назад', callback_data="back_from_action_promo")
+    ))
     await call.answer()
 
 
@@ -138,6 +140,33 @@ async def delete_promo(call: types.CallbackQuery, state: FSMContext):
     ))
     await call.answer()
 
+
+async def give_promo(call: types.CallbackQuery, state: FSMContext):
+    tmp_msg = "Введи промокод, который хотите выдать."
+    await AdministrationStates.give_promo.set()
+    await call.message.answer(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text='Назад', callback_data="back_from_action_promo")
+    ))
+    await call.answer()
+
+
+async def list_promo(call: types.CallbackQuery, state: FSMContext):
+    tmp_msg = "Список промокодов\n\n"
+    promos = BlogerPromocodes.objects.all()
+    for promo in promos:
+        tmp_msg += f"{promo.promocode}\t|\t{'Выдан' if promo.is_issued else 'Свободен'}\n"
+    await call.message.answer(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text='Назад', callback_data="back_from_action_promo")
+    ))
+
+async def statistic(call: types.CallbackQuery, state: FSMContext):
+    tmp_msg = "Статистика\n\n"
+    promos = BlogerPromocodes.objects.all()
+    for promo in promos:
+        tmp_msg += f"{promo.promocode}\t|\t{'Выдан' if promo.is_issued else 'Свободен'}\n"
+    await call.message.answer(text=tmp_msg, reply_markup=types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text='Назад', callback_data="back_from_action_promo")
+    ))
 
 def register_callback(dp: Dispatcher, bot):
     dp.register_callback_query_handler(show_admins, text='admins', state='*')
@@ -153,3 +182,8 @@ def register_callback(dp: Dispatcher, bot):
     dp.register_callback_query_handler(show_admins, text='back_from_action_admin', state='*')
 
     dp.register_callback_query_handler(promocod_actions, text='promo_codes', state='*')
+    dp.register_callback_query_handler(promocod_actions, text='back_from_action_promo', state='*')
+    dp.register_callback_query_handler(add_promo, text='add_promo', state='*')
+    dp.register_callback_query_handler(delete_promo, text='delete_promo', state='*')
+    dp.register_callback_query_handler(give_promo, text='give_promo', state='*')
+    dp.register_callback_query_handler(list_promo, text='list_promo', state='*')

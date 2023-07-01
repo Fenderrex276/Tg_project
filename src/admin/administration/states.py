@@ -13,3 +13,4 @@ class AdministrationStates(StatesGroup):
     notify_all_administrators = State()
     notify_all_users = State()
     delete_promo = State()
+    give_promo = State()

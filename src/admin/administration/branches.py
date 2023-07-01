@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, types
 
 from admin.administration.states import AdministrationStates
 from admin.initialize import bot, storage
-from db.models import DisputeAdmin, User
+from db.models import DisputeAdmin, User, BlogerPromocodes
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,12 @@ class Administration:
         self.dp.register_message_handler(self.deactivate_admin, state=AdministrationStates.deactivate_admin)
         self.dp.register_message_handler(self.notify_all_administrators,
                                          state=AdministrationStates.notify_all_administrators)
+
+        self.dp.register_message_handler(self.delete_promo, state=AdministrationStates.delete_promo)
+        self.dp.register_message_handler(self.give_promo, state=AdministrationStates.give_promo)
+
+        self.dp.register_message_handler(self.notify_all_users,
+                                         state=AdministrationStates.notify_all_users)
 
     async def input_username_admin(self, message: types.Message):
         if DisputeAdmin.objects.filter(username=message['text']).exists():
@@ -118,3 +124,24 @@ class Administration:
 
         await AdministrationStates.none.set()
         await message.answer(f"Готово!")
+
+    async def delete_promo(self, message: types.Message):
+
+        try:
+            promo = BlogerPromocodes.objects.get(promocode=message['text'])
+            promo.delete()
+            await AdministrationStates.none.set()
+            await message.answer("Готово!")
+        except DisputeAdmin.DoesNotExist:
+            await message.answer("В системе нет такого промокода. Введите код повторно.")
+
+    async def give_promo(self, message: types.Message):
+
+        try:
+            promo = BlogerPromocodes.objects.get(promocode=message['text'])
+            promo.is_issued = True
+            promo.save()
+            await AdministrationStates.none.set()
+            await message.answer("Готово!")
+        except DisputeAdmin.DoesNotExist:
+            await message.answer("В системе нет такого промокода. Введите код повторно.")
