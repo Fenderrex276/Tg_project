@@ -37,6 +37,7 @@ class AdminDisputeBot:
             scheduler.add_job(reload_tasks, replace_existing=True, trigger='cron', id=f'reload_tasks',
                               minute="*")
             scheduler.print_jobs()
-            executor.start_polling(self.dp, skip_updates=True)
+
         except:
             logger.info("Выполните миграцию базы данных и перезапустите бота")
+        executor.start_polling(self.dp, skip_updates=True)

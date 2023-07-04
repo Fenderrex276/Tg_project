@@ -47,6 +47,7 @@ class DisputeBot:
         scheduler.start()
         try:
             load_periodic_task_for_client()
-            executor.start_polling(self.dp, skip_updates=True)
         except:
             logger.info("Выполните миграцию базы данных и перезапустите бота")
+
+        executor.start_polling(self.dp, skip_updates=True)
