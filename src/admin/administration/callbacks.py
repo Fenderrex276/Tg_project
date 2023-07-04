@@ -22,11 +22,9 @@ async def show_admins(call: types.CallbackQuery, state: FSMContext):
     admins_keyboard.add(types.InlineKeyboardButton(text=f"Деактивировать админа", callback_data="deactivate_admin"))
     admins_keyboard.add(types.InlineKeyboardButton(text=f"Перейти в диалог", callback_data="move_to_dialog"))
     admins = DisputeAdmin.objects.all()
+    msg = "Список администраторов\n\n"
     for admin in admins:
-        admins_keyboard.add(
-            types.InlineKeyboardButton(
-                text=f"{admin.username} | {'Активен' if admin.is_active else 'Неактивен'} | {'Супер Админ' if admin.is_super_admin else 'Простой Админ'}",
-                callback_data=f"action_with_admin : {admin.username}"))
+        msg += f"{admin.username}\t|\t{'Активен' if admin.is_active else 'Неактивен'}\t|\t{'Супер Админ' if admin.is_super_admin else 'Простой Админ'}\n\n"
     await call.message.answer(text="Список администраторов", reply_markup=admins_keyboard)
 
 
