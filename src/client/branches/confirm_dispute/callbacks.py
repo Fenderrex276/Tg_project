@@ -1,4 +1,6 @@
-from aiogram import Dispatcher, types
+import datetime
+
+from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode
 
@@ -6,7 +8,8 @@ from client.branches.confirm_dispute.messages import *
 from client.branches.confirm_dispute.states import Promo
 from client.branches.dispute_with_friend.states import Form
 from client.tasks import reminder_scheduler_add_job, change_period_task_info
-from utils import get_date_to_start_dispute, buttons_timezone
+from db.models import User
+from utils import buttons_timezone
 
 
 async def choice_alcohol(call: types.CallbackQuery, state: FSMContext):
@@ -194,6 +197,17 @@ async def geo_position(call: types.CallbackQuery, state: FSMContext):
 async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
     from client.initialize import dp
 
+    data = await state.get_data()
+
+    is_change_timezone = data.get('is_change_timezone', None)
+    if is_change_timezone:
+        user = await User.objects.filter(user_id=call.from_user.id)
+        last_change = user.last_change_tz
+        if not last_change is None and datetime.datetime.today() < (last_change + datetime.timedelta(days=1)):
+            msg = f"Менее одного дня назад уже была изменена временная зона. С последнего изменения должен пройти 1 день."
+            await call.message.answer(text=msg)
+            return
+
     await state.update_data(timezone=call.data, name=call.from_user.first_name)
 
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
@@ -204,9 +218,6 @@ async def set_geo_position(call: types.CallbackQuery, state: FSMContext):
 
     if is_change_timezone:
         await change_period_task_info(call.from_user.id, call.data)
-    # if User.objects.filter(user_id=call.from_user.id).exists():
-    #     #print("TYTYTYTYTYTYYTYTYTYTYT")  # SIMA TODO Сделать логику смены TZ из настроек профиля игрока
-    #     await change_periodic_tasks(call.from_user.id, call.data)
     else:
         await reminder_scheduler_add_job(dp, call.data, "reminder", call.from_user.id, 1, notification_hour=10,
                                          notification_min=0)

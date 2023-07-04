@@ -566,7 +566,14 @@ def del_scheduler(job_id: str, where: str):
 
 async def change_period_task_info(user_id, time_zone):
     logger.info(f"CHANGE_PERIOD_TASK_INFO: Пользователь с id {user_id} изменил TZ")
-
+    try:
+        user = User.objects.get(user_id=user_id)
+        user.last_change_tz = datetime.now()
+        user.save()
+    except User.DoesNotExist:
+        logger.critical(f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User')
+        print(f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User')
+        return
     tasks = PeriodicTask.objects.filter(user_id=user_id)
 
     for task in tasks:
@@ -597,12 +604,7 @@ async def change_period_task_info(user_id, time_zone):
             change_task.is_change = True
             change_task.save()
         elif task.fun == 'soft_deadline_reminder':
-            try:
-                user = User.objects.get(user_id=user_id)
-            except User.DoesNotExist:
-                logger.critical(f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User')
-                print(f'Ошибка: Отсутствует запись для пользователя с id {user_id} в таблице User')
-                continue
+
             if user.action == 'morning':
                 if user.additional_action == 'five_am':
                     hour, minute, second = time_calculated(time_zone, 5, 0)

@@ -34,6 +34,8 @@ class User(models.Model):
     count_days = models.IntegerField(verbose_name="Сколько дней длится диспут")
     number_dispute = models.CharField(max_length=6, verbose_name="уникальный идентификатор диспута")
     timezone = models.CharField(max_length=7, verbose_name='Таймзона')
+    last_change_tz = models.DateTimeField(null=True, blank=True, default=None,
+                                          verbose_name='Дата и время последнего изменения')
     count_mistakes = models.IntegerField(verbose_name='количество попыток')
 
 

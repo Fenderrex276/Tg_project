@@ -1,20 +1,22 @@
+import datetime
 import random
+
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile, ParseMode
-from .diary import questions
-from .keyboards import *
-from .states import StatesDispute, NewReview
 
-from db.models import RoundVideo, User
-from ..confirm_dispute.keyboards import choose_time_zone_keyboard
-from ..dispute_with_friend.messages import personal_goals_msg
-from client.tasks import del_scheduler, change_period_task_info, reminder_scheduler_add_job
 from client.initialize import dp
 from client.tasks import change_period_task_info
+from client.tasks import reminder_scheduler_add_job
+from db.models import RoundVideo, User
 from utils import buttons_timezone
+from .diary import questions
+from .keyboards import *
 from .messages import video_text, get_message_video, rules_msg
-from admin.initialize import bot as adminbot
+from .states import StatesDispute, NewReview
+from ..confirm_dispute.keyboards import choose_time_zone_keyboard
+from ..dispute_with_friend.messages import personal_goals_msg
+
 
 async def begin_dispute(call: types.CallbackQuery, state: FSMContext):
     await StatesDispute.none.set()
@@ -43,7 +45,8 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
 
     current_video = RoundVideo.objects.filter(user_tg_id=call.from_user.id,
                                               type_video=RoundVideo.TypeVideo.archive).last()
-    print("TG_ID", current_video.tg_id, "USER ID", current_video.user_tg_id, current_video.chat_tg_id, current_video.code_in_video, "STATUS VIDEO", current_video.status,
+    print("TG_ID", current_video.tg_id, "USER ID", current_video.user_tg_id, current_video.chat_tg_id,
+          current_video.code_in_video, "STATUS VIDEO", current_video.status,
           current_video.type_video, current_video.n_day)
 
     redis_data = await state.get_data()
@@ -61,18 +64,22 @@ async def reports(call: types.CallbackQuery, state: FSMContext):
             elif user.count_mistakes == 3 and current_video.n_day == 28:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{1}.png")
             elif user.count_mistakes == 3 and current_video.n_day != 0:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}-{1}.png") # 30 - user.count_days - 27
+                main_photo = InputFile(
+                    f"client/media/days_of_dispute/days/{current_video.n_day}-{1}.png")  # 30 - user.count_days - 27
             elif user.count_mistakes == 2 and current_video.n_day != 0:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}.png") # 30 - user.count_days - 27
+                main_photo = InputFile(
+                    f"client/media/days_of_dispute/days/{current_video.n_day}.png")  # 30 - user.count_days - 27
 
         elif current_video.status == "bad" and user.count_days != 3:
 
             if user.count_mistakes == 2 and current_video.n_day == 28:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/{1}-{2}.png")
             elif user.count_mistakes == 2 and user.promocode_from_friend != '0':
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}-{3}.png") # 30 - user.count_days - 27
+                main_photo = InputFile(
+                    f"client/media/days_of_dispute/days/{current_video.n_day}-{3}.png")  # 30 - user.count_days - 27
             elif user.count_mistakes == 1:
-                main_photo = InputFile(f"client/media/days_of_dispute/days/{current_video.n_day}-{2}.png") # 30 - user.count_days - 27
+                main_photo = InputFile(
+                    f"client/media/days_of_dispute/days/{current_video.n_day}-{2}.png")  # 30 - user.count_days - 27
             elif user.count_mistakes == 0:
                 main_photo = InputFile(f"client/media/days_of_dispute/days/BLOGER SAD FINISH.png")
                 await state.update_data(is_blogger=False)
@@ -499,8 +506,15 @@ async def return_account(call: types.CallbackQuery, state: FSMContext):
 
 
 async def new_time_zone(call: types.CallbackQuery, state: FSMContext):
-    await state.update_data(timezone=call.data)
     user = User.objects.filter(user_id=call.from_user.id).last()
+    last_change = user.last_change_tz
+    if not last_change is None and datetime.datetime.today() < (last_change + datetime.timedelta(days=1)):
+        msg = f"Менее одного дня назад уже была изменена временная зона. С последнего изменения должен пройти 1 день."
+        await call.message.answer(text=msg)
+        return
+
+    await state.update_data(timezone=call.data)
+
     user.timezone = call.data
     user.save()
     tmp_msg = f"Установлен часовой пояс {call.data} UTC"
