@@ -3,7 +3,8 @@ import logging
 from aiogram import Bot, Dispatcher, types
 
 from admin.administration.states import AdministrationStates
-from admin.initialize import bot, storage
+from admin.initialize import bot as bot_a
+from client.initialize import bot as bot_c
 from db.models import DisputeAdmin, User, BlogerPromocodes
 
 logger = logging.getLogger(__name__)
@@ -112,7 +113,7 @@ class Administration:
     async def notify_all_administrators(self, message: types.Message):
         admins = DisputeAdmin.objects.filter(is_active=True).exclude(user_id=message["from"]["id"])
         for admin in admins:
-            await bot.send_message(admin.chat_id, message['text'])
+            await bot_a.send_message(admin.chat_id, message['text'])
 
         await AdministrationStates.none.set()
         await message.answer(f"Готово!")
@@ -120,7 +121,7 @@ class Administration:
     async def notify_all_users(self, message: types.Message):
         users = User.objects.all()
         for user in users:
-            await bot.send_message(user.chat_id, message['text'])
+            await bot_c.send_message(user.chat_id, message['text'])
 
         await AdministrationStates.none.set()
         await message.answer(f"Готово!")
