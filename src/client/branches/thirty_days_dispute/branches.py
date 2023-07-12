@@ -167,8 +167,13 @@ class CurrentDispute:
         loc = message.location
         # print(loc)
         tmp = get_timezone(loc)
+        user = User.objects.filter(user_id=message.from_user.id).last()
+        last_change = user.last_change_tz
+        if not last_change is None and datetime.datetime.today() < (last_change + datetime.timedelta(days=1)):
+            msg = f"Менее одного дня назад уже была изменена временная зона. С последнего изменения должен пройти 1 день."
+            await message.answer(text=msg)
+            return
         await state.update_data(timezone=tmp[:len(tmp) - 4])
-        user = await User.objects.filter(user_id=message.from_user.id).alast()
         user.timezone = tmp[:len(tmp) - 4]
         user.save()
         msg = f"Установлен часовой пояс {tmp}"
