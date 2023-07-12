@@ -120,7 +120,7 @@ class Administration:
     async def notify_all_users(self, message: types.Message):
         users = User.objects.all()
         for user in users:
-            bot.send_message(user.chat_id, message['text'])
+            await bot.send_message(user.chat_id, message['text'])
 
         await AdministrationStates.none.set()
         await message.answer(f"Готово!")
