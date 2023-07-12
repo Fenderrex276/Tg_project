@@ -113,7 +113,7 @@ class Administration:
     async def notify_all_administrators(self, message: types.Message):
         admins = DisputeAdmin.objects.filter(is_active=True).exclude(user_id=message["from"]["id"])
         for admin in admins:
-            await bot_a.send_message(admin.chat_id, message['text'])
+            await bot_a.send_message(chat_id=admin.chat_id, text=message['text'])
 
         await AdministrationStates.none.set()
         await message.answer(f"Готово!")
@@ -121,7 +121,7 @@ class Administration:
     async def notify_all_users(self, message: types.Message):
         users = User.objects.all()
         for user in users:
-            await bot_c.send_message(user.chat_id, message['text'])
+            await bot_c.send_message(chat_id=user.chat_id, text=message['text'])
 
         await AdministrationStates.none.set()
         await message.answer(f"Готово!")
