@@ -14,6 +14,7 @@ from .сallbacks import *
 logger = logging.getLogger(__name__)
 
 
+# TODO На каждую кнопку повесить проверку доступа
 class Admin:
     def __init__(self, bot: Bot, dp: Dispatcher):
         self.bot = bot

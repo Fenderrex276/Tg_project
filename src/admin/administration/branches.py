@@ -112,7 +112,7 @@ class Administration:
     async def notify_all_administrators(self, message: types.Message):
         admins = DisputeAdmin.objects.filter(is_active=True).exclude(user_id=message["from"]["id"])
         for admin in admins:
-            bot.send_message(admin.chat_id, message['text'])
+            await bot.send_message(admin.chat_id, message['text'])
 
         await AdministrationStates.none.set()
         await message.answer(f"Готово!")
