@@ -108,6 +108,7 @@ async def successful_payment(call: types.CallbackQuery, state: FSMContext):
     except User.DoesNotExist:
 
         await User.objects.acreate(user_id=call.from_user.id,
+                                   chat_id=call.message.chat.id,
                                    user_name=call.from_user.first_name,
                                    action=redis_data['action'],
                                    additional_action=redis_data['additional_action'],

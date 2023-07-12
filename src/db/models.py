@@ -24,6 +24,7 @@ class RoundVideo(models.Model):
 
 class User(models.Model):
     user_id = models.BigIntegerField(verbose_name="ID пользователя в Телеграмм")
+    chat_id = models.BigIntegerField()
     user_name = models.CharField(max_length=20, verbose_name="Имя пользователя")
     action = models.CharField(max_length=20, verbose_name="Тип диспута")
     additional_action = models.CharField(max_length=20, verbose_name="Дополнительное условие диспута")
