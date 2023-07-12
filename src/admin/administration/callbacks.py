@@ -159,35 +159,23 @@ async def list_promo(call: types.CallbackQuery, state: FSMContext):
 
 
 async def statistic(call: types.CallbackQuery, state: FSMContext):
-    users = User.objects.all()
     out_game = 0
     in_game = 0
     in_test_game = 0
     out_test_game = 0
-    for user in users:
-        tasks = PeriodicTask.objects.filter(user_id=user.user_id).values_list("fun", flat=True).distinct()
-        if "send_reminder_after_end" in tasks:
-            out_game += 1
-        elif "send_code" in tasks or "send_first_code" in tasks:
-            in_game += 1
-        elif "send_test_period_reminder" in tasks:
-            in_test_game += 1
-        elif "reminder" in tasks:
-            out_test_game += 1
 
-    '''
-    tasks = PeriodicTask.objects.all()  # .values_list("user_id", flat=True).distinct()
-    
+    tasks = PeriodicTask.objects.all()
+
     for task in tasks:
         if task.fun == "send_reminder_after_end":
             out_game += 1
-        elif task.fun in ["send_code", "send_first_code"]:
-            in_game += 1
         elif task.fun == "send_test_period_reminder":
             in_test_game += 1
+        elif task.fun in ["send_code", "send_first_code"]:
+            in_game += 1
         elif task.fun == "reminder":
             out_test_game += 1
-    '''
+
     msg = f"""
         [Статистика по боту]\n\n
         Окончили диспут: {out_game}\n\n
